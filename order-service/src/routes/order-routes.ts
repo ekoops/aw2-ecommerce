@@ -1,10 +1,9 @@
 import express from "express";
+import orderController from "../controllers/order-controller";
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
-  res.json({"message": "GET on /orders"})
-});
+router.get("/", orderController.getOrder);
 
 router.post("/", (req, res) => {
   res.json({"message": "POST on /orders"})
