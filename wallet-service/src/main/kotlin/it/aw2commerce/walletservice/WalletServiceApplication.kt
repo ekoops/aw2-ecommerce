@@ -1,4 +1,4 @@
-package com.example.walletservice
+package it.aw2commerce.walletservice
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

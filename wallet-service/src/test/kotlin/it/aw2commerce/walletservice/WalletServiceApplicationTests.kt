@@ -1,4 +1,4 @@
-package com.example.walletservice
+package it.aw2commerce.walletservice
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
