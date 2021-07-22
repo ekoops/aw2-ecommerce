@@ -10,9 +10,6 @@ import javax.persistence.*
 @Entity(name = "Wallet")
 @Table(name = "wallet")
 class Wallet(
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", referencedColumnName = "id", nullable = false)
-    var customer: Customer,
 
     @OneToMany(
         mappedBy = "purchasingWallet",
@@ -30,7 +27,11 @@ class Wallet(
 
     @field:Min(value = 0, message = "The wallet amount must be greater or equal than zero")
     @Column(name = "amount", nullable = false)
-    var amount: Long = 0
+    var amount: Long = 0,
+
+    @Column(name = "user", nullable = false)
+    var user: Long
+
 ) : EntityBase<Long>()
 
 fun Wallet.toWalletDTO(): WalletDTO {
