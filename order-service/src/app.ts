@@ -1,9 +1,10 @@
-
 import orderRoutes from "./routes/order-routes";
 
 import express, {ErrorRequestHandler, RequestHandler} from "express";
 
 const app = express();
+
+app.use(express.json());
 
 app.use((req, res) => {
     res.json({"demo": "demo"});
@@ -12,7 +13,7 @@ app.use((req, res) => {
 app.use("/orders", orderRoutes);
 
 const notFoundHandler: RequestHandler = (req, res, next) => {
-    const notFoundError = new AppError(404, "Route not found")
+    const notFoundError = new AppError(404, "Route not found");
     next(notFoundError);
 }
 
@@ -22,7 +23,6 @@ const exceptionHandler: ErrorRequestHandler = (err, req, res, next) => {
         err = internalServerError;
     }
     res.status(err.code).json(err);
-
 }
 
 app.use(notFoundHandler, exceptionHandler);

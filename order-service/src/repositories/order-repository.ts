@@ -8,6 +8,15 @@ export class OrderRepository {
     this.OrderModel = OrderModel;
   }
 
-  findOrderById(id: number): any {}
+  findOrderById(id: number): any {
+    this.OrderModel.findByPk(id, {
+      include
+    });
+  }
+
+  findAllOrders() {
+    return this.OrderModel.findAll;
+  }
+
 }
 export const orderRepository = new OrderRepository(models.Order);
