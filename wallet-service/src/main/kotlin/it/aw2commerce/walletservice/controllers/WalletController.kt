@@ -1,6 +1,8 @@
 package it.aw2commerce.walletservice.controllers
 
+import it.aw2commerce.walletservice.dto.TransactionDTO
 import it.aw2commerce.walletservice.dto.WalletDTO
+import it.aw2commerce.walletservice.dto.incoming.CreateTransactionRequestDTO
 import it.aw2commerce.walletservice.dto.incoming.CreateWalletRequestDTO
 import it.aw2commerce.walletservice.services.WalletService
 import org.springframework.http.HttpStatus
@@ -24,7 +26,23 @@ class WalletController(
     fun createWallet(
         @Valid @RequestBody walletDTO: CreateWalletRequestDTO,
     ): WalletDTO {
-        print("ciao")
         return walletService.createWallet(walletDTO.customerId)
     }
+
+
+   // @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
+    @PostMapping("/{walletId}/transactions")
+    @ResponseStatus(HttpStatus.CREATED)
+    fun createTransaction(
+       @PathVariable("walletId") walletId: Long,
+       @Valid @RequestBody createTransactionRequestDTO: CreateTransactionRequestDTO,
+    ): TransactionDTO = walletService.createWalletTransaction(
+        purchasingWalletId = walletId,
+        createTransactionRequestDTO = createTransactionRequestDTO
+    )
+
+
+
+
+
 }
