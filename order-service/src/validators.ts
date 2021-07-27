@@ -20,6 +20,7 @@ const checkErrors = (req: Request, res: Response, next: NextFunction) => {
   const validationErrors = validationResult(req);
   if (!validationErrors.isEmpty()) {
     const error = formatError(validationErrors);
+    console.log(JSON.stringify(error.messages, null, " "));
     return next(error);
   } else return next();
 };

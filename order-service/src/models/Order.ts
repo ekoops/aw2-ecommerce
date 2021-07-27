@@ -1,20 +1,21 @@
-import mongoose1 from "../db/db-nosql";
-import { Product, productSchema } from "./Product";
+import mongoose from "mongoose"
+import {Product, ProductDTO, productSchema, toProductDTO} from "./Product";
+import {OrderStatus, OrderStatusType, toStatusName} from "../db/OrderStatus";
 
 export interface Order {
-  _id: string;
-  buyerId: number;
-  createdAt: Date;
-  status: OrderStatusType;
+  _id?: string;
+  buyerId: string;
+  createdAt?: Date;
+  status?: OrderStatusType;
   products: Product[];
 }
 
 export interface OrderDTO {
-  id: string;
-  buyerId: number;
-  createdAt: Date;
-  status: OrderStatusType;
-  products: Product[];
+  id?: string;
+  buyerId: string;
+  createdAt?: Date;
+  status?: OrderStatusType;
+  products: ProductDTO[];
 }
 
 export const toOrderDTO = (order: Order): OrderDTO => {
@@ -23,15 +24,13 @@ export const toOrderDTO = (order: Order): OrderDTO => {
     buyerId: order.buyerId,
     createdAt: order.createdAt,
     status:order.status,
-    products: order.products
+    products: order.products.map(toProductDTO)
   }
 }
 
-
-
-const orderSchema = new mongoose1.Schema<Order>({
+const orderSchema = new mongoose.Schema<Order>({
   buyerId: {
-    type: Number,
+    type: mongoose.Schema.Types.ObjectId,
     required: [true, "The buyer id is required"],
   },
   createdAt: {
@@ -41,6 +40,7 @@ const orderSchema = new mongoose1.Schema<Order>({
   status: {
     type: String,
     enum: ["ISSUED", "DELIVERING", "DELIVERED", "FAILED", "CANCELED"],
+    default: toStatusName(OrderStatus.ISSUED),
     message: "{VALUE} is not supported",
   },
   products: {
@@ -58,4 +58,4 @@ orderSchema.virtual("purchasePrice").get(function (this: Order) {
   );
 });
 
-export const OrderModel = mongoose1.model<Order>("Order", orderSchema);
+export const OrderModel = mongoose.model<Order>("Order", orderSchema);

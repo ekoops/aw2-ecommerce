@@ -10,7 +10,7 @@ export class OrderRepository {
 
   findOrderById(id: number): any {
     this.OrderModel.findByPk(id, {
-      include
+
     });
   }
 

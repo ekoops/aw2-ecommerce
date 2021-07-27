@@ -11,16 +11,16 @@ router.get("/:id", validators.getOrder, checkErrors, orderController.getOrder);
 router.post(
   "/",
   validators.postOrder,
-  checkErrors
-  // orderController.postOrder
+  checkErrors,
+  orderController.postOrder
 );
 
-router.patch(
-  "/:id",
-  validators.patchOrder,
-  checkErrors
-  // orderController.patchOrder
-);
+// router.patch(
+//   "/:id",
+//   validators.patchOrder,
+//   checkErrors,
+//   orderController.patchOrder
+// );
 
 router.delete(
   "/:id",

@@ -1,23 +1,26 @@
 import config from "../config/config";
-import mongoose_ from "mongoose";
+import mongoose from "mongoose";
 
 const uri = `mongodb://${config.db.host}:${config.db.port}/${config.db.name}`;
 
-const mongoose = await (async (uri: string) => {
-    try {
-        await mongoose_.connect(uri, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
-        return await mongoose_.connect(uri, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
-    } catch (e) {
-        // TODO
-        throw Error("mongoose instance error");
-    }
-})(uri);
+const initDbConnection = (callback: () => void) => {
+  try {
+    mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    mongoose.set("runValidators", true);
+    mongoose.connection.on("error", err => {
+      console.log(`HANDLING ERROR AFTER INITIAL CONNECTION: ${err}`);
+    });
+    mongoose.connection.once("open", callback);
+  }
+  catch (ex) {
+    // initial connection fail
+    console.log("MONGODB INITIAL CONNECTION ERROR... TODO");
+  }
+};
 
-mongoose.set("runValidators", true);
-export default mongoose;
+
+
+export default initDbConnection;

@@ -1,16 +1,30 @@
-import mongoose1 from "../db/db-nosql";
+import mongoose from "mongoose";
 
 export interface Product {
   _id: string;
-  productId: number;
   amount: number;
   purchasePrice: number;
 }
 
-export const productSchema = new mongoose1.Schema<Product>({
+export interface ProductDTO {
+  id: string;
+  amount?: number;
+  purchasePrice?: number;
+}
+
+export const toProductDTO = (product: Product): ProductDTO => {
+  return {
+    id: product._id,
+    amount: product.amount,
+    purchasePrice: product.purchasePrice
+  }
+}
+
+export const productSchema = new mongoose.Schema<Product>({
   amount: {
     type: Number,
-    min: [1, "The products amount must be greater or equal than 1"],
+    required: [true, "The amount is required"],
+    min: [1, "The products amount must be greater or equal than 1"]
   },
   purchasePrice: {
     type: Number,
@@ -18,6 +32,6 @@ export const productSchema = new mongoose1.Schema<Product>({
   },
 });
 
-const ProductModel = mongoose1.model<Product>("Product", productSchema);
+const ProductModel = mongoose.model<Product>("Product", productSchema);
 
 export default ProductModel;

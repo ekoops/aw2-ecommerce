@@ -1,14 +1,12 @@
 import orderRoutes from "./routes/order-routes";
-
+import AppError from "./models/AppError";
 import express, {ErrorRequestHandler, RequestHandler} from "express";
+import morgan from "morgan";
 
 const app = express();
 
+app.use(morgan("dev"));
 app.use(express.json());
-
-app.use((req, res) => {
-    res.json({"demo": "demo"});
-});
 
 app.use("/orders", orderRoutes);
 

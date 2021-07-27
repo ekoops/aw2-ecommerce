@@ -1,4 +1,4 @@
-enum OrderStatus {
+export enum OrderStatus {
     ISSUED,
     DELIVERING,
     DELIVERED,
@@ -6,7 +6,7 @@ enum OrderStatus {
     CANCELED
 }
 
-function toStatusName(orderStatus: OrderStatus): string {
+export function toStatusName(orderStatus: OrderStatus): string {
     return OrderStatus[orderStatus];
 }
-type OrderStatusType = "ISSUED" | "DELIVERING" | "DELIVERED" | "FAILED" | "CANCELED";
+export type OrderStatusType = "ISSUED" | "DELIVERING" | "DELIVERED" | "FAILED" | "CANCELED";

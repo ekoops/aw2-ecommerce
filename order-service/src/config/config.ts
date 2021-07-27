@@ -7,7 +7,10 @@ const db_name = process.env.DB_NAME || "database";
 const db_user = process.env.DB_USER || "user";
 const db_pass = process.env.DB_PASS || "pass";
 const db_host = process.env.DB_HOST || "localhost";
-const db_port = process.env.DB_PORT || 3306;
+const db_port = process.env.DB_PORT || 27017;
+
+const TEST = process.env.TEST || "unknown";
+console.log(`<<<<<<<<<<<<<<<< ${TEST} >>>>>>>>>>>>>>>>>>>>>>>>>`);
 
 const dialects = ["mysql", "postgres", "sqlite", "mariadb", "mssql"];
 let db_dialect: Dialect;
