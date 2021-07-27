@@ -98,7 +98,16 @@ class WalletController(
     }
 
 
-
+ //   @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
+    @GetMapping("/{walletId}/transactions/{transactionId}")
+    @ResponseStatus(HttpStatus.OK)
+    fun getTransaction(
+        @PathVariable("walletId") walletId: Long,
+        @PathVariable("transactionId") transactionId: Long,
+    ): TransactionDTO = walletService.getWalletTransaction(
+        walletId = walletId,
+        transactionId = transactionId
+    )
 
 
 

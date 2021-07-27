@@ -23,6 +23,8 @@ interface WalletService {
         endDate: LocalDateTime,
         pageNumber: Int
     ): TransactionsPageDTO
+    fun getWalletTransaction(walletId: Long, transactionId: Long): TransactionDTO
+
 
 
 }

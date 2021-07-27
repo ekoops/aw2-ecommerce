@@ -10,6 +10,7 @@ import it.aw2commerce.walletservice.dto.TransactionsPageDTO
 import it.aw2commerce.walletservice.dto.WalletDTO
 import it.aw2commerce.walletservice.dto.incoming.CreateTransactionRequestDTO
 import it.aw2commerce.walletservice.exceptions.transaction.TransactionFailedException
+import it.aw2commerce.walletservice.exceptions.transaction.TransactionNotFoundException
 import it.aw2commerce.walletservice.exceptions.wallet.WalletNotFoundException
 import it.aw2commerce.walletservice.repositories.TransactionRepository
 import it.aw2commerce.walletservice.repositories.WalletRepository
@@ -132,6 +133,19 @@ class WalletServiceImpl(
             pageNumber = pageNumber,
             transactions = walletTransactionsDTO
         )
+    }
+
+    override fun getWalletTransaction(walletId: Long, transactionId: Long): TransactionDTO {
+        val wallet = getWalletEntity(walletId)
+        val optionalTransaction = transactionRepository.findByIdAndPurchasingWalletOrRechargingWallet(
+            id = transactionId,
+            purchasingWallet = wallet,
+            rechargingWallet = wallet
+        )
+        if (!optionalTransaction.isPresent) {
+            throw TransactionNotFoundException(id = transactionId)
+        }
+        return optionalTransaction.get().toTransactionDTO()
     }
 
 }
