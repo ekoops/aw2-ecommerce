@@ -2,6 +2,7 @@ package it.aw2commerce.walletservice.services
 
 import it.aw2commerce.walletservice.domain.Wallet
 import it.aw2commerce.walletservice.dto.TransactionDTO
+import it.aw2commerce.walletservice.dto.TransactionsPageDTO
 import it.aw2commerce.walletservice.dto.WalletDTO
 import it.aw2commerce.walletservice.dto.incoming.CreateTransactionRequestDTO
 import java.time.LocalDateTime
@@ -15,6 +16,13 @@ interface WalletService {
         purchasingWalletId: Long,
         createTransactionRequestDTO: CreateTransactionRequestDTO
     ): TransactionDTO
+    fun getWalletTransactions(walletId: Long, pageNumber: Int): TransactionsPageDTO
+    fun getWalletTransactionsInDateRange(
+        walletId: Long,
+        startDate: LocalDateTime,
+        endDate: LocalDateTime,
+        pageNumber: Int
+    ): TransactionsPageDTO
 
 
 }

@@ -6,6 +6,7 @@ import it.aw2commerce.walletservice.domain.Wallet
 import it.aw2commerce.walletservice.domain.toTransactionDTO
 import it.aw2commerce.walletservice.domain.toWalletDTO
 import it.aw2commerce.walletservice.dto.TransactionDTO
+import it.aw2commerce.walletservice.dto.TransactionsPageDTO
 import it.aw2commerce.walletservice.dto.WalletDTO
 import it.aw2commerce.walletservice.dto.incoming.CreateTransactionRequestDTO
 import it.aw2commerce.walletservice.exceptions.transaction.TransactionFailedException
@@ -13,9 +14,11 @@ import it.aw2commerce.walletservice.exceptions.wallet.WalletNotFoundException
 import it.aw2commerce.walletservice.repositories.TransactionRepository
 import it.aw2commerce.walletservice.repositories.WalletRepository
 import it.aw2commerce.walletservice.services.WalletService
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import kotlin.streams.toList
 
 @Service
 @Transactional
@@ -95,5 +98,40 @@ class WalletServiceImpl(
         }
     }
 
+
+    override fun getWalletTransactions(walletId: Long, pageNumber: Int): TransactionsPageDTO {
+        val wallet = getWalletEntity(walletId)
+        val transactionsPage = transactionRepository.findAllByPurchasingWalletOrRechargingWallet(
+            purchasingWallet = wallet,
+            rechargingWallet = wallet,
+            pageable = PageRequest.of(pageNumber, TransactionRepository.TRANSACTION_PAGE_SIZE)
+        )
+        val walletTransactionsDTO = transactionsPage.get().map { it.toTransactionDTO() }.toList()
+        return TransactionsPageDTO(
+            pageNumber = pageNumber,
+            transactions = walletTransactionsDTO
+        )
+    }
+
+
+    override fun getWalletTransactionsInDateRange(
+        walletId: Long,
+        startDate: LocalDateTime,
+        endDate: LocalDateTime,
+        pageNumber: Int
+    ): TransactionsPageDTO {
+        val wallet = getWalletEntity(walletId)
+        val transactionsPage = transactionRepository.customFindByWalletAndTimeInstantBetween(
+            wallet = wallet,
+            startDate = startDate,
+            endDate = endDate,
+            pageable = PageRequest.of(pageNumber, TransactionRepository.TRANSACTION_PAGE_SIZE)
+        )
+        val walletTransactionsDTO = transactionsPage.get().map { it.toTransactionDTO() }.toList()
+        return TransactionsPageDTO(
+            pageNumber = pageNumber,
+            transactions = walletTransactionsDTO
+        )
+    }
 
 }
