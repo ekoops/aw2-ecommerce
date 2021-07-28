@@ -2,6 +2,7 @@ package it.polito.ecommerce.catalogservice.domain
 
 import it.polito.ecommerce.catalogservice.dto.UserDTO
 import it.polito.ecommerce.catalogservice.dto.UserDetailsDTO
+import it.polito.ecommerce.catalogservice.exceptions.user.ActionNotPermittedException
 import it.polito.ecommerce.catalogservice.exceptions.user.InconsistentUserException
 import org.springframework.data.annotation.Id
 import javax.validation.constraints.NotEmpty
@@ -11,21 +12,13 @@ data class User(
     @Id
     val id: Long? = null,
 
-    @field:NotNull(message = "A name must be specified")
-    @field:NotEmpty(message = "The name field must be not empty")
-    val name: String,
-
-    @field:NotNull(message = "A surnname must be specified")
-    @field:NotEmpty(message = "The surname field must be not empty")
-    val surname: String,
+    @field:NotNull(message = "A username must be specified")
+    @field:NotEmpty(message = "The username field must be not empty")
+    val username: String,
 
     @field:NotNull(message = "An email must be specified")
     @field:NotEmpty(message = "The email field must be not empty")
     val email: String,
-
-    @field:NotNull(message = "A delivery address must be specified")
-    @field:NotEmpty(message = "The delivery_address field must be not empty")
-    val delivery_address: String,
 
     @field:NotNull(message = "A password must be specified")
     @field:NotEmpty(message = "The password field must be not empty")
@@ -35,60 +28,108 @@ data class User(
 
     val isLocked: Boolean = false,
 
-    val role: Rolename
+//    val customer: Customer,
+
+//    val emailVerificationToken: EmailVerificationToken,
+
+    val rolesList: List<Rolename>
 
 ){
 
     @field:NotEmpty(message = "The roles field must be not empty")
-    private val roles: String = role.toString()
+    private val roles: String = rolesList.distinct().joinToString(separator = ",")
 
     fun getRolenames(): Set<Rolename> {
         return this.roles.split(",").map { Rolename.valueOf(it) }.toSet()
     }
-/*
-    fun addRolename(rolename: Rolename): Boolean {
-        if (this.roles.contains(rolename.toString())) return false
-        this.roles += ",$rolename"
-        return true
+
+    fun addRolename(rolename: Rolename): User? {
+        if (this.roles.contains(rolename.toString())) return null
+        val newRoleList= rolesList+rolename
+        return User(
+            id = id,
+            username = username,
+            password = password,
+            email = email,
+            isEnabled= isEnabled,
+            isLocked = isLocked,
+            rolesList = newRoleList,
+        )
     }
 
-    fun removeRolename(rolename: Rolename): Boolean {
+    fun removeRolename(rolename: Rolename): User? {
         val roleList = this.roles.split(",").toMutableList()
-        if (roleList.size == 1) return false
-        val hasBeenRemoved = roleList.remove(rolename.toString())
+        if (roleList.size == 1) return null
+        val hasBeenRemoved = roleList.remove(rolename)
         if (hasBeenRemoved) {
-            this.roles = roleList.joinToString(separator = ",")
+            return User(
+                id = id,
+                username = username,
+                password = password,
+                email = email,
+                isEnabled= isEnabled,
+                isLocked = isLocked,
+                rolesList = rolesList
+            )
         }
-        return hasBeenRemoved
+        return null
     }
 
-    fun enableUser(): Boolean {
-        if (this.isEnabled) return false
-        witheEnableUser() = true
-        return true
-    }
-    fun disableUser(): Boolean {
-        if (!this.isEnabled) return false
-        this.isEnabled = false
-        return true
+    fun enableUser(): User? {
+        if (this.isEnabled) return null
+        return User(
+            id = id,
+            username = username,
+            password = password,
+            email = email,
+            isEnabled= true,
+            isLocked = isLocked,
+            rolesList = rolesList
+        )
     }
 
-    fun lockUser(): Boolean {
+    fun disableUser(): User? {
+        if (!this.isEnabled) return null
+        return User(
+            id = id,
+            username = username,
+            password = password,
+            email = email,
+            isEnabled= false,
+            isLocked = isLocked,
+            rolesList = rolesList
+        )
+    }
+
+    fun lockUser(): User? {
         if (this.getRolenames().contains(Rolename.ADMIN)) {
             throw ActionNotPermittedException("Cannot lock an admin")
         }
-        if (this.isLocked) return false
-        this.isLocked = true
-        return true
+        if (this.isLocked) return null
+        return User(
+            id = id,
+            username = username,
+            password = password,
+            email = email,
+            isEnabled= isEnabled,
+            isLocked = true,
+            rolesList = rolesList
+        )
     }
 
-    fun unlockUser(): Boolean {
-        if (!this.isLocked) return false
-        this.isLocked = false
-        return true
+    fun unlockUser(): User? {
+        if (!this.isLocked) return null
+        return User(
+            id = id,
+            username = username,
+            password = password,
+            email = email,
+            isEnabled= isEnabled,
+            isLocked = false,
+            rolesList = rolesList
+        )
     }
 
- */
 }
 
 fun User.toUserDetailsDTO(): UserDetailsDTO {
@@ -97,8 +138,7 @@ fun User.toUserDetailsDTO(): UserDetailsDTO {
     )
     return UserDetailsDTO(
         id = id,
-        name = this.name,
-        surname = this.surname,
+        username = this.username,
         password = this.password,
         email = this.email,
         roles = this.getRolenames(),
@@ -113,7 +153,7 @@ fun User.toUserDTO(): UserDTO {
     )
     return UserDTO(
         id = id,
-        username = this.name,
+        username = this.username,
         email = this.email
     )
 }

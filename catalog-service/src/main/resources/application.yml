@@ -1,6 +1,13 @@
 spring:
   application:
-    name: gateway
+    name: CatalogService
+  r2dbc:
+    url: r2dbc:mariadb://localhost:3306/catalogservice
+    username: giuseppe
+    password: toor
+    pool:
+      enabled: true
+      max-size: 10
   cloud:
     gateway:
       routes:

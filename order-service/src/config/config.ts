@@ -9,8 +9,8 @@ const db_pass = process.env.DB_PASS || "pass";
 const db_host = process.env.DB_HOST || "localhost";
 const db_port = process.env.DB_PORT || 27017;
 
-const TEST = process.env.TEST || "unknown";
-console.log(`<<<<<<<<<<<<<<<< ${TEST} >>>>>>>>>>>>>>>>>>>>>>>>>`);
+const NODE_ENV = process.env.NODE_ENV || "unknown";
+console.log(`<<<<<<<<<<<<<<<< ${NODE_ENV} >>>>>>>>>>>>>>>>>>>>>>>>>`);
 
 const dialects = ["mysql", "postgres", "sqlite", "mariadb", "mssql"];
 let db_dialect: Dialect;

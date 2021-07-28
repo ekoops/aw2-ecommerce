@@ -2,7 +2,7 @@ FROM node:14.17.3
 
 WORKDIR /home/app/server
 
-COPY package*.json ./
+COPY ["package.json", "package-lock.json", "./"]
 
 RUN npm ci --only=production
 
@@ -13,4 +13,5 @@ USER app
 
 EXPOSE 3000
 
-ENTRYPOINT [ "node", "-r", "dotenv/config", "server.js", "dotenv_config_path=config.env" ]
+ENTRYPOINT [ "node", "server.js" ]
+#ENTRYPOINT ["/bin/bash"]
