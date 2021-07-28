@@ -12,7 +12,7 @@ const formatError = (errors: Result<ValidationError>) => {
     name: "INVALID_FIELDS",
     messages: errors
         .array()
-        .map((err) => ({ field: err.param, message: err.msg })),
+        .map((err: any) => ({ field: err.param, message: err.msg })),
   };
 };
 
