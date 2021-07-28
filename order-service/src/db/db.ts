@@ -69,16 +69,57 @@ const sequelize = new Sequelize(
     sequelize_options
 );
 
-const Order = sequelize.define("Order", {
+const Order = sequelize.define("order", {
   name: {
     type: DataTypes.STRING(50),
     allowNull: false,
     // primaryKey: true
-  }
+  },
+  buyerId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    field: "buyer_id"
+  },
+
+  // purchasePrice: {
+  //
+  // }
+  status: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
 }, {
   tableName: "order",
   timestamps: false
 });
+
+const Product = sequelize.define("product", {
+  orderId: {
+    type: DataTypes.INTEGER,
+    field: "order_id",
+    primaryKey: true
+  },
+  productId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    field: "product_id",
+    primaryKey: true
+  },
+  amount: {
+    type: DataTypes.INTEGER.UNSIGNED,
+    allowNull: false
+  },
+}, {
+  tableName: "product",
+  timestamps: false
+});
+
+Order.hasMany(Product, {
+  foreignKey: "order_id",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE"
+});
+Product.belongsTo(Order);
 
 (async () => {
   await sequelize.authenticate()

@@ -1,4 +1,4 @@
-class AppError {
+export default class AppError {
   code: number;
   message: string;
 

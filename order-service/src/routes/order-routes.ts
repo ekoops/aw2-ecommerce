@@ -1,24 +1,32 @@
 import express from "express";
 import orderController from "../controllers/order-controller";
+import { validators, checkErrors } from "../validators";
 
 const router = express.Router();
 
-router.get("/", orderController.getOrder);
+router.get("/", validators.getOrders, checkErrors, orderController.getOrders);
 
-router.post("/", (req, res) => {
-  res.json({"message": "POST on /orders"})
-});
+router.get("/:id", validators.getOrder, checkErrors, orderController.getOrder);
 
-router.put("/", (req, res) => {
-  res.json({"message": "PUT on /orders"})
-});
+router.post(
+  "/",
+  validators.postOrder,
+  checkErrors,
+  orderController.postOrder
+);
 
-router.patch("/", (req, res) => {
-  res.json({"message": "PATCH on /orders"})
-});
+// router.patch(
+//   "/:id",
+//   validators.patchOrder,
+//   checkErrors,
+//   orderController.patchOrder
+// );
 
-router.delete("/", (req, res) => {
-  res.json({"message": "DELETE on /orders"})
-});
+router.delete(
+  "/:id",
+  validators.deleteOrder,
+  checkErrors,
+  orderController.deleteOrder
+);
 
 export = router;
