@@ -4,7 +4,7 @@ create table if not exists `catalogservice`.`user`(
     email VARCHAR (255) not null,
     password VARCHAR (255) not null,
     isEnable TINYINT(1) not null,
-    isBlocked TINYINT(1) not null,
+    isLocked TINYINT(1) not null,
     role VARCHAR (255) not null
 );
 

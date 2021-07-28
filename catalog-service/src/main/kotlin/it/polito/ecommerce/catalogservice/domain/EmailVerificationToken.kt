@@ -18,7 +18,8 @@ data class EmailVerificationToken(
 )
 
 fun EmailVerificationToken.toEmailVerificationTokenDTO(userRepository: UserRepository) = EmailVerificationTokenDTO(
-    username = userRepository.findUsernameById(this.user_id).toString(), //TODO come lo ricavo lo user?
+    user_id = this.user_id,
+    //username = userRepository.findUsernameById(this.user_id).toString(), //TODO come lo ricavo lo user?
     expirationDate = this.expirationDate,
     token = this.token
 )
