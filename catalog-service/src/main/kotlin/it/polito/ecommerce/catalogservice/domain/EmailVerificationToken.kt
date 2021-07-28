@@ -1,6 +1,7 @@
 package it.polito.ecommerce.catalogservice.domain
 
 import it.polito.ecommerce.catalogservice.dto.EmailVerificationTokenDTO
+import it.polito.ecommerce.catalogservice.repositories.UserRepository
 import org.springframework.data.annotation.Id
 import java.time.LocalDateTime
 import java.util.*
@@ -16,8 +17,8 @@ data class EmailVerificationToken(
     val user_id: Long
 )
 
-fun EmailVerificationToken.toEmailVerificationTokenDTO() = EmailVerificationTokenDTO(
-    //username = this.user.username, //TODO come lo ricavo lo user?
+fun EmailVerificationToken.toEmailVerificationTokenDTO(userRepository: UserRepository) = EmailVerificationTokenDTO(
+    username = userRepository.findUsernameById(this.user_id).toString(), //TODO come lo ricavo lo user?
     expirationDate = this.expirationDate,
     token = this.token
 )

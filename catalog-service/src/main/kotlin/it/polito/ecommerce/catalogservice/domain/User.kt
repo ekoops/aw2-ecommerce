@@ -35,6 +35,7 @@ data class User(
 
     val isLocked: Boolean = false,
 
+    //TODO: ???
     val role: Rolename
 
 ){
@@ -45,6 +46,8 @@ data class User(
     fun getRolenames(): Set<Rolename> {
         return this.roles.split(",").map { Rolename.valueOf(it) }.toSet()
     }
+
+//TODO: capire come implementare i metodi che cambiano le properties
 /*
     fun addRolename(rolename: Rolename): Boolean {
         if (this.roles.contains(rolename.toString())) return false

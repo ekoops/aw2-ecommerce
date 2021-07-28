@@ -45,4 +45,10 @@ class DBConfig : AbstractR2dbcConfiguration(){
         return cfi
     }
 
+    override fun getCustomConverters(): MutableList<Any> {
+        return mutableListOf()
+    }
+
 }
+
+
