@@ -8,9 +8,9 @@ import reactor.core.publisher.Mono
 
 @Repository
 interface UserRepository : ReactiveCrudRepository<User, Long> {
-    fun findByName(name: String): Mono<User>
+    fun findByName(username: String): Mono<User>
     fun existsByNameOrEmail(
-        name: String,
+        username: String,
         email: String
     ): Mono<Boolean>
 

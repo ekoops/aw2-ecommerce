@@ -11,21 +11,13 @@ data class User(
     @Id
     val id: Long? = null,
 
-    @field:NotNull(message = "A name must be specified")
-    @field:NotEmpty(message = "The name field must be not empty")
-    val name: String,
-
-    @field:NotNull(message = "A surnname must be specified")
-    @field:NotEmpty(message = "The surname field must be not empty")
-    val surname: String,
+    @field:NotNull(message = "A username must be specified")
+    @field:NotEmpty(message = "The username field must be not empty")
+    val username: String,
 
     @field:NotNull(message = "An email must be specified")
     @field:NotEmpty(message = "The email field must be not empty")
     val email: String,
-
-    @field:NotNull(message = "A delivery address must be specified")
-    @field:NotEmpty(message = "The delivery_address field must be not empty")
-    val delivery_address: String,
 
     @field:NotNull(message = "A password must be specified")
     @field:NotEmpty(message = "The password field must be not empty")
@@ -35,7 +27,10 @@ data class User(
 
     val isLocked: Boolean = false,
 
-    //TODO: ???
+//    val customer: Customer,
+
+//    val emailVerificationToken: EmailVerificationToken,
+
     val role: Rolename
 
 ){
@@ -100,8 +95,7 @@ fun User.toUserDetailsDTO(): UserDetailsDTO {
     )
     return UserDetailsDTO(
         id = id,
-        name = this.name,
-        surname = this.surname,
+        username = this.username,
         password = this.password,
         email = this.email,
         roles = this.getRolenames(),
@@ -116,7 +110,7 @@ fun User.toUserDTO(): UserDTO {
     )
     return UserDTO(
         id = id,
-        username = this.name,
+        username = this.username,
         email = this.email
     )
 }

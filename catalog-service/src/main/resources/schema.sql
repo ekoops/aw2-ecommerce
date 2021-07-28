@@ -1,9 +1,10 @@
 create table if not exists `catalogservice`.`user`(
     id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR (255) not null,
-    surname VARCHAR (255) not null,
+    username VARCHAR (255) not null,
     email VARCHAR (255) not null,
-    delivery_address VARCHAR (255) not null,
+    password VARCHAR (255) not null,
+    isEnable TINYINT(1) not null,
+    isBlocked TINYINT(1) not null,
     role VARCHAR (255) not null
 );
 

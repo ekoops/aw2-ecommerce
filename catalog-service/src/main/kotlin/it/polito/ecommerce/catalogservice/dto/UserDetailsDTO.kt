@@ -7,8 +7,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 
 data class UserDetailsDTO(
     private val id: Long,
-    private val name: String,
-    private val surname: String,
+    private val username: String,
     private val password: String? = null,
     private val email: String,
     private val roles: Set<Rolename>,
