@@ -21,16 +21,22 @@ export class OrderRepositoryNosql {
 
   async findAllOrders(): Promise<Order[]> {
     // const findOrders = promisify<Order[]>(OrderModel.find.bind(OrderModel));
+
     const orders: Order[] = await OrderModel.find();
     console.log("FIND ALL - ", orders);
     return orders;
   }
 
-  async createOrder(order: Order): Promise<Order | null> {
+  async createOrder(order: Order): Promise<Order> {
     const orderModel = new OrderModel(order);
     const concreteOrder = await orderModel.save();
     console.log("CREATE - ", concreteOrder);
     return concreteOrder;
+  }
+
+  async save(order: Order): Promise<Order> {
+    // @ts-ignore
+    return order.save();
   }
 
   async deleteOrderById(id: string): Promise<boolean> {

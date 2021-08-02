@@ -1,5 +1,5 @@
 import orderRoutes from "./routes/order-routes";
-import AppError from "./models/AppError";
+import ErrorResponse from "./models/ErrorResponse";
 import express, {ErrorRequestHandler, RequestHandler} from "express";
 import morgan from "morgan";
 
@@ -11,13 +11,13 @@ app.use(express.json());
 app.use("/orders", orderRoutes);
 
 const notFoundHandler: RequestHandler = (req, res, next) => {
-    const notFoundError = new AppError(404, "Route not found");
+    const notFoundError = new ErrorResponse(404, "Route not found");
     next(notFoundError);
 }
 
-const internalServerError = new AppError(500, "InternalServerError");
+const internalServerError = new ErrorResponse(500, "InternalServerError");
 const exceptionHandler: ErrorRequestHandler = (err, req, res, next) => {
-    if (!(err instanceof AppError)) {
+    if (!(err instanceof ErrorResponse)) {
         err = internalServerError;
     }
     res.status(err.code).json(err);

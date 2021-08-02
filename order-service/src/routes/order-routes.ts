@@ -15,12 +15,12 @@ router.post(
   orderController.postOrder
 );
 
-// router.patch(
-//   "/:id",
-//   validators.patchOrder,
-//   checkErrors,
-//   orderController.patchOrder
-// );
+router.patch(
+  "/:id",
+  validators.patchOrder,
+  checkErrors,
+  orderController.patchOrder
+);
 
 router.delete(
   "/:id",
