@@ -3,70 +3,91 @@ import {
   OrderRepositoryNosql,
 } from "../repositories/order-repository-nosql";
 import { Order, OrderDTO, toOrderDTO } from "../models/Order";
-import { OrderStatusType } from "../db/OrderStatus";
-import { Product, ProductDTO, toProductDTO } from "../models/Product";
+import { OrderStatus, toStatusName } from "../db/OrderStatus";
+import { Product, ProductDTO } from "../models/Product";
+import AppError from "../models/AppError";
 
 export class OrderService {
-  orderRepository: OrderRepositoryNosql;
-  constructor(orderRepository: OrderRepositoryNosql) {
-    this.orderRepository = orderRepository;
-  }
-  async getOrder(id: string): Promise<OrderDTO | null> {
-    try {
-      const order = await orderRepository.findOrderById(id);
-      if (order === null) return null;
-      return toOrderDTO(order);
-    } catch (ex) {
-      // TODO handle exception
-      return null;
-    }
+  constructor(private orderRepository: OrderRepositoryNosql) {}
+
+  getOrder(id: string): Promise<OrderDTO | AppError> {
+    return orderRepository.findOrderById(id).then((order) => {
+      if (order === null) {
+        return new AppError(`No order with id ${id}`);
+      } else {
+        return toOrderDTO(order);
+      }
+    }); // can throw
   }
 
-  async getOrders(): Promise<OrderDTO[]> {
-    try {
-      const orders = await orderRepository.findAllOrders();
-      return orders.map(toOrderDTO);
-    } catch (ex) {
-      // TODO handle exception
-      return [];
-    }
+  getOrders(): Promise<OrderDTO[]> {
+    return orderRepository
+      .findAllOrders()
+      .then((orders) => orders.map(toOrderDTO));
   }
 
-  async addOrder(orderDTO: OrderDTO): Promise<OrderDTO | null> {
-    try {
-      const order: Order = {
-        buyerId: orderDTO.buyerId,
-        products: orderDTO.products.map(
-          (product: ProductDTO): Product => ({
-            _id: product.id!,
-            amount: product.amount!,
-            // TODO: the purchasePrice is actually mocked!!
-            purchasePrice: 3.0,
-          })
-        ),
-      };
-      const createdOrder = await orderRepository.createOrder(order);
-      if (createdOrder !== null) return toOrderDTO(createdOrder);
-      else return null;
-    } catch (ex) {
-      // TODO
-      console.log(ex);
-      return null;
-    }
+  addOrder(orderDTO: OrderDTO): Promise<OrderDTO> {
+    const order: Order = {
+      buyerId: orderDTO.buyerId,
+      products: orderDTO.products.map(
+        (product: ProductDTO): Product => ({
+          _id: product.id!,
+          amount: product.amount!,
+          // TODO: the purchasePrice is actually mocked!!
+          purchasePrice: 3.0,
+        })
+      ),
+    };
+    return orderRepository.createOrder(order).then(toOrderDTO);
   }
 
-  // modifyOrder(order: OrderDTO) {
-  //   return {};
-  //   // return orderRepository.updateOrder(order);
-  // }
+  async modifyOrderStatus(
+    id: string,
+    newStatus: OrderStatus
+  ): Promise<OrderDTO | AppError> {
+    const order = await orderRepository.findOrderById(id); // can throw
+    if (order === null) return new AppError(`No order with id ${id}`);
 
-  async deleteOrder(id: string): Promise<boolean> {
-    try {
-      return await orderRepository.deleteOrderById(id);
-    } catch (ex) {
-      // TODO handle exception
-      return false;
+    // TODO change mock variables
+    const isUser = true;
+    const isAdmin = false;
+
+    const actualStatus = order.status! as unknown as OrderStatus;
+    const actualStatusName = toStatusName(actualStatus);
+    const newStatusName = toStatusName(newStatus);
+    if (isUser) {
+      if (
+        actualStatus === OrderStatus.ISSUED &&
+        newStatus === OrderStatus.CANCELED
+      ) {
+        order.status = newStatusName;
+        // TODO: recharge user wallet and warehouse product availability
+        return orderRepository.save(order).then(toOrderDTO); // can throw
+      }
+    } else if (isAdmin) {
+      if (
+        (newStatus === OrderStatus.DELIVERING &&
+          actualStatus === OrderStatus.ISSUED) ||
+        (newStatus === OrderStatus.DELIVERED &&
+          actualStatus === OrderStatus.DELIVERING) ||
+        (newStatus === OrderStatus.FAILED &&
+          (actualStatus === OrderStatus.ISSUED ||
+            actualStatus === OrderStatus.DELIVERING))
+      ) {
+        if (newStatus === OrderStatus.FAILED) {
+          // TODO: recharge user wallet and warehouse product availability
+        }
+        order.status = toStatusName(newStatus);
+        return orderRepository.save(order).then(toOrderDTO); // can throw
+      }
     }
+    return new AppError(
+      `The requested change of state is not allowed (${actualStatusName} -> ${newStatusName})`
+    );
+  }
+
+  deleteOrder(id: string): Promise<boolean> {
+      return orderRepository.deleteOrderById(id);
   }
 }
 

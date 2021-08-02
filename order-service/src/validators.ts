@@ -1,6 +1,14 @@
-import { param, body, ValidationChain, validationResult, Result, ValidationError} from "express-validator";
+import {
+  param,
+  body,
+  ValidationChain,
+  validationResult,
+  Result,
+  ValidationError,
+} from "express-validator";
 import mongoose from "mongoose";
-import {NextFunction, Request, RequestHandler, Response} from "express";
+import { NextFunction, Request, RequestHandler, Response } from "express";
+import { OrderStatus } from "./db/OrderStatus";
 
 interface Validators {
   [key: string]: ValidationChain[];
@@ -11,8 +19,8 @@ const formatError = (errors: Result<ValidationError>) => {
     code: 400,
     name: "INVALID_FIELDS",
     messages: errors
-        .array()
-        .map((err) => ({ field: err.param, message: err.msg })),
+      .array()
+      .map((err) => ({ field: err.param, message: err.msg })),
   };
 };
 
@@ -47,13 +55,15 @@ const validators: Validators = {
       .withMessage("The products amount must be greater than 0"),
   ],
   patchOrder: [
-      validateId(param("id"))
-      // TODO validate body
+    validateId(param("id")),
+    body("status").custom((status) =>
+        // TODO optimize check
+      Object.keys(OrderStatus)
+        .filter((s) => isNaN(+s))
+        .includes(status)
+    ),
   ],
   deleteOrder: [validateId(param("id"))],
 };
 
-export {
-  checkErrors,
-  validators
-};
+export { checkErrors, validators };

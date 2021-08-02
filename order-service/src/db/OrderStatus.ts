@@ -1,3 +1,5 @@
+import {type} from "os";
+
 export enum OrderStatus {
     ISSUED,
     DELIVERING,
@@ -6,7 +8,8 @@ export enum OrderStatus {
     CANCELED
 }
 
-export function toStatusName(orderStatus: OrderStatus): string {
-    return OrderStatus[orderStatus];
+export function toStatusName(orderStatus: OrderStatus): OrderStatusType {
+    return OrderStatus[orderStatus] as OrderStatusType;
 }
 export type OrderStatusType = "ISSUED" | "DELIVERING" | "DELIVERED" | "FAILED" | "CANCELED";
+
