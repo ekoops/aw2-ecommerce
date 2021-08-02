@@ -10,7 +10,6 @@ import java.time.LocalDateTime
 interface WalletService {
     fun createWallet(customerId: Long): WalletDTO
     fun getWallet(walletId: Long): WalletDTO
-    fun getWalletEntity(walletId: Long): Wallet
     fun getCustomerIdFromWalletId(walletId: Long): Long?
     fun createWalletTransaction(
         purchasingWalletId: Long,

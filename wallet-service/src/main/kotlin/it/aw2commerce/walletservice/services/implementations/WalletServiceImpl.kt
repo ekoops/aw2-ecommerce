@@ -28,12 +28,15 @@ class WalletServiceImpl(
     private val transactionRepository: TransactionRepository
 ) : WalletService {
 
-    override fun getWalletEntity(walletId: Long): Wallet {
+    private fun getWalletEntity(walletId: Long): Wallet {
         val optionalWallet = walletRepository.findById(walletId)
         if (!optionalWallet.isPresent) {
             throw WalletNotFoundException(id = walletId)
         }
         return optionalWallet.get()
+    }
+    private fun getWalletEntityByCustomerId(customerId: Long): Wallet {
+     return walletRepository.getWalletByCustomerId(customerId) ?: throw WalletNotFoundException(id = customerId)
     }
 
     override fun getCustomerIdFromWalletId(walletId: Long): Long? {
@@ -54,7 +57,7 @@ class WalletServiceImpl(
 //            throw CustomerNotFoundException(id = customerId)
 //        }
         val newWallet = Wallet(
-            customer = customerId,
+            customerId = customerId,
             purchasingTransactions = emptySet(),
             rechargingTransactions = emptySet(),
         )
@@ -69,13 +72,19 @@ class WalletServiceImpl(
         createTransactionRequestDTO: CreateTransactionRequestDTO
     ): TransactionDTO {
         // 404 if not present...
-        val purchasingWallet = getWalletEntity(purchasingWalletId)
+        //TODO check admin
+        val isAdmin = false
+        val customerId = 0L
+
+        val purchasingWallet =  if(isAdmin) this.getWalletEntityByCustomerId(customerId)
+          else getWalletEntity(purchasingWalletId)
         try {
             // 422 if not present...
             val rechargingWallet = getWalletEntity(createTransactionRequestDTO.rechargingWalletId)
 
             val amountToLong = (createTransactionRequestDTO.amount * 100).toLong()
-            if (purchasingWallet.amount < amountToLong) {
+
+            if (purchasingWallet.amount < amountToLong && !isAdmin) {
                 throw TransactionFailedException(
                     detail = "Insufficient balance to perform transaction"
                 )
@@ -89,7 +98,7 @@ class WalletServiceImpl(
             )
             val createdTransaction = transactionRepository.save(newTransaction)
 
-            purchasingWallet.amount -= newTransaction.amount
+            if (!isAdmin) purchasingWallet.amount -= newTransaction.amount
             rechargingWallet.amount += newTransaction.amount
 
             return createdTransaction.toTransactionDTO()

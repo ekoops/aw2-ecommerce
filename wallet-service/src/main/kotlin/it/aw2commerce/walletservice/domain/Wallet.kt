@@ -13,8 +13,8 @@ import javax.validation.constraints.NotNull
 class Wallet(
 
     @NotNull
-    @Column(name = "user", nullable = false)
-    var customer: Long,
+    @Column(name = "customerId", nullable = false)
+    var customerId: Long,
 
     @OneToMany(
         mappedBy = "purchasingWallet",
@@ -38,14 +38,14 @@ class Wallet(
 ) : EntityBase<Long>()
 
 fun Wallet.toWalletDTO(): WalletDTO {
-    if (this.getId() == null || this.customer == null) {
+    if (this.getId() == null || this.customerId == null) {
         throw InconsistentWalletException(
             message = "Wallet id or wallet customer id are undefined"
         )
     }
     return WalletDTO(
         id = this.getId()!!,
-        customerId = this.customer!!,
+        customerId = this.customerId!!,
         amount = this.amount.toDouble() / 100
     )
 }
