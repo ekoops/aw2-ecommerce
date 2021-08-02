@@ -4,7 +4,6 @@ import it.polito.ecommerce.catalogservice.exceptions.BasicApplicationException
 import it.polito.ecommerce.catalogservice.exceptions.ErrorType
 import org.springframework.mail.MailException
 
-//TODO: capire perchè non trova mail
 
 class CreateUserInternalException(
     type: ErrorType = ErrorType.CREATE_USER_ERROR,

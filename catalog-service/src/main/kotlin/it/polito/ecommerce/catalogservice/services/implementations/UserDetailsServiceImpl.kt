@@ -31,8 +31,6 @@ class UserDetailsServiceImpl(
     private val customerRepository: CustomerRepository,
     //private val notificationService: NotificationService,
     //private val mailService: MailService,
-
-    //TODO: capire perchè dà errore
     private val passwordEncoder: PasswordEncoder
 ) : UserDetailsService {
    private val baseEmailVerificationUrl = "http://$host:$port$contextPath/auth/confirmRegistration?token="
@@ -180,48 +178,6 @@ class UserDetailsServiceImpl(
         .getUserById(id)
         .unlockUser()
 
-/*
-    fun enableUser2(username: String): Boolean
-            = this
-    .getUserByUsername(username)
-        .enableUser()
-
-    fun disableUser(username: String): Boolean
-            = this
-        .getUserByUsername(username)
-        .disableUser()
-
-    fun addUserRole(username: String, role: String): Boolean {
-        try {
-            val rolename = Rolename.valueOf(role)
-            val user = this.getUserByUsername(username)
-            return user.addRolename(rolename = rolename)
-        } catch (ex: IllegalArgumentException) {
-            throw NoSuchRoleException(role = role)
-        }
-    }
-
-    fun removeUserRole(username: String, role: String): Boolean {
-        try {
-            val rolename = Rolename.valueOf(role)
-            val user = this.getUserByUsername(username)
-            return user.removeRolename(rolename = rolename)
-        } catch (ex: IllegalArgumentException) {
-            throw NoSuchRoleException(role = role)
-        }
-    }
-
-    fun lockUser(id: Long)
-            = this
-        .getUserById(id)
-        .lockUser()
-
-    fun unlockUser(id: Long)
-            = this
-        .getUserById(id)
-        .unlockUser()
-
-*/
 
 }
 

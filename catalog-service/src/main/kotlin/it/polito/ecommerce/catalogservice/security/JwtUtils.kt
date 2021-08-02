@@ -1,5 +1,5 @@
 package it.polito.ecommerce.catalogservice.security
-/*
+
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.util.*
@@ -7,6 +7,7 @@ import io.jsonwebtoken.*
 import io.jsonwebtoken.security.Keys
 import it.polito.ecommerce.catalogservice.domain.Rolename
 import it.polito.ecommerce.catalogservice.dto.UserDetailsDTO
+import it.polito.ecommerce.catalogservice.exceptions.security.BadAuthenticationException
 import org.springframework.security.core.Authentication
 import java.time.Instant
 import java.time.LocalDateTime
@@ -58,7 +59,7 @@ class JwtUtils constructor(
 
         return UserDetailsDTO(
             id = claims["id"].toString().toLong(),
-            name = claims["username"].toString(),
+            username = claims["username"].toString(),
             email = claims["email"].toString(),
             roles = claims["roles"].toString().split(",").map { Rolename.valueOf(it) }.toSet(),
             isEnabled = true
@@ -66,4 +67,3 @@ class JwtUtils constructor(
     }
 }
 
- */
