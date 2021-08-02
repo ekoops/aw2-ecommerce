@@ -3,17 +3,22 @@ package it.polito.ecommerce.catalogservice.services.implementations
 import it.polito.ecommerce.catalogservice.domain.Customer
 import it.polito.ecommerce.catalogservice.domain.Rolename
 import it.polito.ecommerce.catalogservice.domain.User
+import it.polito.ecommerce.catalogservice.domain.toUserDetailsDTO
 import it.polito.ecommerce.catalogservice.dto.UserDTO
 import it.polito.ecommerce.catalogservice.dto.UserDetailsDTO
+import it.polito.ecommerce.catalogservice.dto.incoming.CreateUserRequestDTO
+import it.polito.ecommerce.catalogservice.exceptions.user.NoSuchRoleException
 import it.polito.ecommerce.catalogservice.exceptions.user.UserAlreadyExistsException
 import it.polito.ecommerce.catalogservice.repositories.CustomerRepository
 import it.polito.ecommerce.catalogservice.repositories.UserRepository
+import kotlinx.coroutines.flow.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
+import reactor.core.publisher.Mono
 
 
 @Service
@@ -26,31 +31,30 @@ class UserDetailsServiceImpl(
     private val customerRepository: CustomerRepository,
     //private val notificationService: NotificationService,
     //private val mailService: MailService,
+
+    //TODO: capire perchè dà errore
     private val passwordEncoder: PasswordEncoder
 ) : UserDetailsService {
    private val baseEmailVerificationUrl = "http://$host:$port$contextPath/auth/confirmRegistration?token="
-/*
+
     private fun getUserByUsername(username: String): User = userRepository.findByUsername(username)
         ?: throw UsernameNotFoundException("User($username) not found")
 
     override fun loadUserByUsername(username: String): UserDetailsDTO =
         this.getUserByUsername(username).toUserDetailsDTO()
 
-    fun getUserById(id: Long): User {
-        val user = userRepository.findById(id)
-        if (!user.isPresent) {
-            throw UsernameNotFoundException("User(id=$id) not found")
-        }
-        return user.get()
+    suspend fun getUserById(id: Long): User {
+        return userRepository.findById(id) ?:throw UsernameNotFoundException("User(id=$id) not found")
     }
 
-    fun createUser(userDTO: CreateUserRequestDTO): UserDTO {
+    suspend fun createUser(userDTO: CreateUserRequestDTO): UserDTO {
         val (email, username) = userDTO
         // Checking if user already exists
         val isUserAlreadyPresent = userRepository.existsByUsernameOrEmail(
             username = username,
             email = email
         )
+
         if (isUserAlreadyPresent) throw UserAlreadyExistsException(
             username = username,
             email = email
@@ -58,10 +62,10 @@ class UserDetailsServiceImpl(
 
         // Creating user
         val user = User(
-            name = username,
+            username = username,
             password = passwordEncoder.encode(userDTO.password),
             email = email,
-            role = Rolename.CUSTOMER
+            rolesList = listOf(Rolename.CUSTOMER)
         )
 
         // Creating user associated customer
@@ -71,7 +75,7 @@ class UserDetailsServiceImpl(
             name = userDTO.name,
             surname = userDTO.surname,
             deliveryAddress = userDTO.deliveryAddress,
-            user = user
+            //user = user
         )
 
         val createdCustomer = customerRepository.save(customer)
@@ -107,7 +111,7 @@ class UserDetailsServiceImpl(
     }
 
 
-
+/*
     fun verifyUser(token: String) {
         // Getting corresponding email verification token
         val emailVerificationTokenDTO = notificationService.getEmailVerificationToken(
@@ -130,10 +134,56 @@ class UserDetailsServiceImpl(
         }
         notificationService.removeEmailVerificationToken(token)
     }
+*/
 
-    fun enableUser(username: String): Boolean
+    suspend fun enableUser (username: String): Boolean{
+        val newUser = this.getUserByUsername(username).enableUser() ?: return false
+        userRepository.save(newUser)
+        return true
+    }
+
+    suspend fun disableUser (username: String): Boolean{
+        val newUser = this.getUserByUsername(username).disableUser() ?: return false
+        userRepository.save(newUser)
+        return true
+    }
+
+    suspend fun addUserRole(username: String, role: String): Boolean {
+        try {
+            val rolename = Rolename.valueOf(role)
+            val newUser = this.getUserByUsername(username).addRolename(rolename) ?: return false
+            userRepository.save(newUser)
+            return true
+        } catch (ex: IllegalArgumentException) {
+            throw NoSuchRoleException(role = role)
+        }
+    }
+
+    suspend fun removeUserRole(username: String, role: String): Boolean {
+        try {
+            val rolename = Rolename.valueOf(role)
+            val newUser = this.getUserByUsername(username).removeRolename(rolename) ?: return false
+            userRepository.save(newUser)
+            return true
+        } catch (ex: IllegalArgumentException) {
+            throw NoSuchRoleException(role = role)
+        }
+    }
+
+    suspend fun lockUser(id: Long)
             = this
-        .getUserByUsername(username)
+        .getUserById(id)
+        .lockUser()
+
+    suspend fun unlockUser(id: Long)
+            = this
+        .getUserById(id)
+        .unlockUser()
+
+/*
+    fun enableUser2(username: String): Boolean
+            = this
+    .getUserByUsername(username)
         .enableUser()
 
     fun disableUser(username: String): Boolean
@@ -171,6 +221,7 @@ class UserDetailsServiceImpl(
         .getUserById(id)
         .unlockUser()
 
+*/
+
 }
 
-*/

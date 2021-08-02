@@ -1,11 +1,13 @@
 package it.polito.ecommerce.catalogservice.controllers
 
 import it.polito.ecommerce.catalogservice.dto.UserDTO
+import it.polito.ecommerce.catalogservice.dto.incoming.CreateUserRequestDTO
 import it.polito.ecommerce.catalogservice.services.implementations.UserDetailsServiceImpl
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Mono
 import javax.validation.Valid
 
 
@@ -20,7 +22,7 @@ class AuthController(
 ) {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    fun register(
+    suspend fun register(
         @Valid @RequestBody createUserRequestDTO: CreateUserRequestDTO
     ): UserDTO = userDetailsService.createUser(createUserRequestDTO)
 
@@ -47,7 +49,8 @@ class AuthController(
     fun confirmRegistration(
         @RequestParam("token", required = true) token: String,
     ) = userDetailsService.verifyUser(token = token)
+
+
 }
 
 
-*/

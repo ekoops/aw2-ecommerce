@@ -57,10 +57,10 @@ data class User(
         )
     }
 
-    fun removeRolename(rolename: Rolename): User? {
+    fun removeRolename(role: Rolename): User? {
         val roleList = this.roles.split(",").toMutableList()
         if (roleList.size == 1) return null
-        val hasBeenRemoved = roleList.remove(rolename)
+        val hasBeenRemoved= roleList.remove(role.toString())
         if (hasBeenRemoved) {
             return User(
                 id = id,

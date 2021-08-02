@@ -14,6 +14,6 @@ class UserReader : Converter<Row, User> {
             r.get("password") as String,
             r.get("isEnabled") as Boolean,
             r.get("isLocked") as Boolean,
-            r.get("role") as Rolename
+            r.get("role") as List<Rolename>
         )
 }
