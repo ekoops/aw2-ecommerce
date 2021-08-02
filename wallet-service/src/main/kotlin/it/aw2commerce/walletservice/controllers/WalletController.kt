@@ -15,7 +15,6 @@ import java.util.*
 import javax.validation.Valid
 import javax.validation.constraints.Min
 
-//todo non riesco a ritornare gli errori custom
 
 @RequestMapping("/wallets")
 @RestController
