@@ -1,8 +1,9 @@
 package it.polito.ecommerce.catalogservice.controllers
-/*
+
 import it.polito.ecommerce.catalogservice.dto.UserDTO
-import it.polito.ecommerce.catalogservice.sevices.implementations.UserDetailsServiceImpl
+import it.polito.ecommerce.catalogservice.services.implementations.UserDetailsServiceImpl
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.web.bind.annotation.*
 import javax.validation.Valid
@@ -14,8 +15,8 @@ class AuthController(
     private val userDetailsService: UserDetailsServiceImpl,
     @Value("\${application.jwt.jwtHeader}") private val jwtHeader: String,
     @Value("\${application.jwt.jwtHeaderStart}") private val jwtHeaderStart: String,
-    private val authenticationManager: ReactiveAuthenticationManager,
-    private val jwtUtils: JwtUtils
+//    private val authenticationManager: ReactiveAuthenticationManager,
+//    private val jwtUtils: JwtUtils
 ) {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)

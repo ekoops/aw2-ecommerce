@@ -1,4 +1,4 @@
-package it.polito.ecommerce.catalogservice.sevices.implementations
+package it.polito.ecommerce.catalogservice.services.implementations
 
 import it.polito.ecommerce.catalogservice.domain.Customer
 import it.polito.ecommerce.catalogservice.domain.Rolename
@@ -15,7 +15,7 @@ import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 
-/*
+
 @Service
 @Transactional
 class UserDetailsServiceImpl(
@@ -28,8 +28,8 @@ class UserDetailsServiceImpl(
     //private val mailService: MailService,
     private val passwordEncoder: PasswordEncoder
 ) : UserDetailsService {
-    private val baseEmailVerificationUrl = "http://$host:$port$contextPath/auth/confirmRegistration?token="
-
+   private val baseEmailVerificationUrl = "http://$host:$port$contextPath/auth/confirmRegistration?token="
+/*
     private fun getUserByUsername(username: String): User = userRepository.findByUsername(username)
         ?: throw UsernameNotFoundException("User($username) not found")
 
