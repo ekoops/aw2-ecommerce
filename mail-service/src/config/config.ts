@@ -1,21 +1,34 @@
+const abortFn = (envVar: string) => {
+  throw new Error(`The ${envVar} environment variable is required`);
+};
+
 const hostname = process.env.SERVER_HOSTNAME || "localhost";
 const port = process.env.SERVER_PORT || 3000;
 
-const mailer_host = process.env.MAILER_HOST;
-const mailer_port = process.env.MAILER_PORT || 587;
-const mailer_user = process.env.MAILER_USER;
-const mailer_pass = process.env.MAILER_PASS;
+const user = process.env.OAUTH_USER || abortFn("OAUTH_USER");
+const clientId = process.env.OAUTH2_CLIENT_ID || abortFn("OAUTH2_CLIENT_ID");
+const clientSecret =
+  process.env.OAUTH2_CLIENT_SECRET || abortFn("OAUTH2_CLIENT_SECRET");
+const redirectUri =
+  process.env.OAUTH2_REDIRECT_URI || abortFn("OAUTH2_REDIRECT_URI");
+const refreshToken =
+  process.env.OAUTH2_REFRESH_TOKEN || abortFn("OAUTH2_REFRESH_TOKEN");
+
+const environment = process.env.NODE_ENV || "unknown";
+console.log(`<<<<<<<<<<<<<<<< ${environment} >>>>>>>>>>>>>>>>>>>>>>>>>`);
 
 const config = {
+  environment,
   server: {
     hostname,
     port: +port,
   },
-  mailer: {
-    host: mailer_host,
-    port: +mailer_port,
-    user: mailer_user,
-    pass: mailer_pass,
+  oauth2: {
+    user,
+    clientId,
+    clientSecret,
+    redirectUri,
+    refreshToken,
   },
 };
 
