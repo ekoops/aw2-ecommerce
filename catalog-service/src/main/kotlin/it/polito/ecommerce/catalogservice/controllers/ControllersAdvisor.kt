@@ -34,13 +34,13 @@ class ControllersAdvisor {
         )
     }
 
-    @ExceptionHandler(HttpMediaTypeNotSupportedException::class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    fun httpMediaTypeExceptionHandler(ex: HttpMediaTypeNotSupportedException): ErrorDetails = ErrorDetails(
-        type = ErrorType.UNSUPPORTED_MEDIA_TYPE,
-        title = "The request body cannot be parsed",
-        detail = "The provided media type is not supported"
-    )
+//    @ExceptionHandler(HttpMediaTypeNotSupportedException::class)
+//    @ResponseStatus(HttpStatus.BAD_REQUEST)
+//    fun httpMediaTypeExceptionHandler(ex: HttpMediaTypeNotSupportedException): ErrorDetails = ErrorDetails(
+//        type = ErrorType.UNSUPPORTED_MEDIA_TYPE,
+//        title = "The request body cannot be parsed",
+//        detail = "The provided media type is not supported"
+//    )
 
     @ExceptionHandler(HttpMessageNotReadableException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -59,13 +59,13 @@ class ControllersAdvisor {
             detail = "The provided fields should follows the right endpoint specification"
         )
     }
-    @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
-    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-    fun methodNotAllowedExceptionHandler(ex: HttpRequestMethodNotSupportedException): ErrorDetails = ErrorDetails(
-        type = ErrorType.METHOD_NOT_ALLOWED,
-        title = "The request method is not allowed",
-        detail = "The method ${ex.method} not allowed"
-    )
+//    @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
+//    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+//    fun methodNotAllowedExceptionHandler(ex: HttpRequestMethodNotSupportedException): ErrorDetails = ErrorDetails(
+//        type = ErrorType.METHOD_NOT_ALLOWED,
+//        title = "The request method is not allowed",
+//        detail = "The method ${ex.method} not allowed"
+//    )
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

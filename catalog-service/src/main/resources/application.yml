@@ -1,9 +1,11 @@
 spring:
+  webflux:
+    base-path: /api/v1
   application:
     name: CatalogService
   r2dbc:
     url: r2dbc:mariadb://localhost:3306/catalogservice
-    username: giuseppe
+    username: leonardo
     password: toor
     pool:
       enabled: true
@@ -29,3 +31,38 @@ spring:
         - Path=/warehouse-service/**
         filters:
         - RewritePath=/warehouse-service,/warehouses
+
+
+
+
+## email
+#spring.mail.host=smtp.gmail.com
+#spring.mail.port=587
+#spring.mail.username=sauceoverflowapp@gmail.com
+#spring.mail.password=sauceoverflow123
+#spring.mail.properties.mail.smtp.auth=true
+#spring.mail.properties.mail.smtp.starttls.enable=true
+#spring.mail.properties.mail.debug=true
+
+server:
+  host:  localhost,
+  port: 8080
+
+application:
+  jwt:
+    jwtSecret: 3d207fb373adaa82c94ac10d025c9c433d207fb373adaa82c94ac10d025c9c433d207fb373adaa82c94a
+    jwtExpirationMs: 1800000
+    jwtHeader: Authorization
+    jwtHeaderStart: Bearer
+
+## jwt
+#application.jwt.jwtSecret=3d207fb373adaa82c94ac10d025c9c433d207fb373adaa82c94ac10d025c9c433d207fb373adaa82c94a
+## 1000 * 60 * 30 = 30 minuti
+#application.jwt.jwtExpirationMs=1800000
+#application.jwt.jwtHeader=Authorization
+#application.jwt.jwtHeaderStart=Bearer
+
+
+##test
+#logging.level.org.springframework.web=DEBUG
+#spring.mvc.log-request-details=true

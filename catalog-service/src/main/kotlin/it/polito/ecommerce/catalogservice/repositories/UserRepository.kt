@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono
 
 @Repository
 interface UserRepository : CoroutineCrudRepository<User, Long> {
-    fun findByUsername(username: String): User
+    fun findByUsername(username: String): Mono<User>
     suspend fun existsByUsernameOrEmail(
         username: String, email: String
     ): Boolean

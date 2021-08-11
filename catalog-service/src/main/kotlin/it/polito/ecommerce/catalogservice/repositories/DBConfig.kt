@@ -51,7 +51,7 @@ class DBConfig : AbstractR2dbcConfiguration(){
     }
 
     override fun getCustomConverters(): MutableList<Any> {
-        return mutableListOf(UserReader(), UserWriter(),)
+        return mutableListOf(UserReader(), UserWriter())
     }
 
 }

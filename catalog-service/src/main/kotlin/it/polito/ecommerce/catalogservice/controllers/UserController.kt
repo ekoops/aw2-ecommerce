@@ -14,21 +14,21 @@ class UserController(
     /*
     This endpoint allows an admin to enable or disable an user
      */
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @PatchMapping("/{userId}")
-    suspend fun patchUser(
-        @Valid @RequestBody patchUserPropertiesDTO: PatchUserPropertiesRequestDTO,
-        @PathVariable("userId") userId: Long
-    ) {
-        if (patchUserPropertiesDTO.isLocked != null) {
-            if (patchUserPropertiesDTO.isLocked) userDetailsService.lockUser(userId)
-            else userDetailsService.unlockUser(userId)
-        }
-
-        if (patchUserPropertiesDTO.isEnabled != null) {
-            val user = userDetailsService.getUserById(userId)
-            if (patchUserPropertiesDTO.isEnabled) userDetailsService.enableUser(user.username)
-            else userDetailsService.disableUser(user.username)
-        }
-    }
+//    @PreAuthorize("hasAuthority('ADMIN')")
+//    @PatchMapping("/{userId}")
+//    suspend fun patchUser(
+//        @Valid @RequestBody patchUserPropertiesDTO: PatchUserPropertiesRequestDTO,
+//        @PathVariable("userId") userId: Long
+//    ) {
+//        if (patchUserPropertiesDTO.isLocked != null) {
+//            if (patchUserPropertiesDTO.isLocked) userDetailsService.lockUser(userId)
+//            else userDetailsService.unlockUser(userId)
+//        }
+//
+//        if (patchUserPropertiesDTO.isEnabled != null) {
+//            val user = userDetailsService.getUserById(userId)
+//            if (patchUserPropertiesDTO.isEnabled) userDetailsService.enableUser(user.username)
+//            else userDetailsService.disableUser(user.username)
+//        }
+//    }
 }

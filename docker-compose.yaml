@@ -1,0 +1,92 @@
+version: "3.9"
+services:
+  debug_client:
+    image: "node:14.17.3"
+    container_name: debug_client
+    networks:
+      - dummy-net
+    profiles:
+      - debug
+    command: ["/bin/bash"]
+
+  dummy-express:
+    image: aw2-ecommerce/dummy-express
+    container_name: dummy-express
+    build:
+      dockerfile: ./Dockerfile # relative to the build context
+      context: ./dummy-express
+    restart: always
+    ports:
+      - "3000:3000"
+    #    networks:
+    #      - order-net
+    depends_on:
+      - order-db
+
+  order-svc:
+    image: aw2-ecommerce/order-svc
+    container_name: order-svc
+    build:
+      dockerfile: ../Dockerfile # relative to the build context
+      context: ./order-service/build
+    restart: always
+    env_file:
+      - ./order-service/prod.env
+    ports:
+      - "3000:3000"
+    networks:
+      - dummy-net
+      - order-net
+    depends_on:
+      - order-db
+
+  order-db:
+    image: mongo
+    container_name: order-db
+    restart: always
+    env_file:
+      - ./envs/orders-mongodb.env
+#    volumes:
+#      - ./order-service/mongodb-store:/data/db
+    networks:
+      - order-net
+    logging:
+      driver: none
+
+  mail-svc:
+    image: aw2-ecommerce/mail-svc
+    container_name: mail-svc
+    build:
+      dockerfile: ../Dockerfile # relative to the build context
+      context: ./mail-service/build
+    restart: always
+    env_file:
+      - ./mail-service/prod.env
+    #TOOD: continue...
+
+  zookeeper:
+    image: zookeeper
+    container_name: zookeeper
+#    ports:
+#      - "2181:2181"
+    networks:
+      - zookeeper-kafka-net
+  kafka:
+    image: confluentinc/cp-kafka
+    container_name: kafka
+#    ports:
+#      - "9092:9092"
+    env_file:
+      - ./envs/kafka.env.prod
+    networks:
+      - zookeeper-kafka-net
+    depends_on:
+      - zookeeper
+
+networks:
+  dummy-net:
+    name: dummy-net
+  order-net:
+    name: order-net
+  zookeeper-kafka-net:
+    name: zookeeper-kafka-net

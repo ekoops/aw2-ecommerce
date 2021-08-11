@@ -4,7 +4,9 @@ import io.r2dbc.spi.Row
 import it.polito.ecommerce.catalogservice.domain.Rolename
 import it.polito.ecommerce.catalogservice.domain.User
 import org.springframework.core.convert.converter.Converter
+import org.springframework.data.convert.ReadingConverter
 
+@ReadingConverter
 class UserReader : Converter<Row, User> {
     override fun convert(r:Row) =
         User(
