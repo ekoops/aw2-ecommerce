@@ -16,6 +16,6 @@ class UserReader : Converter<Row, User> {
             r.get("password") as String,
             r.get("isEnabled") as Boolean,
             r.get("isLocked") as Boolean,
-            r.get("role") as List<Rolename>
+            (r.get("roles") as String).split(",").map { Rolename.valueOf(it) }
         )
 }

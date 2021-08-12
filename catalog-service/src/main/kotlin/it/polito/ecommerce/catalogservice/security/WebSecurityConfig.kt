@@ -27,6 +27,7 @@ import org.springframework.security.web.server.context.WebSessionServerSecurityC
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 
 
 @Configuration
@@ -54,6 +55,7 @@ class WebSecurityConfig(
         return authenticationManager
     }
 
+
 //    @Bean
 //    fun authenticationWebFilter(): AuthenticationWebFilter? {
 //        val filter = AuthenticationWebFilter(authenticationManager())
@@ -74,13 +76,14 @@ class WebSecurityConfig(
             .cors()
             .and()
             .csrf().disable()
-            .authorizeExchange().anyExchange().permitAll()
-//            .authorizeExchange()
-//            .pathMatchers("/api/v1/auth/**").permitAll()
-//            .anyExchange().authenticated()
+//            .authorizeExchange().anyExchange().permitAll()
+            .authorizeExchange()
+            .pathMatchers("/auth/**").permitAll()
+            .anyExchange().authenticated()
             .and()
             .exceptionHandling()
-            .authenticationEntryPoint(authenticationEntryPoint)
+            //TODO: capire perche se si decommenta la seguente riga non funziona
+//            .authenticationEntryPoint(authenticationEntryPoint)
             .and()
             .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
             .addFilterBefore(jwtAuthenticationTokenFilter, SecurityWebFiltersOrder.AUTHENTICATION)

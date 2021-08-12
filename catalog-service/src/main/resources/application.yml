@@ -5,7 +5,7 @@ spring:
     name: CatalogService
   r2dbc:
     url: r2dbc:mariadb://localhost:3306/catalogservice
-    username: leonardo
+    username: giuseppe
     password: toor
     pool:
       enabled: true

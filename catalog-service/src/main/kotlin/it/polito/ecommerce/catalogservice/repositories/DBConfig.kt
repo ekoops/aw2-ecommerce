@@ -3,6 +3,8 @@ package it.polito.ecommerce.catalogservice.repositories
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
 import io.r2dbc.spi.ConnectionFactoryOptions
+import it.polito.ecommerce.catalogservice.converters.CustomerReader
+import it.polito.ecommerce.catalogservice.converters.CustomerWriter
 import it.polito.ecommerce.catalogservice.converters.UserReader
 import it.polito.ecommerce.catalogservice.converters.UserWriter
 import org.springframework.beans.factory.annotation.Qualifier
@@ -51,7 +53,7 @@ class DBConfig : AbstractR2dbcConfiguration(){
     }
 
     override fun getCustomConverters(): MutableList<Any> {
-        return mutableListOf(UserReader(), UserWriter())
+        return mutableListOf(UserReader(), UserWriter(), CustomerWriter(), CustomerReader())
     }
 
 }

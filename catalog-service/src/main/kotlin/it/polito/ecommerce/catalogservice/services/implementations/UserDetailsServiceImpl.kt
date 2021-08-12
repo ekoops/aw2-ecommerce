@@ -1,9 +1,6 @@
 package it.polito.ecommerce.catalogservice.services.implementations
 
-import it.polito.ecommerce.catalogservice.domain.Customer
-import it.polito.ecommerce.catalogservice.domain.Rolename
-import it.polito.ecommerce.catalogservice.domain.User
-import it.polito.ecommerce.catalogservice.domain.toUserDetailsDTO
+import it.polito.ecommerce.catalogservice.domain.*
 import it.polito.ecommerce.catalogservice.dto.UserDTO
 import it.polito.ecommerce.catalogservice.dto.UserDetailsDTO
 import it.polito.ecommerce.catalogservice.dto.incoming.CreateUserRequestDTO
@@ -12,6 +9,7 @@ import it.polito.ecommerce.catalogservice.exceptions.user.UserAlreadyExistsExcep
 import it.polito.ecommerce.catalogservice.repositories.CustomerRepository
 import it.polito.ecommerce.catalogservice.repositories.UserRepository
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.reactive.asFlow
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
@@ -37,8 +35,10 @@ class UserDetailsServiceImpl(
 ) : ReactiveUserDetailsService {
    private val baseEmailVerificationUrl = "http://$host:$port$contextPath/auth/confirmRegistration?token="
 
-    private fun getUserByUsername(username: String): Mono<User> = userRepository.findByUsername(username)
-        ?: throw UsernameNotFoundException("User($username) not found")
+    private fun getUserByUsername(username: String): Mono<User>  {
+        return userRepository.findByUsername(username)
+            ?: throw UsernameNotFoundException("User($username) not found")
+    }
 
     override fun findByUsername(username: String): Mono<UserDetails> = this.getUserByUsername(username).map { it.toUserDetailsDTO() }
 
@@ -46,40 +46,41 @@ class UserDetailsServiceImpl(
         return userRepository.findById(id) ?: throw UsernameNotFoundException("User(id=$id) not found")
     }
 
-    fun createUser(userDTO: CreateUserRequestDTO): UserDTO {
-        println("QUA")
-//        val (email, username) = userDTO
-//        // Checking if user already exists
-//        val isUserAlreadyPresent = userRepository.existsByUsernameOrEmail(
-//            username = username,
-//            email = email
-//        )
-//
-//        if (isUserAlreadyPresent) throw UserAlreadyExistsException(
-//            username = username,
-//            email = email
-//        )
-//
-//        // Creating user
-//        val user = User(
-//            username = username,
-//            password = passwordEncoder.encode(userDTO.password),
-//            email = email,
-//            rolesList = listOf(Rolename.CUSTOMER)
-//        )
-//
-//        // Creating user associated customer
-//        // THE CUSTOMER WAS CREATED IN ORDER TO
-//        // BE CONSISTENT WITH THE CUSTOMER ROLE
-//        val customer = Customer(
-//            name = userDTO.name,
-//            surname = userDTO.surname,
-//            deliveryAddress = userDTO.deliveryAddress,
-//            //user = user
-//        )
-//
-//        val createdCustomer = customerRepository.save(customer)
-//        val createdUser = createdCustomer.user
+    suspend fun createUser(userDTO: CreateUserRequestDTO): UserDTO {
+
+        val (email, username) = userDTO
+        // Checking if user already exists
+        val isUserAlreadyPresent = userRepository.existsByUsernameOrEmail(
+            username = username,
+            email = email
+        )
+
+        if (isUserAlreadyPresent) throw UserAlreadyExistsException(
+            username = username,
+            email = email
+        )
+
+        // Creating user
+        val user = User(
+            username = username,
+            password = passwordEncoder.encode(userDTO.password),
+            email = email,
+            rolesList = listOf(Rolename.CUSTOMER)
+        )
+
+        val createdUser = userRepository.save(user)
+
+        // Creating user associated customer
+        // THE CUSTOMER WAS CREATED IN ORDER TO
+        // BE CONSISTENT WITH THE CUSTOMER ROLE
+        val customer = Customer(
+            name = userDTO.name,
+            surname = userDTO.surname,
+            deliveryAddress = userDTO.deliveryAddress,
+            user = createdUser
+        )
+
+        val createdCustomer = customerRepository.save(customer)
 
         /*
         try {
@@ -107,10 +108,8 @@ class UserDetailsServiceImpl(
          */
 
         // Returning userDTO representation
-//        return createdUser.toUserDTO()
+        return createdUser.toUserDTO()
 
-
-        return UserDTO(id = 1, username = "Leonardo", email = "dgleo.96@gmail.com")
     }
 
 
@@ -136,13 +135,16 @@ class UserDetailsServiceImpl(
 //        }
 //        notificationService.removeEmailVerificationToken(token)
     }
-//
-//    suspend fun enableUser (username: String): Boolean {
-//        val newUser = this.getUserByUsername(username).enableUser() ?: return false
-//        userRepository.save(newUser)
-//        return true
-//    }
-//
+
+    suspend fun enableUser (username: String): Boolean {
+        val user = this.getUserByUsername(username).block() ?: return false
+        val newUser = user.enableUser() ?: return false
+        userRepository.save(newUser)
+        return true
+
+    }
+
+
 //    suspend fun disableUser (username: String): Boolean{
 //        val newUser = this.getUserByUsername(username).disableUser() ?: return false
 //        userRepository.save(newUser)

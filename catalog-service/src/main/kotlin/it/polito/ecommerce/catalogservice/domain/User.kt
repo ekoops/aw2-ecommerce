@@ -5,6 +5,7 @@ import it.polito.ecommerce.catalogservice.dto.UserDetailsDTO
 import it.polito.ecommerce.catalogservice.exceptions.user.ActionNotPermittedException
 import it.polito.ecommerce.catalogservice.exceptions.user.InconsistentUserException
 import org.springframework.data.annotation.Id
+import reactor.core.publisher.Mono
 import javax.validation.constraints.NotEmpty
 import javax.validation.constraints.NotNull
 
@@ -37,11 +38,12 @@ data class User(
 ){
 
     @field:NotEmpty(message = "The roles field must be not empty")
-    private val roles: String = rolesList.distinct().joinToString(separator = ",")
+    val roles: String = rolesList.distinct().joinToString(separator = ",")
 
     fun getRolenames(): Set<Rolename> {
         return this.roles.split(",").map { Rolename.valueOf(it) }.toSet()
     }
+
 
     fun addRolename(rolename: Rolename): User? {
         if (this.roles.contains(rolename.toString())) return null
@@ -86,6 +88,17 @@ data class User(
             isLocked = isLocked,
             rolesList = rolesList
         )
+//        //TODO: da provare justOrEmpty
+//        if (this.isEnabled) return Mono.justOrEmpty(null)
+//        return Mono.just(User(
+//            id = id,
+//            username = username,
+//            password = password,
+//            email = email,
+//            isEnabled= true,
+//            isLocked = isLocked,
+//            rolesList = rolesList
+//        ))
     }
 
     fun disableUser(): User? {

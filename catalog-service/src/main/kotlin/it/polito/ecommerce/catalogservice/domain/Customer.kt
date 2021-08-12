@@ -21,6 +21,8 @@ data class Customer (
     @field:NotEmpty(message = "The name field must be not empty")
     val deliveryAddress: String,
 
+    val user: User
+
     //TODO: Questa relazione può essere eliminata?
     //var wallets: Set<Wallet> = emptySet()
         ){

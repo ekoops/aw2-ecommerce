@@ -3,9 +3,9 @@ create table if not exists `catalogservice`.`user`(
     username VARCHAR (255) not null,
     email VARCHAR (255) not null,
     password VARCHAR (255) not null,
-    isEnable TINYINT(1) not null,
+    isEnabled TINYINT(1) not null,
     isLocked TINYINT(1) not null,
-    role VARCHAR (255) not null
+    roles VARCHAR (255) not null
 );
 
 create table if not exists `catalogservice`.`emailVerificationToken`(
