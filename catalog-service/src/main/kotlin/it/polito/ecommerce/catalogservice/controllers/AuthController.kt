@@ -30,9 +30,9 @@ class AuthController(
 ) {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    suspend fun register(
+    fun register(
         @Valid @RequestBody createUserRequestDTO: CreateUserRequestDTO
-    ): UserDTO {
+    ): Mono<UserDTO> {
         return userDetailsService.createUser(createUserRequestDTO)
     }
 
@@ -63,7 +63,7 @@ class AuthController(
 
     @GetMapping("/enableUser")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    suspend fun enableUser(
+    fun enableUser(
         @RequestParam("username", required = true) username: String,
     ) = userDetailsService.enableUser(username)
 }

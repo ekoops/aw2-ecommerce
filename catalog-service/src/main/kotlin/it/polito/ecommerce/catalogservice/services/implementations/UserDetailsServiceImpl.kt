@@ -10,6 +10,7 @@ import it.polito.ecommerce.catalogservice.repositories.CustomerRepository
 import it.polito.ecommerce.catalogservice.repositories.UserRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactor.mono
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
@@ -19,6 +20,8 @@ import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import reactor.core.publisher.Mono
+import reactor.core.publisher.SynchronousSink
+import java.util.*
 
 
 @Service
@@ -42,46 +45,67 @@ class UserDetailsServiceImpl(
 
     override fun findByUsername(username: String): Mono<UserDetails> = this.getUserByUsername(username).map { it.toUserDetailsDTO() }
 
-    suspend fun getUserById(id: Long): User {
+    fun getUserById(id: Long): Mono<User> {
         return userRepository.findById(id) ?: throw UsernameNotFoundException("User(id=$id) not found")
     }
 
-    suspend fun createUser(userDTO: CreateUserRequestDTO): UserDTO {
-
+    fun createUser(userDTO: CreateUserRequestDTO): Mono<UserDTO> {
+        println("EEEEEEE")
         val (email, username) = userDTO
         // Checking if user already exists
-        val isUserAlreadyPresent = userRepository.existsByUsernameOrEmail(
-            username = username,
-            email = email
-        )
+//        val isUserAlreadyPresent = userRepository.existsByUsernameOrEmail(
+//            username = username,
+//            email = email
+//        )
+//
 
-        if (isUserAlreadyPresent) throw UserAlreadyExistsException(
-            username = username,
-            email = email
-        )
+//        if (isUserAlreadyPresent) throw UserAlreadyExistsException(
+//            username = username,
+//            email = email
+//        )
 
         // Creating user
-        val user = User(
+        val user = Mono.just(User(
             username = username,
             password = passwordEncoder.encode(userDTO.password),
             email = email,
             rolesList = listOf(Rolename.CUSTOMER)
-        )
+        )).flatMap { user: User ->
+                userRepository.existsByUsernameOrEmail(
+                    username = username,
+                    email = email
+                ).flatMap{ result ->
+                        if (result) {
+                            Mono.error(
+                                UserAlreadyExistsException(
+                                    username = username,
+                                    email = email
+                                )
+                            )
+                        } else Mono.just(user)
+                }
+        }
 
-        val createdUser = userRepository.save(user)
+
+
+        val createdUser = user.flatMap{
+            userRepository.save(it)}
 
         // Creating user associated customer
         // THE CUSTOMER WAS CREATED IN ORDER TO
         // BE CONSISTENT WITH THE CUSTOMER ROLE
-        val customer = Customer(
+        val customer = createdUser.map{Customer(
             name = userDTO.name,
             surname = userDTO.surname,
             deliveryAddress = userDTO.deliveryAddress,
-            user = createdUser
-        )
+            user = it
+        )}
 
-        val createdCustomer = customerRepository.save(customer)
-
+        val createdCustomer = customer.map{
+            println("saving custormer")
+            customerRepository.save(it)
+        }
+        return createdUser.map { it.toUserDTO() }
         /*
         try {
             // Creating email verification token
@@ -108,7 +132,12 @@ class UserDetailsServiceImpl(
          */
 
         // Returning userDTO representation
-        return createdUser.toUserDTO()
+ //      return customer.map{customerRepository.save(it)}.and { createdUser }.map{it.toUserDTO()}
+
+//        return createdUser
+//                .map{it.toUserDTO()}
+//                .{customer.map{customerRepository.save(it)}}
+//                .map{customer,user -> user}
 
     }
 
@@ -136,12 +165,18 @@ class UserDetailsServiceImpl(
 //        notificationService.removeEmailVerificationToken(token)
     }
 
-    suspend fun enableUser (username: String): Boolean {
-        val user = this.getUserByUsername(username).block() ?: return false
-        val newUser = user.enableUser() ?: return false
-        userRepository.save(newUser)
-        return true
-
+    fun enableUser (username: String): Mono<Boolean> {
+        val user = this.getUserByUsername(username)
+        return user.map{
+            val enabledUser = it.enableUser()
+            if(enabledUser!=null) {
+                println(enabledUser)
+                userRepository.save(enabledUser)
+                true
+            }else {
+                false
+            }
+        }
     }
 
 
@@ -173,16 +208,19 @@ class UserDetailsServiceImpl(
 //        }
 //    }
 //
-//    suspend fun lockUser(id: Long)
-//            = this
-//        .getUserById(id)
-//        .lockUser()
-//
-//    suspend fun unlockUser(id: Long)
-//            = this
-//        .getUserById(id)
-//        .unlockUser()
-//
+    fun lockUser(id: Long)
+            = this
+        .getUserById(id).flatMap{
+        Mono.justOrEmpty(it.lockUser())
+    }
+
+
+    fun unlockUser(id: Long)
+            = this
+        .getUserById(id).flatMap {
+            Mono.justOrEmpty(it.unlockUser())
+        }
+
 
 }
 

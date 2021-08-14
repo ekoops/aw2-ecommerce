@@ -9,11 +9,12 @@ import org.springframework.stereotype.Repository
 import reactor.core.publisher.Mono
 
 @Repository
-interface UserRepository : CoroutineCrudRepository<User, Long> {
+interface UserRepository : ReactiveCrudRepository<User, Long> {
     fun findByUsername(username: String): Mono<User>
-    suspend fun existsByUsernameOrEmail(
+    fun existsByUsernameOrEmail(
         username: String, email: String
-    ): Boolean
+    ): Mono<Boolean>
+    //TODO: capire perche non va bene tornare un Mono<Boolean>
 
 
 //    @Query("SELECT name FROM user WHERE id=:id")
