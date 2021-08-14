@@ -1,12 +1,17 @@
-import { Order, OrderDTO, OrderModel } from "../models/Order";
-import { promisify } from "util";
-import mongoose, { FilterQuery, CallbackError } from "mongoose";
+import { Order, OrderModel } from "../models/Order";
+import mongoose from "mongoose";
+import {OrderCreationFailureException} from "../exceptions/repositories/repositories-exceptions";
 
-export class OrderRepositoryNosql {
+class OrderRepositoryNosql {
+  private static _instance: OrderRepositoryNosql;
   private OrderModel: mongoose.Model<Order>;
 
-  constructor(OrderModel: mongoose.Model<Order>) {
+  private constructor(OrderModel: mongoose.Model<Order>) {
     this.OrderModel = OrderModel;
+  }
+
+  static getInstance(OrderModel: mongoose.Model<Order>) {
+    return this._instance || (this._instance = new this(OrderModel));
   }
 
   async findOrderById(id: string): Promise<Order | null> {
@@ -31,12 +36,13 @@ export class OrderRepositoryNosql {
     const orderModel = new OrderModel(order);
     try {
       const concreteOrder = await orderModel.save();
+      console.log("CREATE - ", concreteOrder);
+      return concreteOrder;
     }
     catch (ex) {
-      throw RepositoryException();
+      throw new OrderCreationFailureException();
     }
-    console.log("CREATE - ", concreteOrder);
-    return concreteOrder;
+
   }
 
   async save(order: Order): Promise<Order> {
@@ -51,4 +57,4 @@ export class OrderRepositoryNosql {
     return res.deletedCount === 1;
   }
 }
-export const orderRepository = new OrderRepositoryNosql(OrderModel);
+export default OrderRepositoryNosql;

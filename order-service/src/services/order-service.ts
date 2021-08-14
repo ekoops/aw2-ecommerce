@@ -1,27 +1,35 @@
 import {
-  orderRepository,
   OrderRepositoryNosql,
 } from "../repositories/order-repository-nosql";
 import { Order, OrderDTO, toOrderDTO } from "../models/Order";
 import { OrderStatus, toStatusName } from "../db/OrderStatus";
-import {OrderItem, OrderItemDTO, toOrderItem} from "../models/OrderItem";
+import { toOrderItem } from "../models/OrderItem";
 import AppError from "../models/AppError";
 import {
-  Consumer,
-  createConsumer,
-  createProducer,
-  Producer,
-} from "../kafka/kafka";
-import {generateUUID, produceAndWaitForResponse} from "../kafka/async-communication-utils";
+  KafkaException,
+  NoValueException,
+  ValueParsingFailedException,
+  ItemsNotAvailableException,
+  CannotProduceException,
+  NotEnoughBudgetException, WalletOrderCreationFailureException, WarehouseOrderCreationFailureException,
+} from "../exceptions/kafka/kafka-exceptions";
+import {OrderCreationFailureException} from "../exceptions/repositories/repositories-exceptions";
+import ProducerProxy from "../kafka/ProducerProxy";
+import {generateUUID} from "../kafka/utils";
 
 const requests: { [key: string]: [Function, Function] } = {};
 
 export class OrderService {
-  constructor(
+  private static _instance: OrderService;
+
+  private constructor(
     private orderRepository: OrderRepositoryNosql,
-    private producer: Producer,
-    private consumer: Consumer
+    private producerProxy: ProducerProxy,
   ) {}
+
+  static getInstance(orderRepository: OrderRepositoryNosql, producerProxy: ProducerProxy) {
+    return this._instance || (this._instance = new this(orderRepository, producerProxy));
+  }
 
   getOrder(id: string): Promise<OrderDTO | AppError> {
     return this.orderRepository.findOrderById(id).then((order) => {
@@ -39,110 +47,113 @@ export class OrderService {
       .then((orders) => orders.map(toOrderDTO));
   }
 
-  async handleWarehouseAvailabilityResponseSuccess(orderItemDTOs?: OrderItemDTO[]) {
-    if (orderItemDTOs)
-    const totalOrderAmount = orderItemDTOs.reduce(
-        (acc, item) => acc + item.perItemPrice! * item.amount,
-        0
-    );
-    // if the following promise is resolved, the buyer has enough money
-    await produceAndWaitForResponse(
-        this.producer,
-        "wallet-availability-requested",
-        {
-          buyerId: orderDTO.buyerId,
-          totalOrderAmount
-        },
-        uuid,
-    );
-  }
-  async handleWarehouseAvailabilityResponseFailure() {
 
+  async createOrder(message: {
+    key: string;
+    value: OrderDTO;
+  }) {
+    const { key, value: orderDTO } = message;
+
+    const order: Order = {
+      ...orderDTO,
+      items: orderDTO.items.map(toOrderItem)
+    };
+    try {
+      const createdOrder = await this.orderRepository.createOrder(
+          order
+      );
+      const createdOrderDTO = toOrderDTO(createdOrder);
+      await this.producerProxy.produceAndWaitForResponse<OrderDTO>(
+          "order-created",
+          createdOrderDTO,
+          key
+      ).then(this.createOrder).catch(this.handleApproveOrderFailure);
+    }
+    catch (ex) {
+      if (ex instanceof OrderCreationFailureException) {
+        // TODO rollback all order
+        await this.producerProxy.produceAndWaitForResponse<OrderDTO>(
+            "order-creation-failed",
+            orderDTO,
+            key
+        ).then(() => new AppError("Order creation failed")).catch(() => {
+          // and now?
+          return new AppError("and now?");
+        });
+      }
+      else {
+        // TODO and now?
+        return new AppError("and now?");
+      }
+    }
+
+  }
+
+  async handleApproveOrderFailure(err: KafkaException) {
+    if (err instanceof CannotProduceException) {
+    } else if (err instanceof NoValueException) {
+    } else if (err instanceof ValueParsingFailedException) {
+    } else if (err instanceof WalletOrderCreationFailureException) {
+    } else if (err instanceof WarehouseOrderCreationFailureException) {
+    } else {
+      throw new AppError(err.message);
+    }
+  }
+
+  async approveOrder(message: {
+    key: string;
+    value: OrderDTO;
+  }) {
+    const { key, value: orderDTO } = message;
+    // if the following promise is resolved, the order can be created
+    return this.producerProxy.produceAndWaitForResponse<OrderDTO>(
+        "order-approved",
+        orderDTO,
+        key
+    ).then(this.createOrder).catch(this.handleApproveOrderFailure);
+  }
+
+  async handleRequestBudgetAvailabilityFailure(err: KafkaException) {
+    if (err instanceof CannotProduceException) {
+    } else if (err instanceof NoValueException) {
+    } else if (err instanceof ValueParsingFailedException) {
+    } else if (err instanceof NotEnoughBudgetException) {
+    } else {
+      throw new AppError(err.message);
+    }
+  }
+  async requestBudgetAvailability(message: {
+    key: string;
+    value: OrderDTO;
+  }) {
+    const { key, value: orderDTO } = message;
+    return this.producerProxy.produceAndWaitForResponse<OrderDTO>(
+      "budget-availability-requested",
+      orderDTO,
+      key
+    )
+      .then(this.approveOrder)
+      .catch(this.handleRequestBudgetAvailabilityFailure);
+  }
+  async handleRequestOrderCreationFailure(err: KafkaException) {
+    if (err instanceof CannotProduceException) {
+    } else if (err instanceof NoValueException) {
+    } else if (err instanceof ValueParsingFailedException) {
+    } else if (err instanceof ItemsNotAvailableException) {
+    } else {
+      throw new AppError(err.message);
+    }
   }
 
   async requestOrderCreation(orderDTO: OrderDTO) {
-    let uuid: string = generateUUID();
-    produceAndWaitForResponse<OrderItemDTO[]>(
-        this.producer,
-        "order-creation-requested",
-        orderDTO.items,
-        uuid,
-    ).then(this.handleWarehouseAvailabilityResponseSuccess).catch(err => {
-      if (err !instanceof CannotProduceException) {
-        this.handleWarehouseAvailabilityResponseFailure()
-      }
-    });
-
-  }
-
-  async addOrder(orderDTO: OrderDTO): Promise<OrderDTO | AppError> {
-    let uuid: string = generateUUID();
-    try {
-      // The response is produced on the topic: order-items-available
-      const orderItemDTOs: OrderItemDTO[] = (await produceAndWaitForResponse(
-          this.producer,
-          "order-creation-requested",
-          orderDTO.items,
-          uuid,
-      )) as OrderItemDTO[];
-
-      const totalOrderAmount = orderItemDTOs.reduce(
-          (acc, item) => acc + item.perItemPrice! * item.amount,
-          0
-      );
-      // if the following promise is resolved, the buyer has enough money
-      await produceAndWaitForResponse(
-          this.producer,
-          "wallet-availability-requested",
-          {
-            buyerId: orderDTO.buyerId,
-            totalOrderAmount
-          },
-          uuid,
-      );
-      const orderDTOWithPerItemPrices: OrderDTO = {
-        ...orderDTO,
-        items: orderItemDTOs
-      };
-
-      // if the following promise is resolved, the order can be created
-      await produceAndWaitForResponse(
-          this.producer,
-          "order-approved",
-          orderDTOWithPerItemPrices,
-          uuid,
-      );
-      const orderWithPerItemPrices: Order = {
-        buyerId: orderDTOWithPerItemPrices.buyerId,
-        items: orderItemDTOs.map(toOrderItem)
-      };
-      const createdOrder = await this.orderRepository.createOrder(orderWithPerItemPrices);
-      return toOrderDTO(createdOrder);
-    }
-    catch (ex) {
-      // delete requests[uuid];
-      // TODO: logging error
-      if (ex instanceof NoProductAvailabilityException) {
-
-      }
-      else if (ex instanceof NoEnoughMoneyException) {
-
-      }
-      else if (ex instanceof WarehouseFailureException) {
-
-      }
-      else if (ex instanceof WalletFailureException) {
-
-      }
-      else if (ex instanceof RepositoryException) {
-
-      }
-      else {
-
-      }
-
-      return new AppError("No items availability")
-    }
+    let uuid: string = generateUUID(this.producerProxy.requestStore);
+    return this.producerProxy.produceAndWaitForResponse<OrderDTO>(
+      "order-creation-requested",
+      orderDTO,
+      uuid
+    )
+      .then(this.requestBudgetAvailability)
+      .catch(this.handleRequestOrderCreationFailure);
   }
 
   async modifyOrderStatus(
@@ -195,15 +206,4 @@ export class OrderService {
   }
 }
 
-const getOrderService = async (): Promise<OrderService> => {
-  const createProducerPromise = createProducer();
-  const createConsumerPromise = createConsumer("groupId");
-
-  const [producer, consumer] = await Promise.all([
-    createProducerPromise,
-    createConsumerPromise,
-  ]);
-  return new OrderService(orderRepository, producer, consumer);
-};
-
-export default getOrderService;
+export default OrderService

@@ -5,19 +5,13 @@ import { OrderItemDTO } from "../models/OrderItem";
 import { OrderStatus } from "../db/OrderStatus";
 import AppError from "../models/AppError";
 
-class OrderController {
-  constructor(private orderService: OrderService) {}
+export class OrderController {
+  private static _instance: OrderController;
 
-  asyncCall(req: Request, res: Response, next: NextFunction) {
-    const id = 3;
-    new Promise((resolve, reject) => {
-      requests[id] = [resolve, reject];
-    }).then(() => {
-      console.log("SUCCESS");
-    }).catch(err => {
-      console.error("ERROR");
-    });
-    this.orderService.asyncService();
+  private constructor(private orderService: OrderService) {}
+
+  static getInstance(orderService: OrderService) {
+    return this._instance || (this._instance = new this(orderService));
   }
 
   getOrders(req: Request, res: Response, next: NextFunction) {
