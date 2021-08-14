@@ -1,6 +1,8 @@
 package it.polito.ecommerce.catalogservice.domain
 
 import it.polito.ecommerce.catalogservice.dto.EmailVerificationTokenDTO
+import it.polito.ecommerce.catalogservice.exceptions.user.InconsistentUserException
+import it.polito.ecommerce.catalogservice.exceptions.user.emailverificationtoken.InconsistentEmailVerificationTokenException
 import it.polito.ecommerce.catalogservice.repositories.UserRepository
 import org.springframework.data.annotation.Id
 import java.time.LocalDateTime
@@ -14,12 +16,17 @@ data class EmailVerificationToken(
 
     val token: String = UUID.randomUUID().toString(),
 
-    val user_id: Long
+    val user: User
 )
 
-fun EmailVerificationToken.toEmailVerificationTokenDTO(userRepository: UserRepository) = EmailVerificationTokenDTO(
-    user_id = this.user_id,
-    //username = userRepository.findUsernameById(this.user_id).toString(), //TODO come lo ricavo lo user?
-    expirationDate = this.expirationDate,
-    token = this.token
-)
+fun EmailVerificationToken.toEmailVerificationTokenDTO(): EmailVerificationTokenDTO {
+    val id = this.id ?: throw InconsistentEmailVerificationTokenException(
+        "error"
+    )
+    return EmailVerificationTokenDTO(
+        id = id,
+        username = this.user.username,
+        expirationDate = this.expirationDate,
+        token = this.token
+    )
+}

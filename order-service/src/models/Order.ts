@@ -1,5 +1,5 @@
 import mongoose from "mongoose"
-import {Product, ProductDTO, productSchema, toProductDTO} from "./Product";
+import {OrderItem, OrderItemDTO, orderItemSchema, toOrderItemDTO} from "./OrderItem";
 import {OrderStatus, OrderStatusType, toStatusName} from "../db/OrderStatus";
 
 export interface Order {
@@ -7,7 +7,7 @@ export interface Order {
   buyerId: string;
   createdAt?: Date;
   status?: OrderStatusType;
-  products: Product[];
+  items: OrderItem[];
 }
 
 export interface OrderDTO {
@@ -15,7 +15,7 @@ export interface OrderDTO {
   buyerId: string;
   createdAt?: Date;
   status?: OrderStatusType;
-  products: ProductDTO[];
+  items: OrderItemDTO[];
 }
 
 export const toOrderDTO = (order: Order): OrderDTO => {
@@ -24,7 +24,7 @@ export const toOrderDTO = (order: Order): OrderDTO => {
     buyerId: order.buyerId,
     createdAt: order.createdAt,
     status:order.status,
-    products: order.products.map(toProductDTO)
+    items: order.items.map(toOrderItemDTO)
   }
 }
 
@@ -43,8 +43,8 @@ const orderSchema = new mongoose.Schema<Order>({
     default: toStatusName(OrderStatus.ISSUED),
     message: "{VALUE} is not supported",
   },
-  products: {
-    type: [productSchema],
+  items: {
+    type: [orderItemSchema],
     default: [],
   }
 }, {
@@ -52,8 +52,8 @@ const orderSchema = new mongoose.Schema<Order>({
 });
 
 orderSchema.virtual("purchasePrice").get(function (this: Order) {
-  return this.products.reduce(
-    (acc, product) => acc + product.purchasePrice * product.amount,
+  return this.items.reduce(
+    (acc, item) => acc + item.perItemPrice * item.amount,
     0
   );
 });

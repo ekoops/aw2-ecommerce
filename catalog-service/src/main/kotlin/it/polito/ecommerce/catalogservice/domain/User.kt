@@ -1,10 +1,12 @@
 package it.polito.ecommerce.catalogservice.domain
 
+import io.r2dbc.spi.Row
 import it.polito.ecommerce.catalogservice.dto.UserDTO
 import it.polito.ecommerce.catalogservice.dto.UserDetailsDTO
 import it.polito.ecommerce.catalogservice.exceptions.user.ActionNotPermittedException
 import it.polito.ecommerce.catalogservice.exceptions.user.InconsistentUserException
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.Transient
 import reactor.core.publisher.Mono
 import javax.validation.constraints.NotEmpty
 import javax.validation.constraints.NotNull
@@ -32,10 +34,9 @@ data class User(
 //    val customer: Customer,
 
 //    val emailVerificationToken: EmailVerificationToken,
-
-    val rolesList: List<Rolename>
-
-){
+    @Transient
+    private val rolesList: List<Rolename>
+) {
 
     @field:NotEmpty(message = "The roles field must be not empty")
     val roles: String = rolesList.distinct().joinToString(separator = ",")
@@ -47,13 +48,13 @@ data class User(
 
     fun addRolename(rolename: Rolename): User? {
         if (this.roles.contains(rolename.toString())) return null
-        val newRoleList= rolesList+rolename
+        val newRoleList = rolesList + rolename
         return User(
             id = id,
             username = username,
             password = password,
             email = email,
-            isEnabled= isEnabled,
+            isEnabled = isEnabled,
             isLocked = isLocked,
             rolesList = newRoleList,
         )
@@ -62,14 +63,14 @@ data class User(
     fun removeRolename(role: Rolename): User? {
         val roleList = this.roles.split(",").toMutableList()
         if (roleList.size == 1) return null
-        val hasBeenRemoved= roleList.remove(role.toString())
+        val hasBeenRemoved = roleList.remove(role.toString())
         if (hasBeenRemoved) {
             return User(
                 id = id,
                 username = username,
                 password = password,
                 email = email,
-                isEnabled= isEnabled,
+                isEnabled = isEnabled,
                 isLocked = isLocked,
                 rolesList = rolesList
             )
@@ -84,7 +85,7 @@ data class User(
             username = username,
             password = password,
             email = email,
-            isEnabled= true,
+            isEnabled = true,
             isLocked = isLocked,
             rolesList = rolesList
         )
@@ -108,7 +109,7 @@ data class User(
             username = username,
             password = password,
             email = email,
-            isEnabled= false,
+            isEnabled = false,
             isLocked = isLocked,
             rolesList = rolesList
         )
@@ -124,7 +125,7 @@ data class User(
             username = username,
             password = password,
             email = email,
-            isEnabled= isEnabled,
+            isEnabled = isEnabled,
             isLocked = true,
             rolesList = rolesList
         )
@@ -137,7 +138,7 @@ data class User(
             username = username,
             password = password,
             email = email,
-            isEnabled= isEnabled,
+            isEnabled = isEnabled,
             isLocked = false,
             rolesList = rolesList
         )
@@ -161,8 +162,9 @@ fun User.toUserDetailsDTO(): UserDetailsDTO {
 }
 
 fun User.toUserDTO(): UserDTO {
+    // TODO change message
     val id = this.id ?: throw InconsistentUserException(
-        "Transaction id or from/to wallet id are undefined"
+       "error"
     )
     return UserDTO(
         id = id,
@@ -170,3 +172,13 @@ fun User.toUserDTO(): UserDTO {
         email = this.email
     )
 }
+
+fun Row.extractUser(): User = User(
+    id = this.get("id").toString().toLong(),
+    username = this.get("username").toString(),
+    email = this.get("email").toString(),
+    password = this.get("password").toString(),
+    isEnabled = this.get("is_enabled").toString().toBoolean(),
+    isLocked = this.get("is_locked").toString().toBoolean(),
+    rolesList = this.get("roles").toString().split(",").map { Rolename.valueOf(it) }
+)

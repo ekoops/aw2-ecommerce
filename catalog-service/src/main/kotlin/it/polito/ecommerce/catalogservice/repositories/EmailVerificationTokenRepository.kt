@@ -1,12 +1,13 @@
 package it.polito.ecommerce.catalogservice.repositories
 
 import it.polito.ecommerce.catalogservice.domain.EmailVerificationToken
+import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 
-interface EmailVerificationTokenRepository: ReactiveCrudRepository<EmailVerificationToken,Long> {
-    fun findByToken(token: String): Mono<EmailVerificationToken>
-    fun deleteByToken(token: String): Mono<Long>
-    fun deleteByExpirationDateBefore(date: LocalDateTime): Mono<Long>
+interface EmailVerificationTokenRepository: CoroutineCrudRepository<EmailVerificationToken,Long> {
+    suspend fun findByToken(token: String): EmailVerificationToken
+    suspend fun deleteByToken(token: String): Long
+    suspend fun deleteByExpirationDateBefore(date: LocalDateTime): Long
 }

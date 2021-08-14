@@ -1,32 +1,42 @@
 import express from "express";
-import orderController from "../controllers/order-controller";
+import getOrderController from "../controllers/order-controller";
 import { validators, checkErrors } from "../validators";
 
-const router = express.Router();
+const getRouter = async () => {
+  const router = express.Router();
 
-router.get("/", validators.getOrders, checkErrors, orderController.getOrders);
+  const orderController = await getOrderController();
 
-router.get("/:id", validators.getOrder, checkErrors, orderController.getOrder);
+  router.get("/", validators.getOrders, checkErrors, orderController.getOrders);
 
-router.post(
-  "/",
-  validators.postOrder,
-  checkErrors,
-  orderController.postOrder
-);
+  router.get(
+    "/:id",
+    validators.getOrder,
+    checkErrors,
+    orderController.getOrder
+  );
 
-router.patch(
-  "/:id",
-  validators.patchOrder,
-  checkErrors,
-  orderController.patchOrder
-);
+  router.post(
+    "/",
+    validators.postOrder,
+    checkErrors,
+    orderController.postOrder
+  );
 
-router.delete(
-  "/:id",
-  validators.deleteOrder,
-  checkErrors,
-  orderController.deleteOrder
-);
+  router.patch(
+    "/:id",
+    validators.patchOrder,
+    checkErrors,
+    orderController.patchOrder
+  );
 
-export = router;
+  router.delete(
+    "/:id",
+    validators.deleteOrder,
+    checkErrors,
+    orderController.deleteOrder
+  );
+  return router;
+};
+
+export default getRouter;

@@ -3,8 +3,8 @@ create table if not exists `catalogservice`.`user`(
     username VARCHAR (255) not null,
     email VARCHAR (255) not null,
     password VARCHAR (255) not null,
-    isEnabled TINYINT(1) not null,
-    isLocked TINYINT(1) not null,
+    is_enabled TINYINT(1) not null,
+    is_locked TINYINT(1) not null,
     roles VARCHAR (255) not null
 );
 
@@ -12,8 +12,7 @@ create table if not exists `catalogservice`.`emailVerificationToken`(
     id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     expirationDate DATE NOT NULL,
     token VARCHAR (255) not null,
-    user_id INTEGER NOT NULL,
-    constraint fk_emailVerificationToken_user FOREIGN KEY (user_id) references user(id)
+    constraint fk_emailVerificationToken_user FOREIGN KEY (id) references user(id)
     on delete cascade
     on update restrict
     );
@@ -23,8 +22,7 @@ create table if not exists `catalogservice`.`customer`(
     name VARCHAR (255) not null,
     surname VARCHAR (255) not null,
     delivery_address VARCHAR (255) not null,
-    user_id INTEGER NOT NULL,
-    constraint fk_customer_user FOREIGN KEY (user_id) references user(id)
+    constraint fk_customer_user FOREIGN KEY (id) references user(id)
     on delete cascade
     on update restrict
     );

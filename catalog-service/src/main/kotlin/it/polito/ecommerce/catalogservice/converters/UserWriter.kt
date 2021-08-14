@@ -16,8 +16,8 @@ class UserWriter: Converter<User, OutboundRow> {
             put("username", Parameter.from(u.username))
             put("email", Parameter.from(u.email))
             put("password", Parameter.from(u.password))
-            put("isEnabled", Parameter.from(u.isEnabled))
-            put("isLocked", Parameter.from(u.isLocked))
+            put("is_enabled", Parameter.from(u.isEnabled))
+            put("is_locked", Parameter.from(u.isLocked))
             put("roles", Parameter.from(u.roles))
         }
 }

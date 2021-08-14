@@ -8,12 +8,15 @@ import org.springframework.r2dbc.core.Parameter
 
 @WritingConverter
 class CustomerWriter: Converter<Customer, OutboundRow> {
-    override fun convert(c: Customer)=
-        OutboundRow().apply {
-            if (c.id!=null) put("id", Parameter.from(c.id))
+    override fun convert(c: Customer): OutboundRow {
+        if (c.user.id == null || c.id != c.user.id) {
+            throw Exception("ciao")
+        }
+        return OutboundRow().apply {
+            put("id", Parameter.from(c.user.id))
             put("name", Parameter.from(c.name))
             put("surname", Parameter.from(c.surname))
             put("delivery_address", Parameter.from(c.deliveryAddress))
-            put("user_id", Parameter.from(c.user.id!!))
         }
+    }
 }

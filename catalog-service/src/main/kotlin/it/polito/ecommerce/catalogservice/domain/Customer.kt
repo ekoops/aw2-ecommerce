@@ -25,5 +25,4 @@ data class Customer (
 
     //TODO: Questa relazione può essere eliminata?
     //var wallets: Set<Wallet> = emptySet()
-        ){
-}
+        )

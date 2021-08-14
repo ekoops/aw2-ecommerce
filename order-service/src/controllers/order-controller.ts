@@ -1,20 +1,32 @@
 import { Request, Response, NextFunction } from "express";
-import { orderService, OrderService } from "../services/order-service";
+import getOrderService, { OrderService } from "../services/order-service";
 import { OrderDTO } from "../models/Order";
-import { ProductDTO } from "../models/Product";
+import { OrderItemDTO } from "../models/OrderItem";
 import { OrderStatus } from "../db/OrderStatus";
 import AppError from "../models/AppError";
 
 class OrderController {
   constructor(private orderService: OrderService) {}
 
+  asyncCall(req: Request, res: Response, next: NextFunction) {
+    const id = 3;
+    new Promise((resolve, reject) => {
+      requests[id] = [resolve, reject];
+    }).then(() => {
+      console.log("SUCCESS");
+    }).catch(err => {
+      console.error("ERROR");
+    });
+    this.orderService.asyncService();
+  }
+
   getOrders(req: Request, res: Response, next: NextFunction) {
-    orderService.getOrders().then((orders) => res.status(200).json(orders));
+    this.orderService.getOrders().then((orders) => res.status(200).json(orders));
   }
 
   getOrder(req: Request, res: Response, next: NextFunction) {
     const { id } = req.params;
-    orderService.getOrder(id).then((result) => {
+    this.orderService.getOrder(id).then((result) => {
       if (result instanceof AppError) {
         // TODO: change 400 status code
         res.status(404).json({});
@@ -23,17 +35,17 @@ class OrderController {
   }
 
   postOrder(req: Request, res: Response, next: NextFunction) {
-    const products: ProductDTO[] = req.body.products.map(
-      (product: any): ProductDTO => ({
+    const products: OrderItemDTO[] = req.body.products.map(
+      (product: any): OrderItemDTO => ({
         id: product.id,
         amount: product.amount,
       })
     );
     const orderDTO: OrderDTO = {
       buyerId: req.body.buyerId,
-      products,
+      items: items,
     };
-    orderService
+    this.orderService
       .addOrder(orderDTO)
       .then((createdOrderDTO) => res.status(201).json(createdOrderDTO));
   }
@@ -41,7 +53,7 @@ class OrderController {
   patchOrder(req: Request, res: Response, next: NextFunction) {
     const { id } = req.params;
     const newStatus = req.body.status as OrderStatus;
-    orderService.modifyOrderStatus(id, newStatus).then((result) => {
+    this.orderService.modifyOrderStatus(id, newStatus).then((result) => {
       if (result instanceof AppError) {
         // TODO: change 400 status code
         res.status(400).json({
@@ -53,12 +65,15 @@ class OrderController {
 
   deleteOrder(req: Request, res: Response, next: NextFunction) {
     const { id } = req.params;
-    orderService
+    this.orderService
       .deleteOrder(id)
       .then((deleted) => res.status(200).json(deleted));
   }
 }
 
-const orderController = new OrderController(orderService);
+const getOrderController = async (): Promise<OrderController> => {
+  const orderService = await getOrderService();
+  return new OrderController(orderService);
+}
 
-export default orderController;
+export default getOrderController;

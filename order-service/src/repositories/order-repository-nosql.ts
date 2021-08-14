@@ -29,7 +29,12 @@ export class OrderRepositoryNosql {
 
   async createOrder(order: Order): Promise<Order> {
     const orderModel = new OrderModel(order);
-    const concreteOrder = await orderModel.save();
+    try {
+      const concreteOrder = await orderModel.save();
+    }
+    catch (ex) {
+      throw RepositoryException();
+    }
     console.log("CREATE - ", concreteOrder);
     return concreteOrder;
   }

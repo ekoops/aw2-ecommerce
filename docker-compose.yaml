@@ -16,6 +16,8 @@ services:
       dockerfile: ./Dockerfile # relative to the build context
       context: ./dummy-express
     restart: always
+    profiles:
+      - debug
     ports:
       - "3000:3000"
     #    networks:
@@ -29,7 +31,7 @@ services:
     build:
       dockerfile: ../Dockerfile # relative to the build context
       context: ./order-service/build
-    restart: always
+#    restart: always
     env_file:
       - ./order-service/prod.env
     ports:
@@ -37,13 +39,15 @@ services:
     networks:
       - dummy-net
       - order-net
+      - communication-net
     depends_on:
       - order-db
+      - kafka
 
   order-db:
     image: mongo
     container_name: order-db
-    restart: always
+#    restart: always
     env_file:
       - ./envs/orders-mongodb.env
 #    volumes:
@@ -53,16 +57,16 @@ services:
     logging:
       driver: none
 
-  mail-svc:
-    image: aw2-ecommerce/mail-svc
-    container_name: mail-svc
-    build:
-      dockerfile: ../Dockerfile # relative to the build context
-      context: ./mail-service/build
-    restart: always
-    env_file:
-      - ./mail-service/prod.env
-    #TOOD: continue...
+#  mail-svc:
+#    image: aw2-ecommerce/mail-svc
+#    container_name: mail-svc
+#    build:
+#      dockerfile: ../Dockerfile # relative to the build context
+#      context: ./mail-service/build
+#    restart: always
+#    env_file:
+#      - ./mail-service/prod.env
+#    #TOOD: continue...
 
   zookeeper:
     image: zookeeper
@@ -71,6 +75,9 @@ services:
 #      - "2181:2181"
     networks:
       - zookeeper-kafka-net
+    logging:
+      driver: none
+
   kafka:
     image: confluentinc/cp-kafka
     container_name: kafka
@@ -80,8 +87,11 @@ services:
       - ./envs/kafka.env.prod
     networks:
       - zookeeper-kafka-net
+      - communication-net
     depends_on:
       - zookeeper
+    logging:
+      driver: none
 
 networks:
   dummy-net:
@@ -90,3 +100,5 @@ networks:
     name: order-net
   zookeeper-kafka-net:
     name: zookeeper-kafka-net
+  communication-net:
+    name: communication-net

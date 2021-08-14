@@ -17,26 +17,36 @@ if (config.environment === "production") {
   };
 }
 
-const initDbConnection = (callback: () => void) => {
-  try {
-    console.log(`<<<<<<<<< TRYING TO CONNECT TO ${uri} with the following credentials:
+// const initDbConnection = async (callback: () => void) => {
+const initDbConnection = async () => {
+  let retry = 3;
+  do {
+    try {
+      if (config.environment === "development") {
+        console.log(`<<<<<<<<< TRYING TO CONNECT TO ${uri} with the following credentials:
       - ${config.db.user}
       - ${config.db.pass}
       - ${config.db.authSource}
  >>>>>>>>>>>>>>`);
-    mongoose.connect(uri, mongooseOptions);
-    mongoose.set("runValidators", true);
-    mongoose.connection.on("error", (err) => {
-      console.log(`HANDLING ERROR AFTER INITIAL CONNECTION: ${err}`);
-    });
-    mongoose.connection.once("open", () => {
-      console.log(`<<<<<<<<< CONNECTED TO ${uri} >>>>>>>>>>>>>>`);
-      callback();
-    });
-  } catch (ex) {
-    // initial connection fail
-    console.log("MONGODB INITIAL CONNECTION ERROR... TODO");
-  }
+      }
+      await mongoose.connect(uri, mongooseOptions);
+      mongoose.set("runValidators", true);
+      mongoose.connection.on("error", (err) => {
+        console.log(`HANDLING ERROR AFTER INITIAL CONNECTION: ${err}`);
+      });
+      mongoose.connection.once("open", () => {
+        console.log(`<<<<<<<<< CONNECTED TO ${uri} >>>>>>>>>>>>>>`);
+        // callback();
+      });
+      return mongoose;
+    } catch (ex) {
+      retry--;
+      console.error("MONGODB INITIAL CONNECTION ERROR... TODO);");
+      // initial connection fail
+    }
+  } while (retry);
+
+  throw Error(`Failed to connect to ${uri}`);
 };
 
 export default initDbConnection;
