@@ -8,5 +8,6 @@ eureka:
     fetch-registry: false
   server:
     response-cache-update-interval-ms: 5000
-
+    expected-client-renewal-interval-seconds: 5
+    renewal-threshold-update-interval-ms: 5000
 

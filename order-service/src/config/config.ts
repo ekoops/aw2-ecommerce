@@ -1,4 +1,5 @@
 import { Dialect } from "sequelize";
+import {generateUUID} from "../kafka/utils";
 
 const environment = process.env.NODE_ENV || "unknown";
 
@@ -14,6 +15,7 @@ const db_port = process.env.DB_PORT || 27017;
 
 const kafka_host = process.env.KAFKA_HOST || "kafka";
 const kafka_port = process.env.KAFKA_PORT || 9092;
+const kafka_client_id = process.env.KAFKA_CLIENT_ID || `order-svc-${generateUUID(false)}`;
 
 const eureka_instance_app = process.env.EUREKA_INSTANCE_APP || "order-svc";
 const eureka_instance_hostName = process.env.EUREKA_INSTANCE_HOST_NAME || "localhost";
@@ -47,6 +49,7 @@ const config = {
   kafka: {
     host: kafka_host,
     port: +kafka_port,
+    clientId: kafka_client_id
   },
   eureka: {
     instance: {

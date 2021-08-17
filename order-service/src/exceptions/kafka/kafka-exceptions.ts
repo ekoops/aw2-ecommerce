@@ -5,6 +5,17 @@ export class KafkaException {
   }
 }
 
+export class CannotCreateProducerException extends KafkaException {
+  constructor(message: string) {
+    super(undefined, message);
+  }
+}
+export class CannotCreateConsumerException extends KafkaException {
+  constructor(message: string) {
+    super(undefined, message);
+  }
+}
+
 export class CannotProduceException extends KafkaException {
     static fromJson() {
         return new CannotProduceException();
@@ -49,7 +60,7 @@ export class WarehouseOrderCreationFailedException extends KafkaException {
 }
 
 export class HandlersBindingFailedException extends KafkaException {
-  static fromJson(requestId: string, message: string) {
-    return new HandlersBindingFailedException(requestId, message);
+  constructor(message: string) {
+    super(undefined, message);
   }
 }

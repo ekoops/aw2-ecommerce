@@ -3,7 +3,8 @@ import RequestStore from "./RequestStore";
 
 const requestStore = RequestStore.getInstance();
 
-export const generateUUID = (): string => {
+export const generateUUID = (isUuidForRequest: boolean = true): string => {
+    if (!isUuidForRequest) return uuidv4();
     let uuid: string;
     do {
         uuid = uuidv4();

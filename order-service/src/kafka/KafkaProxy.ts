@@ -6,6 +6,8 @@ import {
   RecordMetadata,
 } from "kafkajs";
 import config from "../config/config";
+import { generateUUID } from "./utils";
+import {CannotCreateConsumerException, CannotCreateProducerException} from "../exceptions/kafka/kafka-exceptions";
 
 export interface Producer {
   produce: (producerRecord: ProducerRecord) => Promise<RecordMetadata[]>;
@@ -23,7 +25,7 @@ export default class KafkaProxy {
 
   constructor(clientId: string, brokers: string[]) {
     this.kafka = new Kafka({
-      // clientId: "order-svc", //TODO: adding unique clientId
+      clientId,
       brokers,
     });
   }
@@ -31,18 +33,23 @@ export default class KafkaProxy {
     return this._instance || (this._instance = new this(clientId, brokers));
   }
   async createProducer() {
-    const producer = this.kafka.producer();
-    await producer.connect();
-    console.log("Kafka's producer connected to cluster");
-    return {
-      produce: async (producerRecord: ProducerRecord) => {
-        const result = await producer.send(producerRecord);
-        if (config.environment === "development") {
-          console.log("produced:", JSON.stringify(result, null, " "));
-        }
-        return result;
-      },
-    };
+    try {
+      const producer = this.kafka.producer();
+      await producer.connect();
+      console.log("Kafka's producer connected to cluster");
+      return {
+        produce: async (producerRecord: ProducerRecord) => {
+          const result = await producer.send(producerRecord);
+          if (config.environment === "development") {
+            console.log("produced:", JSON.stringify(result, null, " "));
+          }
+          return result;
+        },
+      };
+    }
+    catch (ex) {
+      throw new CannotCreateProducerException(ex.toString());
+    }
   }
 
   async createConsumer(
@@ -59,20 +66,25 @@ export default class KafkaProxy {
       subscriptionsPromises.push(subscriptionPromise);
     });
 
-    await Promise.all(subscriptionsPromises);
+    try {
+      await Promise.all(subscriptionsPromises);
 
-    if (config.environment === "development") {
-      console.log("Kafka's consumer connected to cluster");
+      if (config.environment === "development") {
+        console.log("Kafka's consumer connected to cluster");
+      }
+
+      await consumer.connect();
+      consumer.run({ eachMessage: async () => {} }).then();
+      return {
+        consume: (callback: (payload: EachMessagePayload) => Promise<void>) => {
+          return consumer.run({
+            eachMessage: callback,
+          });
+        },
+      };
     }
-
-    await consumer.connect();
-    consumer.run({ eachMessage: async () => {} }).then();
-    return {
-      consume: (callback: (payload: EachMessagePayload) => Promise<void>) => {
-        return consumer.run({
-          eachMessage: callback,
-        });
-      },
-    };
+    catch(ex) {
+      throw new CannotCreateConsumerException(ex.toString());
+    }
   }
 }
