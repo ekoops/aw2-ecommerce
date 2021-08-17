@@ -4,6 +4,7 @@ import it.polito.ecommerce.catalogservice.domain.*
 import it.polito.ecommerce.catalogservice.dto.UserDTO
 import it.polito.ecommerce.catalogservice.dto.UserDetailsDTO
 import it.polito.ecommerce.catalogservice.dto.incoming.CreateUserRequestDTO
+import it.polito.ecommerce.catalogservice.dto.kafkadtos.RequestDTO
 import it.polito.ecommerce.catalogservice.exceptions.internal.CreateUserInternalException
 import it.polito.ecommerce.catalogservice.exceptions.internal.VerifyUserInternalException
 import it.polito.ecommerce.catalogservice.exceptions.user.NoSuchRoleException
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.mono
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.mail.MailException
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
@@ -41,7 +43,8 @@ class UserDetailsServiceImpl(
     private val coroutineUserRepository: CoroutineUserRepository,
     private val customerRepository: CustomerRepository,
     private val notificationService: NotificationService,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val kafkaTemplate: KafkaTemplate <String, RequestDTO>
 ) : ReactiveUserDetailsService {
     private val baseEmailVerificationUrl = "http://$host:$port$contextPath/auth/confirmRegistration?token="
 
@@ -87,12 +90,20 @@ class UserDetailsServiceImpl(
 //            // Creating email verification token
             val emailVerificationTokenDTO = notificationService
                 .createEmailVerificationToken(createdUser.username)
-//
-//            // Sending verification email
-            val userVerificationUrl = "$baseEmailVerificationUrl${emailVerificationTokenDTO.token}"
 
-            // TODO: send kafka message on topic user-created
-            //TODO("send kafka message on topic user-created")
+            // Sending kafka message on topic "user-created" for email verification
+            val userVerificationUrl = "$baseEmailVerificationUrl${emailVerificationTokenDTO.token}"
+            val requestDTO = RequestDTO(
+                id=5,
+                userVerificationUrl= userVerificationUrl,
+                userEmail = email,
+                mailBody = """
+                Verifica l'account immediatamente
+                $userVerificationUrl
+                """.trimIndent()
+                )
+
+            kafkaTemplate.send("user-created", requestDTO).get()
 //            mailService.sendMessage(
 //                toMail = email,
 //                subject = "[SauceOverflow] Verifica l'account appena creato",
@@ -135,15 +146,9 @@ class UserDetailsServiceImpl(
     }
 
     suspend fun enableUser(username: String): Boolean {
-        val user = getUserByUsername(username)
-        val enabledUser = user.enableUser()
-        return if (enabledUser != null) {
-            println(enabledUser)
-            coroutineUserRepository.save(enabledUser)
-            true
-        } else {
-            false
-        }
+        val enabledUser = getUserByUsername(username).enableUser() ?: return false
+        coroutineUserRepository.save(enabledUser)
+        return false
     }
 
     suspend fun disableUser(username: String): Boolean {

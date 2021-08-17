@@ -5,7 +5,6 @@ import it.polito.ecommerce.catalogservice.dto.incoming.CreateUserRequestDTO
 import it.polito.ecommerce.catalogservice.dto.incoming.SignInUserRequestDTO
 import it.polito.ecommerce.catalogservice.security.JwtUtils
 import it.polito.ecommerce.catalogservice.services.implementations.UserDetailsServiceImpl
-import kotlinx.coroutines.flow.Flow
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.ReactiveAuthenticationManager

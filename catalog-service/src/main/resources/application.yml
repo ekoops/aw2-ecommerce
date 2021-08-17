@@ -5,7 +5,7 @@ spring:
     name: CatalogService
   r2dbc:
     url: r2dbc:mariadb://localhost:3306/catalogservice
-    username: leonardo
+    username: giuseppe
     password: toor
     pool:
       enabled: true
@@ -31,7 +31,11 @@ spring:
         - Path=/warehouse-service/**
         filters:
         - RewritePath=/warehouse-service,/warehouses
-
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      auto-offset-reset: latest
+      group-id: catalogGroup
 
 
 

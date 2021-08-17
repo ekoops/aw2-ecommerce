@@ -34,6 +34,8 @@ class ControllersAdvisor {
         )
     }
 
+
+    //TODO: Capire perchè le due classi commentate danno problemi. Derivano da javax.servlet.ServletException
 //    @ExceptionHandler(HttpMediaTypeNotSupportedException::class)
 //    @ResponseStatus(HttpStatus.BAD_REQUEST)
 //    fun httpMediaTypeExceptionHandler(ex: HttpMediaTypeNotSupportedException): ErrorDetails = ErrorDetails(
