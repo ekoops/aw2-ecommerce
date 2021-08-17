@@ -1,11 +1,9 @@
 import express from "express";
-import getOrderController from "../controllers/order-controller";
+import OrderController from "../controllers/order-controller";
 import { validators, checkErrors } from "../validators";
 
-const getRouter = async () => {
+const getRouter = async (orderController: OrderController) => {
   const router = express.Router();
-
-  const orderController = await getOrderController();
 
   router.get("/", validators.getOrders, checkErrors, orderController.getOrders);
 

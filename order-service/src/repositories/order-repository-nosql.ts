@@ -1,12 +1,14 @@
-import { Order, OrderDTO, OrderModel } from "../models/Order";
-import { promisify } from "util";
-import mongoose, { FilterQuery, CallbackError } from "mongoose";
+import { Order, OrderModel } from "../models/Order";
+import mongoose from "mongoose";
+import {OrderCreationFailedException} from "../exceptions/repositories/repositories-exceptions";
 
-export class OrderRepositoryNosql {
-  private OrderModel: mongoose.Model<Order>;
+class OrderRepositoryNosql {
+  private static _instance: OrderRepositoryNosql;
 
-  constructor(OrderModel: mongoose.Model<Order>) {
-    this.OrderModel = OrderModel;
+  private constructor(private readonly OrderModel: mongoose.Model<Order>) {}
+
+  static getInstance(OrderModel: mongoose.Model<Order>) {
+    return this._instance || (this._instance = new this(OrderModel));
   }
 
   async findOrderById(id: string): Promise<Order | null> {
@@ -14,7 +16,7 @@ export class OrderRepositoryNosql {
     //   OrderModel.findById.bind(OrderModel)
     // );
     // return findById(id);
-    const order = await OrderModel.findById(id);
+    const order = await this.OrderModel.findById(id);
     console.log(`FIND BY ID(${id}) - `, order);
     return order;
   }
@@ -22,33 +24,34 @@ export class OrderRepositoryNosql {
   async findAllOrders(): Promise<Order[]> {
     // const findOrders = promisify<Order[]>(OrderModel.find.bind(OrderModel));
 
-    const orders: Order[] = await OrderModel.find();
+    const orders: Order[] = await this.OrderModel.find();
     console.log("FIND ALL - ", orders);
     return orders;
   }
 
   async createOrder(order: Order): Promise<Order> {
-    const orderModel = new OrderModel(order);
+    const orderModel = new this.OrderModel(order);
     try {
       const concreteOrder = await orderModel.save();
+      console.log("CREATE - ", concreteOrder);
+      return concreteOrder;
     }
     catch (ex) {
-      throw RepositoryException();
+      throw new OrderCreationFailedException();
     }
-    console.log("CREATE - ", concreteOrder);
-    return concreteOrder;
+
   }
 
-  async save(order: Order): Promise<Order> {
+  save(order: Order): Promise<Order> {
     // @ts-ignore
     return order.save();
   }
 
   async deleteOrderById(id: string): Promise<boolean> {
     // const deleteOrder = promisify<FilterQuery<Order>, any>(OrderModel.deleteOne.bind(OrderModel));
-    const res = await OrderModel.deleteOne({ _id: id });
+    const res = await this.OrderModel.deleteOne({ _id: id });
     console.log("DELETE - ", res);
     return res.deletedCount === 1;
   }
 }
-export const orderRepository = new OrderRepositoryNosql(OrderModel);
+export default OrderRepositoryNosql;
