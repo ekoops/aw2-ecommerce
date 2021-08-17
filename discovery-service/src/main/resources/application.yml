@@ -6,6 +6,7 @@ eureka:
   client:
     register-with-eureka: false
     fetch-registry: false
-  server
+  server:
+    response-cache-update-interval-ms: 5000
 
 

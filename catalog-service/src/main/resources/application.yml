@@ -1,8 +1,19 @@
+server:
+  host:  localhost
+  port: 8080
+eureka:
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 5
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
 spring:
   webflux:
     base-path: /api/v1
   application:
-    name: CatalogService
+    name: catalog-svc
   r2dbc:
     url: r2dbc:mariadb://localhost:3306/catalogservice
     username: giuseppe
@@ -39,6 +50,8 @@ spring:
 
 
 
+
+
 ## email
 #spring.mail.host=smtp.gmail.com
 #spring.mail.port=587
@@ -48,9 +61,7 @@ spring:
 #spring.mail.properties.mail.smtp.starttls.enable=true
 #spring.mail.properties.mail.debug=true
 
-server:
-  host:  localhost,
-  port: 8080
+
 
 application:
   jwt:

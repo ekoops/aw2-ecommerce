@@ -44,7 +44,7 @@ class UserDetailsServiceImpl(
     private val customerRepository: CustomerRepository,
     private val notificationService: NotificationService,
     private val passwordEncoder: PasswordEncoder,
-    private val kafkaTemplate: KafkaTemplate <String, RequestDTO>
+//    private val kafkaTemplate: KafkaTemplate <String, RequestDTO>
 ) : ReactiveUserDetailsService {
     private val baseEmailVerificationUrl = "http://$host:$port$contextPath/auth/confirmRegistration?token="
 
@@ -92,18 +92,18 @@ class UserDetailsServiceImpl(
                 .createEmailVerificationToken(createdUser.username)
 
             // Sending kafka message on topic "user-created" for email verification
-            val userVerificationUrl = "$baseEmailVerificationUrl${emailVerificationTokenDTO.token}"
-            val requestDTO = RequestDTO(
-                id=5,
-                userVerificationUrl= userVerificationUrl,
-                userEmail = email,
-                mailBody = """
-                Verifica l'account immediatamente
-                $userVerificationUrl
-                """.trimIndent()
-                )
+//            val userVerificationUrl = "$baseEmailVerificationUrl${emailVerificationTokenDTO.token}"
+//            val requestDTO = RequestDTO(
+//                id=5,
+//                userVerificationUrl= userVerificationUrl,
+//                userEmail = email,
+//                mailBody = """
+//                Verifica l'account immediatamente
+//                $userVerificationUrl
+//                """.trimIndent()
+//                )
 
-            kafkaTemplate.send("user-created", requestDTO).get()
+//            kafkaTemplate.send("user-created", requestDTO).get()
 //            mailService.sendMessage(
 //                toMail = email,
 //                subject = "[SauceOverflow] Verifica l'account appena creato",
