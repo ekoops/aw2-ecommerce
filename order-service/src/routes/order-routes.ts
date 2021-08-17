@@ -1,5 +1,5 @@
 import express from "express";
-import getOrderController, {OrderController} from "../controllers/order-controller";
+import OrderController from "../controllers/order-controller";
 import { validators, checkErrors } from "../validators";
 
 const getRouter = async (orderController: OrderController) => {

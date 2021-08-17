@@ -1,12 +1,55 @@
 export class KafkaException {
-    constructor(public message: string = "") {}
+  constructor(public requestId: string | undefined = undefined, public message: string = "") {}
+  static fromJson(requestId: string, message: string) {
+    return new KafkaException(message);
+  }
 }
 
-export class CannotProduceException extends KafkaException {}
-export class ItemsNotAvailableException extends KafkaException {}
-export class NoValueException extends KafkaException {}
-export class ValueParsingFailedException extends KafkaException {}
-export class NotEnoughBudgetException extends KafkaException {}
+export class CannotProduceException extends KafkaException {
+    static fromJson() {
+        return new CannotProduceException();
+    }
+}
 
-export class WalletOrderCreationFailureException extends KafkaException {}
-export class WarehouseOrderCreationFailureException extends KafkaException {}
+export class NoHandlersException extends KafkaException {
+  static fromJson() {
+    return new NoHandlersException();
+  }
+}
+export class NoValueException extends KafkaException {
+  static fromJson(requestId: string) {
+    return new NoValueException(requestId);
+  }
+}
+export class ValueParsingFailedException extends KafkaException {
+  static fromJson(requestId: string) {
+    return new ValueParsingFailedException(requestId);
+  }
+}
+
+export class ItemsNotAvailableException extends KafkaException {
+  static fromJson(requestId: string, message: string) {
+    return new ItemsNotAvailableException(requestId, message);
+  }
+}
+export class NotEnoughBudgetException extends KafkaException {
+  static fromJson(requestId: string, message: string) {
+    return new NotEnoughBudgetException(requestId, message);
+  }
+}
+export class WalletOrderCreationFailedException extends KafkaException {
+  static fromJson(requestId: string, message: string) {
+    return new WalletOrderCreationFailedException(requestId, message);
+  }
+}
+export class WarehouseOrderCreationFailedException extends KafkaException {
+  static fromJson(requestId: string, message: string) {
+    return new WarehouseOrderCreationFailedException(requestId, message);
+  }
+}
+
+export class HandlersBindingFailedException extends KafkaException {
+  static fromJson(requestId: string, message: string) {
+    return new HandlersBindingFailedException(requestId, message);
+  }
+}

@@ -3,18 +3,21 @@ import { RecordMetadata } from "kafkajs";
 import { CannotProduceException } from "../exceptions/kafka/kafka-exceptions";
 import { generateUUID } from "./utils";
 import RequestStore from "./RequestStore";
+import config from "../config/config";
+
+const requestStore = RequestStore.getInstance();
 
 export default class ProducerProxy {
-  constructor(private producer: Producer, public requestStore: RequestStore) {}
+  constructor(public producer: Producer) {}
 
   produceAndWaitForResponse<ResponseType>(
     topic: string,
     message: any,
-    uuid: string = generateUUID(this.requestStore)
+    uuid: string = generateUUID()
   ) {
     return new Promise<{ key: string; value: ResponseType }>(
       (resolve, reject) => {
-        this.requestStore.setRequestHandlers(uuid, resolve, reject);
+        requestStore.setRequestHandlers(uuid, resolve, reject);
         this.producer
           .produce({
             topic,
@@ -27,10 +30,13 @@ export default class ProducerProxy {
           })
           .then((recordMetadata: RecordMetadata[]) => {
             // TODO: logging
+              if (config.environment === "development") {
+                  console.log(JSON.stringify(recordMetadata));
+              }
           })
           .catch((err) => {
             console.error(err);
-            this.requestStore.removePromiseHandlers(uuid);
+            requestStore.removeRequestHandlers(uuid);
             const exception = new CannotProduceException();
             reject(exception);
           });

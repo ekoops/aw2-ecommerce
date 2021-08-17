@@ -1,7 +1,9 @@
 import {v4 as uuidv4} from "uuid";
 import RequestStore from "./RequestStore";
 
-export const generateUUID = (requestStore: RequestStore): string => {
+const requestStore = RequestStore.getInstance();
+
+export const generateUUID = (): string => {
     let uuid: string;
     do {
         uuid = uuidv4();

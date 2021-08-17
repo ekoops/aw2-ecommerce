@@ -6,7 +6,6 @@ import {
   RecordMetadata,
 } from "kafkajs";
 import config from "../config/config";
-import { callbackify } from "util";
 
 export interface Producer {
   produce: (producerRecord: ProducerRecord) => Promise<RecordMetadata[]>;
@@ -20,7 +19,6 @@ export interface Consumer {
 
 export default class KafkaProxy {
   private static _instance: KafkaProxy;
-  private producer?: Producer;
   private kafka: Kafka;
 
   constructor(clientId: string, brokers: string[]) {
@@ -32,12 +30,11 @@ export default class KafkaProxy {
   static getInstance(clientId: string, brokers: string[]) {
     return this._instance || (this._instance = new this(clientId, brokers));
   }
-  async getProducerInstance() {
-    if (this.producer) return this.producer;
+  async createProducer() {
     const producer = this.kafka.producer();
     await producer.connect();
     console.log("Kafka's producer connected to cluster");
-    return (this.producer = {
+    return {
       produce: async (producerRecord: ProducerRecord) => {
         const result = await producer.send(producerRecord);
         if (config.environment === "development") {
@@ -45,7 +42,7 @@ export default class KafkaProxy {
         }
         return result;
       },
-    });
+    };
   }
 
   async createConsumer(

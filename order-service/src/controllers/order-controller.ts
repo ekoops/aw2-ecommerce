@@ -1,11 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import getOrderService, { OrderService } from "../services/order-service";
-import { OrderDTO } from "../models/Order";
-import { OrderItemDTO } from "../models/OrderItem";
+import OrderService from "../services/order-service";
 import { OrderStatus } from "../db/OrderStatus";
 import AppError from "../models/AppError";
+import { OrderDTO, OrderItemDTO } from "../dtos/DTOs";
 
-export class OrderController {
+export default class OrderController {
   private static _instance: OrderController;
 
   private constructor(private orderService: OrderService) {}
@@ -15,7 +14,9 @@ export class OrderController {
   }
 
   getOrders(req: Request, res: Response, next: NextFunction) {
-    this.orderService.getOrders().then((orders) => res.status(200).json(orders));
+    this.orderService
+      .getOrders()
+      .then((orders) => res.status(200).json(orders));
   }
 
   getOrder(req: Request, res: Response, next: NextFunction) {
@@ -29,19 +30,22 @@ export class OrderController {
   }
 
   postOrder(req: Request, res: Response, next: NextFunction) {
-    const products: OrderItemDTO[] = req.body.products.map(
-      (product: any): OrderItemDTO => ({
-        id: product.id,
-        amount: product.amount,
+    const items: OrderItemDTO[] = req.body.items.map(
+      (item: any): OrderItemDTO => ({
+        productId: item.productId,
+        amount: item.amount,
       })
     );
     const orderDTO: OrderDTO = {
       buyerId: req.body.buyerId,
       items: items,
     };
-    this.orderService
-      .addOrder(orderDTO)
-      .then((createdOrderDTO) => res.status(201).json(createdOrderDTO));
+    this.orderService.addOrder(orderDTO).then((result) => {
+      if (result instanceof AppError) {
+        // TODO: change 400 status code
+        res.status(400).json({ error: result.message });
+      } else res.status(201).json(result);
+    });
   }
 
   patchOrder(req: Request, res: Response, next: NextFunction) {
@@ -64,10 +68,3 @@ export class OrderController {
       .then((deleted) => res.status(200).json(deleted));
   }
 }
-
-const getOrderController = async (): Promise<OrderController> => {
-  const orderService = await getOrderService();
-  return new OrderController(orderService);
-}
-
-export default getOrderController;

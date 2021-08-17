@@ -5,10 +5,11 @@ import getApp from "./app";
 import { OrderModel } from "./models/Order";
 import OrderRepositoryNosql from "./repositories/order-repository-nosql";
 import OrderService from "./services/order-service";
-import { OrderController } from "./controllers/order-controller";
+import OrderController from "./controllers/order-controller";
 import initConsumers from "./kafka/consumers";
-import RequestStore from "./kafka/RequestStore";
 import ProducerProxy from "./kafka/ProducerProxy";
+import OctRepository from "./repositories/oct-repository";
+import {OctModel} from "./models/Oct";
 
 const run = async () => {
   const clientId = "clientId"; // TODO
@@ -18,14 +19,14 @@ const run = async () => {
 
   const [_, producer] = await Promise.all([
     initDbConnection(),
-    kafkaProxy.getProducerInstance(),
+    kafkaProxy.createProducer(),
   ]);
 
-  const requestStore = new RequestStore();
-  const producerProxy = new ProducerProxy(producer, requestStore);
+  const producerProxy = new ProducerProxy(producer);
 
   const orderRepository = OrderRepositoryNosql.getInstance(OrderModel);
-  const orderService = OrderService.getInstance(orderRepository, producerProxy);
+  const octRepository = OctRepository.getInstance(OctModel);
+  const orderService = OrderService.getInstance(orderRepository, octRepository, producerProxy);
   const orderController = OrderController.getInstance(orderService);
 
   await initConsumers(kafkaProxy, orderService);
@@ -39,6 +40,6 @@ const run = async () => {
 };
 
 run().catch((err) => {
-  console.errror(err);
+  console.error(err);
   process.exit(-1);
 });

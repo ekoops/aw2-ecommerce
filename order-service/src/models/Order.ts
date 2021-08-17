@@ -1,5 +1,5 @@
 import mongoose from "mongoose"
-import {OrderItem, OrderItemDTO, orderItemSchema, toOrderItemDTO} from "./OrderItem";
+import {OrderItem, orderItemSchema} from "./OrderItem";
 import {OrderStatus, OrderStatusType, toStatusName} from "../db/OrderStatus";
 
 export interface Order {
@@ -8,24 +8,6 @@ export interface Order {
   createdAt?: Date;
   status?: OrderStatusType;
   items: OrderItem[];
-}
-
-export interface OrderDTO {
-  id?: string;
-  buyerId: string;
-  createdAt?: Date;
-  status?: OrderStatusType;
-  items: OrderItemDTO[];
-}
-
-export const toOrderDTO = (order: Order): OrderDTO => {
-  return {
-    id: order._id,
-    buyerId: order.buyerId,
-    createdAt: order.createdAt,
-    status:order.status,
-    items: order.items.map(toOrderItemDTO)
-  }
 }
 
 const orderSchema = new mongoose.Schema<Order>({

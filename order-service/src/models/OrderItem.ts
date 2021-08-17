@@ -7,32 +7,6 @@ export interface OrderItem {
   perItemPrice: number;
 }
 
-export interface OrderItemDTO {
-  id?: string;
-  productId: string;
-  amount: number;
-  perItemPrice?: number;
-}
-
-export const toOrderItemDTO = (orderItem: OrderItem): OrderItemDTO => {
-  return {
-    id: orderItem._id,
-    productId: orderItem.productId,
-    amount: orderItem.amount,
-    perItemPrice: orderItem.perItemPrice
-  }
-}
-
-export const toOrderItem = (orderItemDTO: OrderItemDTO): OrderItem => {
-  // TODO: check nullability
-  return {
-    _id: orderItemDTO.id,
-    productId: orderItemDTO.productId,
-    amount: orderItemDTO.amount,
-    perItemPrice: orderItemDTO.perItemPrice!
-  }
-}
-
 export const orderItemSchema = new mongoose.Schema<OrderItem>({
   productId: {
     type: String,
