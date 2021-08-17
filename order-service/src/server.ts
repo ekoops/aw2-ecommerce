@@ -9,7 +9,8 @@ import OrderController from "./controllers/order-controller";
 import initConsumers from "./kafka/consumers";
 import ProducerProxy from "./kafka/ProducerProxy";
 import OctRepository from "./repositories/oct-repository";
-import {OctModel} from "./models/Oct";
+import { OctModel } from "./models/Oct";
+import EurekaClient from "./discovery/eureka";
 
 const run = async () => {
   const clientId = "clientId"; // TODO
@@ -26,7 +27,11 @@ const run = async () => {
 
   const orderRepository = OrderRepositoryNosql.getInstance(OrderModel);
   const octRepository = OctRepository.getInstance(OctModel);
-  const orderService = OrderService.getInstance(orderRepository, octRepository, producerProxy);
+  const orderService = OrderService.getInstance(
+    orderRepository,
+    octRepository,
+    producerProxy
+  );
   const orderController = OrderController.getInstance(orderService);
 
   await initConsumers(kafkaProxy, orderService);
@@ -34,9 +39,13 @@ const run = async () => {
   const { rootPath } = config.server.api;
 
   const app = await getApp(rootPath, orderController);
-  app.listen(config.server.port, () =>
-    console.log(`Server is listening on port ${config.server.port}`)
-  );
+  app.listen(config.server.port, () => {
+    console.log(`Server is listening on port ${config.server.port}`);
+    EurekaClient.start((err) => {
+      console.error(err);
+      process.exit(-1);
+    });
+  });
 };
 
 run().catch((err) => {
