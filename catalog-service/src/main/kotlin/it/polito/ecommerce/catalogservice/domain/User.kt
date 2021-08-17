@@ -89,17 +89,6 @@ data class User(
             isLocked = isLocked,
             rolesList = rolesList
         )
-//        //TODO: da provare justOrEmpty
-//        if (this.isEnabled) return Mono.justOrEmpty(null)
-//        return Mono.just(User(
-//            id = id,
-//            username = username,
-//            password = password,
-//            email = email,
-//            isEnabled= true,
-//            isLocked = isLocked,
-//            rolesList = rolesList
-//        ))
     }
 
     fun disableUser(): User? {

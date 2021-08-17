@@ -11,10 +11,9 @@ import reactor.core.publisher.Mono
 @Repository
 interface UserRepository : ReactiveCrudRepository<User, Long> {
     fun findByUsername(username: String): Mono<User>
-    fun existsByUsernameOrEmail(
-        username: String, email: String
-    ): Mono<Boolean>
-    //TODO: capire perche non va bene tornare un Mono<Boolean>
+//    fun existsByUsernameOrEmail(
+//        username: String, email: String
+//    ): Mono<Boolean>
 
 
 //    @Query("SELECT name FROM user WHERE id=:id")
