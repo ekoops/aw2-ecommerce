@@ -1,11 +1,11 @@
 import express from "express";
 import config from "./config/config";
-import initMailer from "./mailer";
 import getOAuth2Options from "./auth";
+import MailerProxy from "./MailerProxy";
 
-const main = async () => {
+const run = async () => {
   const OAuthO2Options = await getOAuth2Options();
-  const sendEmail = initMailer(OAuthO2Options);
+  const mailer = MailerProxy.getInstance(OAuthO2Options);
 
   const app = express();
 
@@ -24,12 +24,14 @@ const main = async () => {
       });
     }
   });
-
-  app.listen(config.server.port, config.server.hostname, () => {
-    console.log(
-      `Server is listening on ${config.server.hostname}:${config.server.port}`
-    );
+  app.listen(config.server.port, () => {
+    console.log(`Server is listening on port ${config.server.port}`);
   });
+  const result = await mailer.send("email@gmail.com", "prova di email", "prova di email");
+  console.log(result);
 };
 
-main();
+run().catch(err => {
+  console.error(err);
+  process.exit(1);
+});

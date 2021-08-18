@@ -11,10 +11,11 @@ import ProducerProxy from "./kafka/ProducerProxy";
 import OctRepository from "./repositories/oct-repository";
 import { OctModel } from "./models/Oct";
 import EurekaClient from "./discovery/eureka";
+import {CannotCreateProducerException} from "./exceptions/kafka/kafka-exceptions";
+import {DbConnectionFailedException} from "./exceptions/db/db-exceptions";
 
 const run = async () => {
-  const clientId = "clientId"; // TODO
-  const { host, port } = config.kafka;
+  const { host, port, clientId } = config.kafka;
   const broker = `${host}:${port}`;
   const kafkaProxy = KafkaProxy.getInstance(clientId, [broker]);
 
@@ -34,7 +35,7 @@ const run = async () => {
   );
   const orderController = OrderController.getInstance(orderService);
 
-  await initConsumers(kafkaProxy, orderService);
+  // initConsumers(kafkaProxy, orderService);
 
   const { rootPath } = config.server.api;
 
@@ -42,13 +43,23 @@ const run = async () => {
   app.listen(config.server.port, () => {
     console.log(`Server is listening on port ${config.server.port}`);
     EurekaClient.start((err) => {
-      console.error(err);
-      process.exit(-1);
-    });
+      if (err) {
+        console.error(err);
+        process.exit(3);
+      }
+     });
   });
 };
 
-run().catch((err) => {
-  console.error(err);
-  process.exit(-1);
+run().catch((ex) => {
+  if (ex instanceof CannotCreateProducerException) {
+    console.error("Cannot create producer:", ex);
+    process.exit(1);
+  }
+  if (ex instanceof DbConnectionFailedException) {
+    console.error("Cannot connect to db instance");
+    process.exit(2);
+  }
+  console.log("QUA", JSON.stringify(ex));
+  process.exit(255);
 });

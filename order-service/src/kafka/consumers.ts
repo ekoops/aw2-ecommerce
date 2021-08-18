@@ -1,5 +1,6 @@
 import KafkaProxy from "./KafkaProxy";
 import {
+  CannotCreateConsumerException,
   HandlersBindingFailedException,
   ItemsNotAvailableException,
   NotEnoughBudgetException,
@@ -69,8 +70,9 @@ const initConsumers = (
   ];
 
   // TODO
-  Promise.all(consumersHandles).catch((err) => {
-    throw new HandlersBindingFailedException();
+  return Promise.all(consumersHandles).catch((ex) => {
+    if (ex instanceof CannotCreateConsumerException) throw ex;
+    else throw new HandlersBindingFailedException(ex.toString());
   });
 };
 

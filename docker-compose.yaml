@@ -43,6 +43,7 @@ services:
     depends_on:
       - order-db
       - kafka
+      - discovery-svc
 
   order-db:
     image: mongo
@@ -57,16 +58,22 @@ services:
     logging:
       driver: none
 
-#  mail-svc:
-#    image: aw2-ecommerce/mail-svc
-#    container_name: mail-svc
-#    build:
-#      dockerfile: ../Dockerfile # relative to the build context
-#      context: ./mail-service/build
-#    restart: always
-#    env_file:
-#      - ./mail-service/prod.env
-#    #TOOD: continue...
+  mail-svc:
+    image: aw2-ecommerce/mail-svc
+    container_name: mail-svc
+    build:
+      dockerfile: ../Dockerfile # relative to the build context
+      context: ./mail-service/build
+    restart: always
+    env_file:
+      - ./mail-service/prod.env
+    networks:
+      - communication-net
+    depends_on:
+      - kafka
+      - discovery-svc
+
+    #TOOD: continue...
 
   zookeeper:
     image: zookeeper
@@ -99,12 +106,12 @@ services:
     build:
       dockerfile: ../../Dockerfile # relative to the build context
       context: ./discovery-service/build/libs
-#    ports:
-#      - "8761:8761"
+    ports:
+      - "8761:8761"
     networks:
       - communication-net
-    logging:
-      driver: none
+#    logging:
+#      driver: none
 
 networks:
   dummy-net:

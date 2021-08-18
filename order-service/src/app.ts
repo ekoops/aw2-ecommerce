@@ -15,6 +15,12 @@ const getApp = async (rootPath: string, orderController: OrderController) => {
 
   app.use(orderPath, orderRoutes);
 
+  const statusPath = `${rootPath}/status`;
+
+  app.get(statusPath, (req, res) => {
+    res.status(200).json({status: "on"});
+  });
+
   const notFoundHandler: RequestHandler = (req, res, next) => {
     const notFoundError = new ErrorResponse(404, "Route not found");
     next(notFoundError);

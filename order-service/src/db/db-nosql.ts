@@ -1,5 +1,6 @@
 import config from "../config/config";
 import mongoose, {ConnectOptions} from "mongoose";
+import {DbConnectionFailedException} from "../exceptions/db/db-exceptions";
 
 const uri = `mongodb://${config.db.host}:${config.db.port}/${config.db.name}`;
 
@@ -46,7 +47,7 @@ const initDbConnection = async () => {
     }
   } while (retry);
 
-  throw Error(`Failed to connect to ${uri}`);
+  throw new DbConnectionFailedException();
 };
 
 export default initDbConnection;
