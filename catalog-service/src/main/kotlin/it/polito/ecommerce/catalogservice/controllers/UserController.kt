@@ -31,4 +31,21 @@ class UserController(
             else userDetailsService.disableUser(user.username)
         }
     }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PatchMapping("/{userId}")
+    suspend fun addRole(
+        @RequestParam("role", required = true) role: String,
+        @PathVariable("userId") username: String
+    ) : Boolean =
+        userDetailsService.addUserRole(username,role)
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PatchMapping("/{userId}")
+    suspend fun removeRole(
+        @RequestParam("role", required = true) role: String,
+        @PathVariable("userId") username: String
+    ) : Boolean =
+        userDetailsService.removeUserRole(username,role)
+
 }
