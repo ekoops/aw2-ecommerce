@@ -24,19 +24,20 @@ spring:
   cloud:
     gateway:
       routes:
-      - id: order_svc
+      - id: order-svc
         uri: lb://order-service
         predicates:
         - Path=/order-service/**
         filters:
         - RewritePath=/order-service,/order
-      - id: wallet_svc
+        - Circ
+      - id: wallet-svc
         uri: lb://wallet-service
         predicates:
         - Path=/wallet-service/**
         filters:
         - RewritePath=/wallet-service,/wallets
-      - id: warehouse_svc
+      - id: warehouse-svc
         uri: lb://warehouse-service
         predicates:
         - Path=/warehouse-service/**
@@ -48,10 +49,14 @@ spring:
       auto-offset-reset: latest
       group-id: catalogGroup
 
+application:
+  jwt:
+    jwtSecret: 3d207fb373adaa82c94ac10d025c9c433d207fb373adaa82c94ac10d025c9c433d207fb373adaa82c94a
+    jwtExpirationMs: 1800000
+    jwtHeader: Authorization
+    jwtHeaderStart: Bearer
 
-
-
-
+spring.cloud.gateway.routes
 ## email
 #spring.mail.host=smtp.gmail.com
 #spring.mail.port=587
@@ -60,15 +65,6 @@ spring:
 #spring.mail.properties.mail.smtp.auth=true
 #spring.mail.properties.mail.smtp.starttls.enable=true
 #spring.mail.properties.mail.debug=true
-
-
-
-application:
-  jwt:
-    jwtSecret: 3d207fb373adaa82c94ac10d025c9c433d207fb373adaa82c94ac10d025c9c433d207fb373adaa82c94a
-    jwtExpirationMs: 1800000
-    jwtHeader: Authorization
-    jwtHeaderStart: Bearer
 
 ## jwt
 #application.jwt.jwtSecret=3d207fb373adaa82c94ac10d025c9c433d207fb373adaa82c94ac10d025c9c433d207fb373adaa82c94a
