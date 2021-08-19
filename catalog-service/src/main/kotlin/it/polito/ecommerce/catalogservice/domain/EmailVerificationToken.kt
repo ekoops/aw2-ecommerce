@@ -25,7 +25,6 @@ fun EmailVerificationToken.toEmailVerificationTokenDTO(): EmailVerificationToken
     )
     return EmailVerificationTokenDTO(
         id = id,
-        username = this.user.username,
         expirationDate = this.expirationDate,
         token = this.token
     )

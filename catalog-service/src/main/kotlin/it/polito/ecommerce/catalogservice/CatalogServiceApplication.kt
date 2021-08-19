@@ -13,7 +13,7 @@ import org.springframework.cloud.netflix.eureka.EnableEurekaClient
 import org.springframework.context.annotation.Bean
 
 @SpringBootApplication
-@EnableEurekaClient
+//@EnableEurekaClient
 class CatalogServiceApplication
 
 fun main(args: Array<String>) {

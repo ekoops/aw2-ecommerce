@@ -8,16 +8,16 @@ eureka:
     lease-expiration-duration-in-seconds: 5
   client:
     serviceUrl:
-      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
+      defaultZone: ${EUREKA_URI:http://discovery-svc:8761/eureka}
 spring:
   webflux:
     base-path: /api/v1
   application:
     name: catalog-svc
   r2dbc:
-    url: r2dbc:mariadb://localhost:3306/catalogservice
-    username: giuseppe
-    password: toor
+    url: r2dbc:mariadb://${DB_HOSTNAME:localhost}:3306/${DB_NAME:catalog-db}
+    username: ${DB_USER:giuseppe}
+    password: ${DB_PASSWORD:toor}
     pool:
       enabled: true
       max-size: 10

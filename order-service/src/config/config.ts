@@ -1,4 +1,3 @@
-import { Dialect } from "sequelize";
 import {generateUUID} from "../kafka/utils";
 
 const environment = process.env.NODE_ENV || "unknown";

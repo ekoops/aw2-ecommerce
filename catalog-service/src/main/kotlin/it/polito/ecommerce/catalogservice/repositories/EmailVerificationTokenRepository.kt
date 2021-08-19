@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 
 interface EmailVerificationTokenRepository: CoroutineCrudRepository<EmailVerificationToken,Long> {
-    suspend fun findByToken(token: String): EmailVerificationToken
+    suspend fun findByToken(token: String): EmailVerificationToken?
     suspend fun deleteByToken(token: String): Long
     suspend fun deleteByExpirationDateBefore(date: LocalDateTime): Long
 }

@@ -1,34 +1,31 @@
-import express from "express";
 import config from "./config/config";
 import getOAuth2Options from "./auth";
 import MailerProxy from "./MailerProxy";
+import KafkaProxy from "./kafka/KafkaProxy";
+import initConsumers from "./kafka/init-consumers";
+import MailService from "./services/MailService";
+import express from "express"
 
 const run = async () => {
   const OAuthO2Options = await getOAuth2Options();
-  const mailer = MailerProxy.getInstance(OAuthO2Options);
+  const mailerProxy = MailerProxy.getInstance(OAuthO2Options);
+
+  const { host, port, clientId } = config.kafka;
+  const broker = `${host}:${port}`;
+  const kafkaProxy = KafkaProxy.getInstance(clientId, [broker]);
+  const mailService = MailService.getInstance(mailerProxy);
+
+  await initConsumers(kafkaProxy, mailService);
 
   const app = express();
 
-  app.post("/mails", async (req, res) => {
-    const to = req.body.to;
-    const subject = req.body.subject;
-    const text = req.body.text;
-    try {
-      await sendEmail(to, subject, text);
-      res.json({
-        ok: "ok",
-      });
-    } catch (ex) {
-      res.json({
-        error: "error",
-      });
-    }
+  app.use(`${config.server.api.rootPath}/status`, (req, res) => {
+    res.status(200).json({status: "on"});
   });
+
   app.listen(config.server.port, () => {
-    console.log(`Server is listening on port ${config.server.port}`);
-  });
-  const result = await mailer.send("email@gmail.com", "prova di email", "prova di email");
-  console.log(result);
+    console.log(`Mail service http server is listening on port ${config.server.port}`);
+  })
 };
 
 run().catch(err => {

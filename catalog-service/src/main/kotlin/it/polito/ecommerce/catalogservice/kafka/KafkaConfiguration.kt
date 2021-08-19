@@ -1,21 +1,16 @@
 package it.polito.ecommerce.catalogservice.kafka
 
-import it.polito.ecommerce.catalogservice.dto.kafkadtos.RequestDTO
 import it.polito.ecommerce.catalogservice.dto.kafkadtos.UserCreatedDTO
 import org.apache.kafka.clients.admin.NewTopic
-import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.KafkaException
-import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.config.TopicBuilder
 import org.springframework.kafka.core.*
 import org.springframework.kafka.support.SendResult
-import org.springframework.kafka.support.serializer.JsonDeserializer
 import org.springframework.kafka.support.serializer.JsonSerializer
 import org.springframework.util.concurrent.ListenableFutureCallback
 import kotlin.coroutines.suspendCoroutine
@@ -54,10 +49,10 @@ class KafkaConfiguration {
 //        return factory
 //    }
 //
-//    @Bean
-//    fun userCreated () : NewTopic {
-//        return TopicBuilder.name("user-created").build()
-//    }
+    @Bean
+    fun userCreated () : NewTopic {
+        return TopicBuilder.name("user-created").build()
+    }
 //
 //    @Bean
 //    fun emailSent () : NewTopic {

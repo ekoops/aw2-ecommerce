@@ -23,13 +23,13 @@ const initDbConnection = async () => {
   let retry = 3;
   do {
     try {
-      if (config.environment === "development") {
+      // if (config.environment === "development") {
         console.log(`<<<<<<<<< TRYING TO CONNECT TO ${uri} with the following credentials:
       - ${config.db.user}
       - ${config.db.pass}
       - ${config.db.authSource}
  >>>>>>>>>>>>>>`);
-      }
+      // }
       await mongoose.connect(uri, mongooseOptions);
       mongoose.set("runValidators", true);
       mongoose.connection.on("error", (err) => {

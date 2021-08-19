@@ -46,12 +46,12 @@ const run = async () => {
   const app = await getApp(rootPath, orderController);
   app.listen(config.server.port, () => {
     console.log(`Server is listening on port ${config.server.port}`);
-    // EurekaClient.start((err) => {
-    //   if (err) {
-    //     console.error(err);
-    //     process.exit(3);
-    //   }
-    // });
+    EurekaClient.start((err) => {
+      if (err) {
+        console.error(err);
+        process.exit(3);
+      }
+    });
   });
 };
 

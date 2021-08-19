@@ -4,14 +4,15 @@ import {
   ConsumerSubscribeTopic,
   EachMessagePayload,
   RecordMetadata,
-  ITopicConfig
+  ITopicConfig,
 } from "kafkajs";
 import config from "../config/config";
 import {
   CannotCreateAdminException,
   CannotCreateConsumerException,
   CannotCreateProducerException,
-  CannotCreateTopicException, RetrievingTopicListFailedException
+  CannotCreateTopicException,
+  RetrievingTopicListFailedException,
 } from "../exceptions/kafka/kafka-exceptions";
 
 export interface Admin {
@@ -38,8 +39,8 @@ export default class KafkaProxy {
       clientId,
       brokers,
       retry: {
-        initialRetryTime: 500
-      }
+        initialRetryTime: 500,
+      },
     });
   }
   static getInstance(clientId: string, brokers: string[]) {
@@ -55,27 +56,26 @@ export default class KafkaProxy {
         createTopics: async (topics: ITopicConfig[]): Promise<boolean> => {
           try {
             return await admin.createTopics({
-              topics: [{
-                topic: "order-creations",
-                numPartitions: 1
-              }]
+              topics: [
+                {
+                  topic: "order-creations",
+                  numPartitions: 1,
+                },
+              ],
             });
-          }
-          catch (ex) {
+          } catch (ex) {
             throw new CannotCreateTopicException(ex.toString());
           }
         },
         listTopics: async (): Promise<string[]> => {
           try {
             return await admin.listTopics();
-          }
-          catch (ex) {
+          } catch (ex) {
             throw new RetrievingTopicListFailedException(ex.toString());
           }
-        }
-      }
-    }
-    catch (ex) {
+        },
+      };
+    } catch (ex) {
       throw new CannotCreateAdminException(ex.toString());
     }
     // await admin.disconnect();
@@ -95,8 +95,7 @@ export default class KafkaProxy {
           return result;
         },
       };
-    }
-    catch (ex) {
+    } catch (ex) {
       throw new CannotCreateProducerException(ex.toString());
     }
   }
@@ -130,8 +129,7 @@ export default class KafkaProxy {
           });
         },
       };
-    }
-    catch(ex) {
+    } catch (ex) {
       throw new CannotCreateConsumerException(ex.toString());
     }
   }

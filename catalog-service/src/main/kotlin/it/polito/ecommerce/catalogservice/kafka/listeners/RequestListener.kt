@@ -1,7 +1,5 @@
 package it.polito.ecommerce.catalogservice.kafka.listeners
 
-import it.polito.ecommerce.catalogservice.dto.kafkadtos.RequestDTO
-import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
 
 @Component

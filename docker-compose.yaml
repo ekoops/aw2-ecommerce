@@ -1,29 +1,41 @@
 version: "3.9"
 services:
-  debug_client:
-    image: "node:14.17.3"
-    container_name: debug_client
-    networks:
-      - dummy-net
-    profiles:
-      - debug
-    command: ["/bin/bash"]
-
-  dummy-express:
-    image: aw2-ecommerce/dummy-express
-    container_name: dummy-express
+  catalog-svc:
+    image: aw2-ecommerce/catalog-svc
+    container_name: catalog-svc
     build:
-      dockerfile: ./Dockerfile # relative to the build context
-      context: ./dummy-express
-    restart: always
-    profiles:
-      - debug
+      dockerfile: ../../Dockerfile # relative to the build context
+      context: ./catalog-service/build/libs
+    env_file:
+      - ./envs/catalog-svc.env.prod
     ports:
-      - "3000:3000"
-    #    networks:
-    #      - order-net
+      - "8080:8080"
+    networks:
+      - catalog-net
+      - communication-net
     depends_on:
-      - order-db
+      - catalog-db
+      - kafka
+#      - discovery-svc
+#      - mail-svc
+#      - order-svc
+#    logging:
+#      driver: none
+
+  catalog-db:
+    image: mysql
+    container_name: catalog-db
+    restart: always
+    env_file:
+      - ./envs/catalog-db.env
+#    ports:
+#      - "3306:3306"
+    volumes:
+      - ./volumes/catalog-db:/var/lib/mysql
+    networks:
+      - catalog-net
+    logging:
+      driver: none
 
   order-svc:
     image: aw2-ecommerce/order-svc
@@ -37,7 +49,6 @@ services:
     ports:
       - "3000:3000"
     networks:
-      - dummy-net
       - order-net
       - communication-net
     depends_on:
@@ -50,7 +61,9 @@ services:
     container_name: order-db
 #    restart: always
     env_file:
-      - ./envs/orders-mongodb.env
+      - ./envs/order-db.env
+#    ports:
+#      - "27017:27017"
 #    volumes:
 #      - ./volumes/order-db:/data/db
     networks:
@@ -120,8 +133,8 @@ services:
 #      driver: none
 
 networks:
-  dummy-net:
-    name: dummy-net
+  catalog-net:
+    name: catalog-net
   order-net:
     name: order-net
   zookeeper-kafka-net:

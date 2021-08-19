@@ -8,6 +8,7 @@ import it.polito.ecommerce.catalogservice.converters.CustomerWriter
 import it.polito.ecommerce.catalogservice.converters.UserReader
 import it.polito.ecommerce.catalogservice.converters.UserWriter
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.ClassPathResource
@@ -18,12 +19,18 @@ import org.springframework.r2dbc.connection.init.ResourceDatabasePopulator
 
 @Configuration
 @EnableR2dbcRepositories
-class DBConfig : AbstractR2dbcConfiguration(){
+class DBConfig(
+    @Value("\${spring.r2dbc.url}") private val dbUrl: String,
+    @Value("\${spring.r2dbc.username}") private val username: String,
+    @Value("\${spring.r2dbc.password}") private val password: String
+) : AbstractR2dbcConfiguration(
+) {
     override fun connectionFactory(): ConnectionFactory {
-        return ConnectionFactories.get("r2dbc:mariadb://localhost:3306/catalogservice")
+
+        return ConnectionFactories.get(dbUrl)
     }
 
-//    @Bean(name=["connFactory"])
+    //    @Bean(name=["connFactory"])
 //    override fun connectionFactory(): ConnectionFactory {
 //        return ConnectionFactories.get(
 //            ConnectionFactoryOptions.builder().apply{
@@ -42,6 +49,9 @@ class DBConfig : AbstractR2dbcConfiguration(){
     //ResourceDatabasePopulator cerca "schema.sql" che io definisco e lo lancia all'inzio
     @Bean
     fun initializer(connectionFactory: ConnectionFactory): ConnectionFactoryInitializer {
+        println("<<<<<<<<<<<<<< ${dbUrl} >>>>>>>>>>>>>>>>>>>>")
+        println("<<<<<<<<<<<<<< ${username} >>>>>>>>>>>>>>>>>>>>")
+        println("<<<<<<<<<<<<<< ${password} >>>>>>>>>>>>>>>>>>>>")
         val cfi = ConnectionFactoryInitializer()
         cfi.setConnectionFactory(connectionFactory)
         cfi.setDatabasePopulator(

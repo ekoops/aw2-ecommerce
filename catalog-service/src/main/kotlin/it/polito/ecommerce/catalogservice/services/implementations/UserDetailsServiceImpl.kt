@@ -4,7 +4,6 @@ import it.polito.ecommerce.catalogservice.domain.*
 import it.polito.ecommerce.catalogservice.dto.UserDTO
 import it.polito.ecommerce.catalogservice.dto.incoming.CreateUserRequestDTO
 import it.polito.ecommerce.catalogservice.dto.kafkadtos.UserCreatedDTO
-import it.polito.ecommerce.catalogservice.dto.kafkadtos.RequestDTO
 import it.polito.ecommerce.catalogservice.dto.toCreatedUserEmailVerificationTokenInfoDTO
 import it.polito.ecommerce.catalogservice.exceptions.internal.CreateUserInternalException
 import it.polito.ecommerce.catalogservice.exceptions.internal.VerifyUserInternalException
@@ -16,7 +15,6 @@ import it.polito.ecommerce.catalogservice.repositories.CoroutineUserRepository
 import it.polito.ecommerce.catalogservice.repositories.CustomerRepository
 import it.polito.ecommerce.catalogservice.repositories.UserRepository
 import it.polito.ecommerce.catalogservice.services.NotificationService
-import kotlinx.coroutines.flow.*
 import org.apache.kafka.common.KafkaException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
@@ -29,9 +27,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
-import java.util.*
-import java.util.concurrent.CancellationException
-import java.util.concurrent.ExecutionException
 
 
 @Service
