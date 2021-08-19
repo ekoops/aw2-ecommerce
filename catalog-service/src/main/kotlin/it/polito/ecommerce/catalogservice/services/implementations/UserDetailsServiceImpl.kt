@@ -86,22 +86,26 @@ class UserDetailsServiceImpl(
             user = createdUser
         )
         val createdCustomer = customerRepository.save(customer)
+
+
+
+
         try {
 //            // Creating email verification token
             val emailVerificationTokenDTO = notificationService
                 .createEmailVerificationToken(createdUser.username)
 
             // Sending kafka message on topic "user-created" for email verification
-//            val userVerificationUrl = "$baseEmailVerificationUrl${emailVerificationTokenDTO.token}"
-//            val requestDTO = RequestDTO(
-//                id=5,
-//                userVerificationUrl= userVerificationUrl,
-//                userEmail = email,
-//                mailBody = """
-//                Verifica l'account immediatamente
-//                $userVerificationUrl
-//                """.trimIndent()
-//                )
+            val userVerificationUrl = "$baseEmailVerificationUrl${emailVerificationTokenDTO.token}"
+            val requestDTO = RequestDTO(
+                id=5,
+                userVerificationUrl= userVerificationUrl,
+                userEmail = email,
+                mailBody = """
+                Verifica l'account immediatamente
+                $userVerificationUrl
+                """.trimIndent()
+                )
 
 //            kafkaTemplate.send("user-created", requestDTO).get()
 //            mailService.sendMessage(
