@@ -5,6 +5,21 @@ export class KafkaException {
   }
 }
 
+export class CannotCreateAdminException extends KafkaException {
+  constructor(message: string) {
+    super(undefined, message);
+  }
+}
+export class CannotCreateTopicException extends KafkaException {
+  constructor(message: string) {
+    super(undefined, message);
+  }
+}
+export class RetrievingTopicListFailedException extends KafkaException {
+  constructor(message: string) {
+    super(undefined, message);
+  }
+}
 export class CannotCreateProducerException extends KafkaException {
   constructor(message: string) {
     super(undefined, message);
@@ -64,3 +79,4 @@ export class HandlersBindingFailedException extends KafkaException {
     super(undefined, message);
   }
 }
+

@@ -52,7 +52,7 @@ services:
     env_file:
       - ./envs/orders-mongodb.env
 #    volumes:
-#      - ./order-service/mongodb-store:/data/db
+#      - ./volumes/order-db:/data/db
     networks:
       - order-net
     logging:
@@ -80,6 +80,9 @@ services:
     container_name: zookeeper
 #    ports:
 #      - "2181:2181"
+#    volumes:
+#      - ./volumes/data:/data
+#      - ./volumes/logs:/logs
     networks:
       - zookeeper-kafka-net
     logging:
@@ -92,6 +95,9 @@ services:
 #      - "9092:9092"
     env_file:
       - ./envs/kafka.env.prod
+#    volumes:
+#      - ./volumes/kafka/secrets:/etc/kafka/secrets
+#      - ./volumes/kafka/data:/var/lib/kafka/data
     networks:
       - zookeeper-kafka-net
       - communication-net

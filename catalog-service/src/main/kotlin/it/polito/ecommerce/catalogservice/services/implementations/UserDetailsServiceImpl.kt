@@ -2,21 +2,22 @@ package it.polito.ecommerce.catalogservice.services.implementations
 
 import it.polito.ecommerce.catalogservice.domain.*
 import it.polito.ecommerce.catalogservice.dto.UserDTO
-import it.polito.ecommerce.catalogservice.dto.UserDetailsDTO
 import it.polito.ecommerce.catalogservice.dto.incoming.CreateUserRequestDTO
+import it.polito.ecommerce.catalogservice.dto.kafkadtos.UserCreatedDTO
 import it.polito.ecommerce.catalogservice.dto.kafkadtos.RequestDTO
+import it.polito.ecommerce.catalogservice.dto.toCreatedUserEmailVerificationTokenInfoDTO
 import it.polito.ecommerce.catalogservice.exceptions.internal.CreateUserInternalException
 import it.polito.ecommerce.catalogservice.exceptions.internal.VerifyUserInternalException
 import it.polito.ecommerce.catalogservice.exceptions.user.NoSuchRoleException
 import it.polito.ecommerce.catalogservice.exceptions.user.UserAlreadyExistsException
 import it.polito.ecommerce.catalogservice.exceptions.user.emailverificationtoken.EmailVerificationTokenExpiredException
+import it.polito.ecommerce.catalogservice.kafka.dispatch
 import it.polito.ecommerce.catalogservice.repositories.CoroutineUserRepository
 import it.polito.ecommerce.catalogservice.repositories.CustomerRepository
 import it.polito.ecommerce.catalogservice.repositories.UserRepository
 import it.polito.ecommerce.catalogservice.services.NotificationService
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.reactor.mono
+import org.apache.kafka.common.KafkaException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.mail.MailException
@@ -24,13 +25,13 @@ import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import reactor.core.publisher.Mono
-import reactor.core.publisher.SynchronousSink
 import java.time.LocalDateTime
 import java.util.*
+import java.util.concurrent.CancellationException
+import java.util.concurrent.ExecutionException
 
 
 @Service
@@ -44,7 +45,7 @@ class UserDetailsServiceImpl(
     private val customerRepository: CustomerRepository,
     private val notificationService: NotificationService,
     private val passwordEncoder: PasswordEncoder,
-//    private val kafkaTemplate: KafkaTemplate <String, RequestDTO>
+    private val kafkaTemplate: KafkaTemplate <String, UserCreatedDTO>
 ) : ReactiveUserDetailsService {
     private val baseEmailVerificationUrl = "http://$host:$port$contextPath/auth/confirmRegistration?token="
 
@@ -87,44 +88,33 @@ class UserDetailsServiceImpl(
         )
         val createdCustomer = customerRepository.save(customer)
 
-
-
-
         try {
 //            // Creating email verification token
             val emailVerificationTokenDTO = notificationService
                 .createEmailVerificationToken(createdUser.username)
 
-            // Sending kafka message on topic "user-created" for email verification
-            val userVerificationUrl = "$baseEmailVerificationUrl${emailVerificationTokenDTO.token}"
-            val requestDTO = RequestDTO(
-                id=5,
-                userVerificationUrl= userVerificationUrl,
-                userEmail = email,
-                mailBody = """
-                Verifica l'account immediatamente
-                $userVerificationUrl
-                """.trimIndent()
-                )
+            val userCreatedDTO = UserCreatedDTO(
+                id = createdUser.id!!,
+                username = createdUser.username,
+                email = createdUser.email,
+                roles = createdUser.getRolenames(),
+                customerInfo = createdCustomer.toCreatedUserCustomerInfoDTO(),
+                emailVerificationTokenInfo = emailVerificationTokenDTO.toCreatedUserEmailVerificationTokenInfoDTO()
+            )
 
-//            kafkaTemplate.send("user-created", requestDTO).get()
-//            mailService.sendMessage(
-//                toMail = email,
-//                subject = "[SauceOverflow] Verifica l'account appena creato",
-//                mailBody = """
-//                Verifica l'account immediatamente
-//                $userVerificationUrl
-//            """.trimIndent()
-//            )
+            kafkaTemplate.dispatch("user-created", user.id.toString(), userCreatedDTO)
         } catch (ex: Exception) {
             when (ex) {
                 is UsernameNotFoundException, is MailException -> throw CreateUserInternalException.from(ex)
+                is KafkaException -> {
+                    // TODO
+                    println(ex.message)
+                }
                 else -> throw ex
             }
         }
         return createdUser.toUserDTO()
     }
-
 
     suspend fun verifyUser(token: String) {
         // Getting corresponding email verification token
@@ -142,22 +132,22 @@ class UserDetailsServiceImpl(
 //
 //        // Enabling corresponding user
         try {
-            enableUser(emailVerificationTokenDTO.username)
+            enableUser(emailVerificationTokenDTO.id)
         } catch (ex: UsernameNotFoundException) {
             throw VerifyUserInternalException()
         }
         notificationService.removeEmailVerificationToken(token)
     }
 
-    suspend fun enableUser(username: String): Boolean {
-        val enabledUser = getUserByUsername(username).enableUser() ?: return false
+    suspend fun enableUser(id: Long): Boolean {
+        val enabledUser = getUserById(id).enableUser() ?: return false
         coroutineUserRepository.save(enabledUser)
-        return false
+        return true
     }
 
-    suspend fun disableUser(username: String): Boolean {
-        val newUser = this.getUserByUsername(username).disableUser() ?: return false
-        userRepository.save(newUser)
+    suspend fun disableUser(id: Long): Boolean {
+        val disabledUser = this.getUserById(id).disableUser() ?: return false
+        coroutineUserRepository.save(disabledUser)
         return true
     }
 
@@ -166,7 +156,7 @@ class UserDetailsServiceImpl(
         try {
             val rolename = Rolename.valueOf(role)
             val newUser = this.getUserByUsername(username).addRolename(rolename) ?: return false
-            userRepository.save(newUser)
+            coroutineUserRepository.save(newUser)
             return true
         } catch (ex: IllegalArgumentException) {
             throw NoSuchRoleException(role = role)
@@ -177,7 +167,7 @@ class UserDetailsServiceImpl(
         try {
             val rolename = Rolename.valueOf(role)
             val newUser = this.getUserByUsername(username).removeRolename(rolename) ?: return false
-            userRepository.save(newUser)
+            coroutineUserRepository.save(newUser)
             return true
         } catch (ex: IllegalArgumentException) {
             throw NoSuchRoleException(role = role)

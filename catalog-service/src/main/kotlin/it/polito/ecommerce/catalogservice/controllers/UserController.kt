@@ -26,9 +26,8 @@ class UserController(
         }
 
         if (patchUserPropertiesDTO.isEnabled != null) {
-            val user = userDetailsService.getUserById(userId)
-            if (patchUserPropertiesDTO.isEnabled) userDetailsService.enableUser(user.username)
-            else userDetailsService.disableUser(user.username)
+            if (patchUserPropertiesDTO.isEnabled) userDetailsService.enableUser(userId)
+            else userDetailsService.disableUser(userId)
         }
     }
 

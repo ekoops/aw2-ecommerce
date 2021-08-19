@@ -5,6 +5,7 @@ const {eureka: eureka_config} = config;
 
 const {instance: {
     app,
+    instanceId,
     hostName,
     ipAddr,
     statusPageUrl,
@@ -22,8 +23,10 @@ const {instance: {
 const EurekaClient = new Eureka({
     instance: {
         app,
+        instanceId,
         hostName,
         ipAddr,
+        healthCheckUrl: "http://order-svc:3000/api/v1/status",
         statusPageUrl,
         port: {
             "$": instance_port,
@@ -41,8 +44,10 @@ const EurekaClient = new Eureka({
         servicePath,
         preferIpAddress: true,
         heartbeatInterval,
-        registryFetchInterval
+        registryFetchInterval,
+        // useDns: true
     },
 });
+// EurekaClient.logger.level("debug");
 
 export default EurekaClient;

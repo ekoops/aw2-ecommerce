@@ -58,11 +58,11 @@ class AuthController(
     ): Unit = userDetailsService.verifyUser(token = token)
 
 
-    @GetMapping("/enableUser")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    suspend fun enableUser(
-        @RequestParam("username", required = true) username: String,
-    ): Boolean = userDetailsService.enableUser(username)
+//    @GetMapping("/enableUser")
+//    @ResponseStatus(HttpStatus.NO_CONTENT)
+//    suspend fun enableUser(
+//        @RequestParam("username", required = true) username: String,
+//    ): Boolean = userDetailsService.enableUser(username)
 }
 
 

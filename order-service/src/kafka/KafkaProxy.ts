@@ -4,10 +4,20 @@ import {
   ConsumerSubscribeTopic,
   EachMessagePayload,
   RecordMetadata,
+  ITopicConfig
 } from "kafkajs";
 import config from "../config/config";
-import { generateUUID } from "./utils";
-import {CannotCreateConsumerException, CannotCreateProducerException} from "../exceptions/kafka/kafka-exceptions";
+import {
+  CannotCreateAdminException,
+  CannotCreateConsumerException,
+  CannotCreateProducerException,
+  CannotCreateTopicException, RetrievingTopicListFailedException
+} from "../exceptions/kafka/kafka-exceptions";
+
+export interface Admin {
+  createTopics: (topics: ITopicConfig[]) => Promise<boolean>;
+  listTopics: () => Promise<string[]>;
+}
 
 export interface Producer {
   produce: (producerRecord: ProducerRecord) => Promise<RecordMetadata[]>;
@@ -27,12 +37,51 @@ export default class KafkaProxy {
     this.kafka = new Kafka({
       clientId,
       brokers,
+      retry: {
+        initialRetryTime: 500
+      }
     });
   }
   static getInstance(clientId: string, brokers: string[]) {
     return this._instance || (this._instance = new this(clientId, brokers));
   }
-  async createProducer() {
+  async createAdmin(): Promise<Admin> {
+    try {
+      const admin = this.kafka.admin();
+      await admin.connect();
+      console.log("Kafka's admin connected to cluster");
+
+      return {
+        createTopics: async (topics: ITopicConfig[]): Promise<boolean> => {
+          try {
+            return await admin.createTopics({
+              topics: [{
+                topic: "order-creations",
+                numPartitions: 1
+              }]
+            });
+          }
+          catch (ex) {
+            throw new CannotCreateTopicException(ex.toString());
+          }
+        },
+        listTopics: async (): Promise<string[]> => {
+          try {
+            return await admin.listTopics();
+          }
+          catch (ex) {
+            throw new RetrievingTopicListFailedException(ex.toString());
+          }
+        }
+      }
+    }
+    catch (ex) {
+      throw new CannotCreateAdminException(ex.toString());
+    }
+    // await admin.disconnect();
+  }
+
+  async createProducer(): Promise<Producer> {
     try {
       const producer = this.kafka.producer();
       await producer.connect();
@@ -41,7 +90,7 @@ export default class KafkaProxy {
         produce: async (producerRecord: ProducerRecord) => {
           const result = await producer.send(producerRecord);
           if (config.environment === "development") {
-            console.log("produced:", JSON.stringify(result, null, " "));
+            console.log("produced: ", JSON.stringify(result, null, " "));
           }
           return result;
         },
