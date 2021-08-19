@@ -14,50 +14,7 @@ import org.springframework.context.annotation.Bean
 
 @SpringBootApplication
 @EnableEurekaClient
-class CatalogServiceApplication {
-
-    @Bean
-    fun routes(builder: RouteLocatorBuilder): RouteLocator {
-        return builder
-            .routes()
-            .route("catalog") {
-                    it -> it
-                //match incoming path
-                .path("/catalog/**")
-                .filters{
-                        //manipulate outgoing path
-                        f ->
-                    f.circuitBreaker{
-                        //TODO: capire come fare lo stesso nelle properties ed implementare l'endpoint
-                        //handle failure
-                        it-> it.setFallbackUri("forward:failure/")
-                    }
-                    f.rewritePath("/catalog","")
-                }
-                //switch endpoint to a load balanced one
-                .uri("lb://catalog")
-            }
-            .build()
-    }
-
-
-    @Bean
-    fun defaultCustomizer(): Customizer<ReactiveResilience4JCircuitBreakerFactory> {
-        return Customizer {
-                factory -> factory.configureDefault {
-                id -> Resilience4JConfigBuilder(id)
-                    .circuitBreakerConfig(CircuitBreakerConfig.ofDefaults())
-                    .timeLimiterConfig(TimeLimiterConfig.ofDefaults()
-//                            .custom()
-//                            .timeoutDuration(
-//                                Duration.ofSeconds(4)
-//                            ).build()
-                    )
-                    .build()
-            }
-        }
-    }
-}
+class CatalogServiceApplication
 
 fun main(args: Array<String>) {
     runApplication<CatalogServiceApplication>(*args)

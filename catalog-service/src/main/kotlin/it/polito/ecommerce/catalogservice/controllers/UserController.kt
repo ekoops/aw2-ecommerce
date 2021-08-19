@@ -33,7 +33,7 @@ class UserController(
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    @PatchMapping("/{userId}")
+    @PatchMapping("/addRole/{userId}")
     suspend fun addRole(
         @RequestParam("role", required = true) role: String,
         @PathVariable("userId") username: String
@@ -41,7 +41,7 @@ class UserController(
         userDetailsService.addUserRole(username,role)
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    @PatchMapping("/{userId}")
+    @PatchMapping("/removeRole/{userId}")
     suspend fun removeRole(
         @RequestParam("role", required = true) role: String,
         @PathVariable("userId") username: String

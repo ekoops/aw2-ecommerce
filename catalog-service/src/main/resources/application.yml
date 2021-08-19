@@ -21,28 +21,28 @@ spring:
     pool:
       enabled: true
       max-size: 10
-  cloud:
-    gateway:
-      routes:
-      - id: order-svc
-        uri: lb://order-service
-        predicates:
-        - Path=/order-service/**
-        filters:
-        - RewritePath=/order-service,/order
-        - Circ
-      - id: wallet-svc
-        uri: lb://wallet-service
-        predicates:
-        - Path=/wallet-service/**
-        filters:
-        - RewritePath=/wallet-service,/wallets
-      - id: warehouse-svc
-        uri: lb://warehouse-service
-        predicates:
-        - Path=/warehouse-service/**
-        filters:
-        - RewritePath=/warehouse-service,/warehouses
+#  cloud:
+#    gateway:
+#      routes:
+#      - id: order-svc
+#        uri: lb://order-service
+#        predicates:
+#        - Path=/order-service/**
+#        filters:
+#        - RewritePath=/order-service,/order
+#        - Circ
+#      - id: wallet-svc
+#        uri: lb://wallet-service
+#        predicates:
+#        - Path=/wallet-service/**
+#        filters:
+#        - RewritePath=/wallet-service,/wallets
+#      - id: warehouse-svc
+#        uri: lb://warehouse-service
+#        predicates:
+#        - Path=/warehouse-service/**
+#        filters:
+#        - RewritePath=/warehouse-service,/warehouses
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
@@ -56,7 +56,6 @@ application:
     jwtHeader: Authorization
     jwtHeaderStart: Bearer
 
-spring.cloud.gateway.routes
 ## email
 #spring.mail.host=smtp.gmail.com
 #spring.mail.port=587
