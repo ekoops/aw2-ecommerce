@@ -19,7 +19,7 @@ import {
   OctSavingFailedException,
 } from "../exceptions/repositories/repositories-exceptions";
 import ProducerProxy from "../kafka/ProducerProxy";
-import { generateUUID } from "../kafka/utils";
+import { generateUUID } from "../utils/utils";
 import RequestStore from "../kafka/RequestStore";
 import OctRepository from "../repositories/oct-repository";
 import {

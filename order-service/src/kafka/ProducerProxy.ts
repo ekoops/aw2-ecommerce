@@ -1,7 +1,7 @@
 import { Producer } from "./KafkaProxy";
 import { RecordMetadata } from "kafkajs";
 import { CannotProduceException } from "../exceptions/kafka/kafka-exceptions";
-import { generateUUID } from "./utils";
+import { generateUUID } from "../utils/utils";
 import RequestStore from "./RequestStore";
 import config from "../config/config";
 

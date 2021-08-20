@@ -11,7 +11,7 @@ const getApp = async (rootPath: string, orderController: OrderController) => {
   app.use(express.json());
 
   const orderPath = `${rootPath}/orders`
-  const orderRoutes = await getOrderRoutes(orderController);
+  const orderRoutes = getOrderRoutes(orderController);
 
   app.use(orderPath, orderRoutes);
 

@@ -1,4 +1,4 @@
-import {generateUUID} from "../kafka/utils";
+import {generateUUID} from "../utils/utils";
 
 const environment = process.env.NODE_ENV || "unknown";
 

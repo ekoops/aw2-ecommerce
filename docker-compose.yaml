@@ -86,8 +86,6 @@ services:
       - kafka
       - discovery-svc
 
-    #TOOD: continue...
-
   zookeeper:
     image: zookeeper
     container_name: zookeeper

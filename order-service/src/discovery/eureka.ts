@@ -1,5 +1,6 @@
 import {Eureka} from "eureka-js-client"
 import config from "../config/config"
+import {promisify} from "util";
 
 const {eureka: eureka_config} = config;
 
@@ -48,6 +49,8 @@ const EurekaClient = new Eureka({
         // useDns: true
     },
 });
-// EurekaClient.logger.level("debug");
+
+
+const initEurekaClient = promisify(EurekaClient.start);
 
 export default EurekaClient;

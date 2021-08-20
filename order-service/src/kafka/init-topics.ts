@@ -17,13 +17,8 @@ const initTopics = async (admin: Admin) =>  {
     const topicsToCreateList: ITopicConfig[] = desiredTopicList
         .filter(topicName => !actualTopicList.includes(topicName))
         .map(topicName => ({topic: topicName, numPartitions: 1}));
-    const topicHasBeenCreated = await admin.createTopics(topicsToCreateList);
 
-    if (!topicHasBeenCreated) {
-        console.error("Failed to create the following topics:", topicsToCreateList);
-        process.exit(4);
-    }
-    return;
+    return admin.createTopics(topicsToCreateList);
 };
 
 export default initTopics;

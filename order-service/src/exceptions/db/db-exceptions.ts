@@ -1,1 +1,3 @@
-export class DbConnectionFailedException {}
+export class DbConnectionFailedException {
+
+}

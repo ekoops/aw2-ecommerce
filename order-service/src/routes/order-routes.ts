@@ -2,7 +2,7 @@ import express from "express";
 import OrderController from "../controllers/order-controller";
 import { validators, checkErrors } from "../validators";
 
-const getRouter = async (orderController: OrderController) => {
+const getRouter = (orderController: OrderController) => {
   const router = express.Router();
 
   router.get("/", validators.getOrders, checkErrors, orderController.getOrders);

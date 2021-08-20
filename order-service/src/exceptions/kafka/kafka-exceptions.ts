@@ -11,11 +11,11 @@ export class CannotCreateAdminException extends KafkaException {
   }
 }
 export class CannotCreateTopicException extends KafkaException {
-  constructor(message: string) {
-    super(undefined, message);
-  }
+  // constructor(message: string) {
+  //   super(undefined, message);
+  // }
 }
-export class RetrievingTopicListFailedException extends KafkaException {
+export class CannotRetrieveTopicListException extends KafkaException {
   constructor(message: string) {
     super(undefined, message);
   }
