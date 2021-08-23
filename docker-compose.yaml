@@ -17,25 +17,25 @@ services:
       - catalog-db
       - kafka
   #      - discovery-svc
-  #      - mail-svc
+      - mail-svc
   #      - order-svc
   #    logging:
   #      driver: none
 
   catalog-db:
-    image: mysql
+    image: mariadb
     container_name: catalog-db
-    restart: always
+#    restart: always
     env_file:
       - ./envs/catalog-db.env
     #    ports:
     #      - "3306:3306"
-    volumes:
-      - ./volumes/catalog-db:/var/lib/mysql
+#    volumes:
+#      - ./volumes/catalog-db:/var/lib/mysql
     networks:
       - catalog-net
-    logging:
-      driver: none
+#    logging:
+#      driver: none
 
   wallet-svc:
     image: aw2-ecommerce/wallet-svc
@@ -60,7 +60,7 @@ services:
   #      driver: none
 
   wallet-db:
-    image: mysql
+    image: mariadb
     container_name: wallet-db
     restart: always
     env_file:
@@ -121,7 +121,7 @@ services:
       - communication-net
     depends_on:
       - kafka
-      - discovery-svc
+#      - discovery-svc
 
   zookeeper:
     image: zookeeper
@@ -129,8 +129,9 @@ services:
     #    ports:
     #      - "2181:2181"
     volumes:
-      - ./volumes/data:/data
-      - ./volumes/logs:/logs
+      - ./volumes/zookeeper/data:/data
+      - ./volumes/zookeeper/datalog:/datalog
+      - ./volumes/zookeeper/logs:/logs
     networks:
       - zookeeper-kafka-net
     logging:

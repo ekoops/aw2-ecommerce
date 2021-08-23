@@ -6,6 +6,7 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.KafkaException
 import org.apache.kafka.common.serialization.StringSerializer
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.config.TopicBuilder
@@ -16,12 +17,14 @@ import org.springframework.util.concurrent.ListenableFutureCallback
 import kotlin.coroutines.suspendCoroutine
 
 @Configuration
-class KafkaConfiguration {
+class KafkaConfiguration(
+    @Value("\${spring.kafka.bootstrap-servers}") private val bootstrapServers: String,
+) {
 
     @Bean
     fun userCreatedDTOProducerFactory(): ProducerFactory<String, UserCreatedDTO> {
         val configProps = mutableMapOf<String, Any>()
-        configProps[ProducerConfig.BOOTSTRAP_SERVERS_CONFIG] = "localhost:9092"
+        configProps[ProducerConfig.BOOTSTRAP_SERVERS_CONFIG] = this.bootstrapServers
         configProps[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
         configProps[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = JsonSerializer::class.java
         return DefaultKafkaProducerFactory(configProps)

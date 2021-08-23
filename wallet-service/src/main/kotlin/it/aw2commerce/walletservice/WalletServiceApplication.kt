@@ -6,7 +6,7 @@ import org.springframework.cloud.netflix.eureka.EnableEurekaClient
 
 
 @SpringBootApplication
-@EnableEurekaClient
+//@EnableEurekaClient
 class WalletServiceApplication
 
 fun main(args: Array<String>) {

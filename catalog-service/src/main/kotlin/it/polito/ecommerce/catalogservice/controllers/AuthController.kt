@@ -10,10 +10,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
-import reactor.core.publisher.Mono
-import reactor.netty.http.server.HttpServerRequest
 import reactor.netty.http.server.HttpServerResponse
 import javax.validation.Valid
 
@@ -31,7 +28,7 @@ class AuthController(
     @ResponseStatus(HttpStatus.CREATED)
     suspend fun register(
         @Valid @RequestBody createUserRequestDTO: CreateUserRequestDTO
-    ): UserDTO = userDetailsService.createUserSuspend(createUserRequestDTO)
+    ): UserDTO = userDetailsService.createUser(createUserRequestDTO)
 
     @PostMapping("/signin")
     @ResponseStatus(HttpStatus.NO_CONTENT)

@@ -5,6 +5,9 @@ import KafkaProxy from "./kafka/KafkaProxy";
 import initConsumers from "./kafka/init-consumers";
 import MailService from "./services/MailService";
 import express from "express"
+import Logger from "./utils/logger";
+
+const NAMESPACE = "MAIL_SVC";
 
 const run = async () => {
   const OAuthO2Options = await getOAuth2Options();
@@ -19,16 +22,18 @@ const run = async () => {
 
   const app = express();
 
-  app.use(`${config.server.api.rootPath}/status`, (req, res) => {
+  const {port: webServerPort, api: {rootPath}} = config.server;
+
+  app.use(`${rootPath}/status`, (req, res) => {
     res.status(200).json({status: "on"});
   });
 
-  app.listen(config.server.port, () => {
-    console.log(`Mail service http server is listening on port ${config.server.port}`);
+  app.listen(webServerPort, () => {
+    Logger.log(NAMESPACE, `Mail service http server is listening on port ${webServerPort}`);
   })
 };
 
 run().catch(err => {
-  console.error(err);
+  Logger.error(NAMESPACE, err);
   process.exit(1);
 });

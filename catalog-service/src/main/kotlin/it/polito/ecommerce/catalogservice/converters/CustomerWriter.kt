@@ -9,7 +9,7 @@ import org.springframework.r2dbc.core.Parameter
 @WritingConverter
 class CustomerWriter: Converter<Customer, OutboundRow> {
     override fun convert(c: Customer): OutboundRow {
-        if (c.user.id == null || c.id != c.user.id) {
+        if (c.user.id == null || (c.id != null && c.id != c.user.id)) {
             throw Exception("ciao")
         }
         return OutboundRow().apply {

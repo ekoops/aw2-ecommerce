@@ -1,4 +1,4 @@
-create table if not exists `catalogservice`.`user`(
+create table if not exists `catalog-db`.`user`(
     id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR (255) not null,
     email VARCHAR (255) not null,
@@ -8,16 +8,16 @@ create table if not exists `catalogservice`.`user`(
     roles VARCHAR (255) not null
 );
 
-create table if not exists `catalogservice`.`emailVerificationToken`(
+create table if not exists `catalog-db`.`email_verification_token`(
     id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    expirationDate DATE NOT NULL,
+    expiration_date DATE NOT NULL,
     token VARCHAR (255) not null,
-    constraint fk_emailVerificationToken_user FOREIGN KEY (id) references user(id)
+    constraint fk_email_verification_token_user FOREIGN KEY (id) references user(id)
     on delete cascade
     on update restrict
     );
 
-create table if not exists `catalogservice`.`customer`(
+create table if not exists `catalog-db`.`customer`(
     id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR (255) not null,
     surname VARCHAR (255) not null,

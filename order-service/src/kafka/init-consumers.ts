@@ -42,14 +42,14 @@ const initConsumers = (
     startConsumer<OrderDTO>({
       topic: "order-items-availability-produced",
       // onSuccessFallback: orderService.requestBudgetAvailability,
-      failureHandler: orderService.handleRequestOrderCreationFailure,
+      failureHandler: orderService.handleRequestOrderCreationFailure.bind(orderService),
       exceptionBuilder: ItemsNotAvailableException.fromJson,
     }),
 
     startConsumer<OrderDTO>({
       topic: "budget-availability-produced",
       // onSuccessFallback: orderService.approveOrder,
-      failureHandler: orderService.handleRequestBudgetAvailabilityFailure,
+      failureHandler: orderService.handleRequestBudgetAvailabilityFailure.bind(orderService),
       exceptionBuilder: NotEnoughBudgetException.fromJson,
     }),
 
@@ -57,14 +57,14 @@ const initConsumers = (
     startConsumer<ApprovationDTO>({
       topic: "order-approved-by-warehouse",
       // onSuccessFallback: orderService.handleOct,
-      failureHandler: orderService.handleApproveOrderFailure,
+      failureHandler: orderService.handleApproveOrderFailure.bind(orderService),
       exceptionBuilder: WarehouseOrderCreationFailedException.fromJson,
     }),
 
     startConsumer<ApprovationDTO>({
       topic: "order-approved-by-wallet",
       // onSuccessFallback: orderService.handleOct,
-      failureHandler: orderService.handleApproveOrderFailure,
+      failureHandler: orderService.handleApproveOrderFailure.bind(orderService),
       exceptionBuilder: WalletOrderCreationFailedException.fromJson,
     }),
   ];

@@ -44,7 +44,7 @@ spring:
 #        filters:
 #        - RewritePath=/warehouse-service,/warehouses
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
     consumer:
       auto-offset-reset: latest
       group-id: catalogGroup

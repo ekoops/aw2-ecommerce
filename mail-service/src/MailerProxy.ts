@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import nodemailer, {SentMessageInfo} from "nodemailer";
 import config from "./config/config";
 import Mail from "nodemailer/lib/mailer";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
@@ -22,7 +22,7 @@ export default class MailerProxy {
     return this._instance || (this._instance = new this(options));
   }
 
-  send(mail: { to: string; subject: string; text: string }): Promise<void> {
+  send(mail: { to: string; subject: string; text: string }): Promise<SentMessageInfo> {
     const mailOptions = {
       from: `WA2 Ecommerce <${this.options.user}>`,
       to: mail.to,
@@ -30,7 +30,6 @@ export default class MailerProxy {
       text: mail.text,
       html: mail.text,
     };
-
     let retry = 3;
     return new Promise<void>((resolve, reject) => {
       const schedule = (retry: number) => {
@@ -47,7 +46,7 @@ export default class MailerProxy {
         }, (3 - retry) * 2000);
       };
 
-      schedule(3);
+      schedule(retry);
     });
   }
 }

@@ -32,7 +32,7 @@ const initConsumers = (kafkaProxy: KafkaProxy, mailService: MailService) => {
   const consumersHandles = [
     startConsumer<UserCreatedDTO>({
       topic: "user-created",
-      successHandler: mailService.sendVerificationMail,
+      successHandler: mailService.sendVerificationMail.bind(mailService),
       failureHandler: () => {},
     }),
   ];

@@ -9,7 +9,7 @@ import org.springframework.r2dbc.core.Parameter
 @WritingConverter
 class EmailVerificationTokenWriter : Converter<EmailVerificationToken, OutboundRow>{
     override fun convert(evt: EmailVerificationToken): OutboundRow {
-        if (evt.user.id == null || evt.id != evt.user.id) {
+        if (evt.user.id == null || (evt.id != null && evt.id != evt.user.id)) {
             throw Exception("ciao")
         }
         return OutboundRow().apply {
