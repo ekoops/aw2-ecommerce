@@ -25,7 +25,7 @@ class JwtUtils constructor(
         val issuedAt = Date.from(Instant.now())
         val expirationDate = Date.from(Instant.now().plusSeconds(jwtExpirationMs / 1000))
         val builder = Jwts.builder()
-            .setIssuer("Sauce Overflow")
+            .setIssuer("aw2-ecommerce")
             .setIssuedAt(issuedAt)
             .setExpiration(expirationDate)
             .claim("email", userDetailsDTO.getEmail())

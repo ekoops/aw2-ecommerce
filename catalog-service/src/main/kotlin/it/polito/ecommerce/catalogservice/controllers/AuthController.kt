@@ -1,8 +1,10 @@
 package it.polito.ecommerce.catalogservice.controllers
 
 import it.polito.ecommerce.catalogservice.dto.UserDTO
+import it.polito.ecommerce.catalogservice.dto.UserDetailsDTO
 import it.polito.ecommerce.catalogservice.dto.incoming.CreateUserRequestDTO
 import it.polito.ecommerce.catalogservice.dto.incoming.SignInUserRequestDTO
+import it.polito.ecommerce.catalogservice.exceptions.security.BadAuthenticationException
 import it.polito.ecommerce.catalogservice.security.JwtUtils
 import it.polito.ecommerce.catalogservice.services.implementations.UserDetailsServiceImpl
 import org.springframework.beans.factory.annotation.Value
@@ -41,8 +43,13 @@ class AuthController(
             signInUserRequestDTO.password
         )
     ).map { authentication ->
-        ReactiveSecurityContextHolder.getContext().map {
-            it.authentication = authentication
+        ReactiveSecurityContextHolder.getContext().map { securityContext->
+            val userDetailsDTO = authentication.principal as? UserDetailsDTO ?: throw BadAuthenticationException()
+            val isRoleLegitimate = userDetailsDTO.authorities.map{it.authority}.contains(signInUserRequestDTO.role)
+            if(!isRoleLegitimate){
+                throw BadAuthenticationException()
+            }
+            securityContext.authentication = authentication
             val token = jwtUtils.generateJwtToken(authentication)
             response.responseHeaders().set(jwtHeader, "$jwtHeaderStart $token")
         }
@@ -55,11 +62,6 @@ class AuthController(
     ): Unit = userDetailsService.verifyUser(token = token)
 
 
-//    @GetMapping("/enableUser")
-//    @ResponseStatus(HttpStatus.NO_CONTENT)
-//    suspend fun enableUser(
-//        @RequestParam("username", required = true) username: String,
-//    ): Boolean = userDetailsService.enableUser(username)
 }
 
 
