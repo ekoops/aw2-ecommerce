@@ -37,10 +37,6 @@ services:
     logging:
       driver: none
 
-
-
-
-
   wallet-svc:
     image: aw2-ecommerce/wallet-svc
     container_name: wallet-svc
@@ -50,7 +46,7 @@ services:
     env_file:
       - ./envs/wallet-svc.env.prod
     ports:
-      - "8080:8080"
+#      - "8080:8080"
     networks:
       - wallet-net
       - communication-net
