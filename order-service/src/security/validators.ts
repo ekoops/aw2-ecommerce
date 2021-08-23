@@ -8,7 +8,7 @@ import {
 } from "express-validator";
 import mongoose from "mongoose";
 import { NextFunction, Request, RequestHandler, Response } from "express";
-import { OrderStatus } from "./db/OrderStatus";
+import { OrderStatus } from "../db/OrderStatus";
 
 interface Validators {
   [key: string]: ValidationChain[];

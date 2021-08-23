@@ -1,16 +1,16 @@
 import config from "./config/config";
 import initDbConnection from "./db/db";
 import KafkaProxy from "./kafka/KafkaProxy";
+import { KafkaConfig } from "kafkajs";
 import getApp from "./app";
 import { OrderModel } from "./models/Order";
-import OrderRepositoryNosql from "./repositories/order-repository-nosql";
+import OrderRepository from "./repositories/order-repository";
 import OrderService from "./services/order-service";
 import OrderController from "./controllers/order-controller";
 import initConsumers from "./kafka/init-consumers";
 import ProducerProxy from "./kafka/ProducerProxy";
 import OctRepository from "./repositories/oct-repository";
 import { OctModel } from "./models/Oct";
-import EurekaClient from "./discovery/eureka";
 import {
   CannotCreateAdminException,
   CannotCreateProducerException,
@@ -25,9 +25,14 @@ import Logger from "./utils/logger";
 const NAMESPACE = config.server.instance.id;
 
 const run = async () => {
-  const { host, port, clientId } = config.kafka;
-  const broker = `${host}:${port}`;
-  const kafkaProxy = KafkaProxy.getInstance(clientId, [broker]);
+  const { host, port, clientId, initialRetryTime } = config.kafka;
+  const brokers = [`${host}:${port}`];
+  const kafkaConfig: KafkaConfig = {
+    clientId,
+    brokers,
+    retry: { initialRetryTime },
+  };
+  const kafkaProxy = KafkaProxy.getInstance(kafkaConfig);
 
   const [_, admin, producer] = await Promise.all([
     retry(3, initDbConnection),
@@ -37,7 +42,7 @@ const run = async () => {
 
   const producerProxy = new ProducerProxy(producer);
 
-  const orderRepository = OrderRepositoryNosql.getInstance(OrderModel);
+  const orderRepository = OrderRepository.getInstance(OrderModel);
   const octRepository = OctRepository.getInstance(OctModel);
   const orderService = OrderService.getInstance(
     orderRepository,
@@ -53,18 +58,16 @@ const run = async () => {
   const webServerPort = config.server.port;
 
   const app = await getApp(rootPath, orderController);
-  app.listen(webServerPort, () => {
+  app.listen(webServerPort, async () => {
     Logger.log(NAMESPACE, `Server is listening on port ${webServerPort}`);
-    EurekaClient.start((err) => {
-      const NAMESPACE = "EUREKA";
-      if (err) {
-        Logger.error(NAMESPACE, "cannot establish a connection to the discovery service");
-        process.exit(6);
-      }
-      else {
-        Logger.dev(NAMESPACE, "connected successfully");
-      }
-    });
+    // try {
+    //   await initEurekaClient();
+    //   Logger.dev(NAMESPACE, "connected successfully");
+    // }
+    // catch (ex) {
+    //   Logger.error(NAMESPACE, "cannot establish a connection to the discovery service");
+    //   process.exit(6);
+    // }
   });
 };
 

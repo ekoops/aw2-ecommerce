@@ -5,6 +5,7 @@ import {
   EachMessagePayload,
   RecordMetadata,
   ITopicConfig,
+  KafkaConfig,
 } from "kafkajs";
 import config from "../config/config";
 import {
@@ -37,17 +38,11 @@ export default class KafkaProxy {
   private static _instance: KafkaProxy;
   private kafka: Kafka;
 
-  constructor(clientId: string, brokers: string[]) {
-    this.kafka = new Kafka({
-      clientId,
-      brokers,
-      retry: {
-        initialRetryTime: 500,
-      },
-    });
+  constructor(kafkaConfig: KafkaConfig) {
+    this.kafka = new Kafka(kafkaConfig);
   }
-  static getInstance(clientId: string, brokers: string[]) {
-    return this._instance || (this._instance = new this(clientId, brokers));
+  static getInstance(kafkaConfig: KafkaConfig) {
+    return this._instance || (this._instance = new this(kafkaConfig));
   }
 
   async createAdmin(): Promise<Admin> {
@@ -70,8 +65,8 @@ export default class KafkaProxy {
           const topicNames = topics.map((t) => t.topic);
           if (!haveBeenCreated) {
             Logger.error(
-                NAMESPACE,
-                `failed to create the following topics ${topicNames}`
+              NAMESPACE,
+              `failed to create the following topics ${topicNames}`
             );
             throw new CannotCreateTopicException();
           }

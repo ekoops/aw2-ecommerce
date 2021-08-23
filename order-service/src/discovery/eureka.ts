@@ -53,4 +53,4 @@ const EurekaClient = new Eureka({
 
 const initEurekaClient = promisify(EurekaClient.start);
 
-export default EurekaClient;
+export default initEurekaClient;

@@ -1,6 +1,25 @@
-import {OrderStatusType} from "../db/OrderStatus";
+import {OrderStatus, OrderStatusType} from "../db/OrderStatus";
 import {OrderItem} from "../models/OrderItem";
 import {Order} from "../models/Order";
+
+export interface User {
+    id: string;
+    role: string;
+}
+
+export interface GetOrderRequestDTO {
+    orderId: string;
+    user: User;
+}
+export interface PatchOrderRequestDTO {
+    orderId: string;
+    user: User;
+    newStatus: OrderStatus
+}
+export interface DeleteOrderRequestDTO {
+    orderId: string;
+    user: User;
+}
 
 export interface OrderItemDTO {
     id?: string;

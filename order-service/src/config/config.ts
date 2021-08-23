@@ -16,6 +16,7 @@ const db_port = process.env.DB_PORT || 27017;
 const kafka_host = process.env.KAFKA_HOST || "kafka";
 const kafka_port = process.env.KAFKA_PORT || 9092;
 const kafka_client_id = process.env.KAFKA_CLIENT_ID || server_instance_id;
+const kafka_initial_retry_time = process.env.KAFKA_INITIAL_RETRY_TIME || 500;
 
 const eureka_instance_app = process.env.EUREKA_INSTANCE_APP || "order-svc";
 const eureka_instance_id = process.env.EUREKA_INSTANCE_ID || server_instance_id;
@@ -51,7 +52,8 @@ const config = {
   kafka: {
     host: kafka_host,
     port: +kafka_port,
-    clientId: kafka_client_id
+    clientId: kafka_client_id,
+    initialRetryTime: +kafka_initial_retry_time
   },
   eureka: {
     instance: {

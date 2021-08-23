@@ -54,7 +54,7 @@ services:
     depends_on:
       - order-db
       - kafka
-      - discovery-svc
+#      - discovery-svc
 
   order-db:
     image: mongo
@@ -91,9 +91,9 @@ services:
     container_name: zookeeper
 #    ports:
 #      - "2181:2181"
-#    volumes:
-#      - ./volumes/data:/data
-#      - ./volumes/logs:/logs
+    volumes:
+      - ./volumes/data:/data
+      - ./volumes/logs:/logs
     networks:
       - zookeeper-kafka-net
     logging:
@@ -106,16 +106,16 @@ services:
 #      - "9092:9092"
     env_file:
       - ./envs/kafka.env.prod
-#    volumes:
-#      - ./volumes/kafka/secrets:/etc/kafka/secrets
-#      - ./volumes/kafka/data:/var/lib/kafka/data
+    volumes:
+#      - ./volumes/kafka/secrets:/etc/kafka/secrets # not needed
+      - ./volumes/kafka/data:/var/lib/kafka/data
     networks:
       - zookeeper-kafka-net
       - communication-net
     depends_on:
       - zookeeper
-    logging:
-      driver: none
+#    logging:
+#      driver: none
 
   discovery-svc:
     image: aw2-ecommerce/discovery-svc

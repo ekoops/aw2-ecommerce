@@ -1,4 +1,4 @@
-import OrderRepositoryNosql from "../repositories/order-repository-nosql";
+import OrderRepository from "../repositories/order-repository";
 import { Order } from "../models/Order";
 import { OrderStatus, toStatusName } from "../db/OrderStatus";
 import AppError from "../models/AppError";
@@ -24,10 +24,21 @@ import RequestStore from "../kafka/RequestStore";
 import OctRepository from "../repositories/oct-repository";
 import {
   ApprovationDTO,
+  DeleteOrderRequestDTO,
+  GetOrderRequestDTO,
   OrderDTO,
+  PatchOrderRequestDTO,
   toOrderDTO,
   toOrderItem,
+  User,
 } from "../dtos/DTOs";
+import Logger from "../utils/logger";
+import {
+  OrderNotExistException,
+  UnauthorizedException,
+} from "../exceptions/exceptions";
+
+const NAMESPACE = "ORDER_SERVICE";
 
 const requestStore = RequestStore.getInstance();
 
@@ -35,13 +46,13 @@ export default class OrderService {
   private static _instance: OrderService;
 
   private constructor(
-    private orderRepository: OrderRepositoryNosql,
+    private orderRepository: OrderRepository,
     private octRepository: OctRepository,
     private producerProxy: ProducerProxy
   ) {}
 
   static getInstance(
-    orderRepository: OrderRepositoryNosql,
+    orderRepository: OrderRepository,
     octRepository: OctRepository,
     producerProxy: ProducerProxy
   ) {
@@ -51,20 +62,54 @@ export default class OrderService {
     );
   }
 
-  getOrders(): Promise<OrderDTO[]> {
-    return this.orderRepository
-        .findAllOrders()
-        .then((orders) => orders.map(toOrderDTO));
+  async getOrders(user: User): Promise<OrderDTO[]> {
+    const { role: userRole, id: userId } = user;
+    if (userRole !== "ADMIN" && userRole !== "CUSTOMER") {
+      Logger.dev(NAMESPACE, `getOrders(user: ${user}): unauthorized`);
+      throw new UnauthorizedException();
+    }
+
+    const buyerId = userRole === "CUSTOMER" ? userId : undefined;
+    const orders = await this.orderRepository.findOrders(buyerId); // can throw
+    const ordersDTO = orders.map(toOrderDTO);
+    Logger.dev(NAMESPACE, `getOrders(): ${ordersDTO}`);
+
+    return ordersDTO;
   }
 
-  getOrder(id: string): Promise<OrderDTO | AppError> {
-    return this.orderRepository.findOrderById(id).then((order) => {
-      if (order === null) {
-        return new AppError(`No order with id ${id}`);
-      } else {
-        return toOrderDTO(order);
-      }
-    }); // can throw
+  async getOrder(getOrderRequestDTO: GetOrderRequestDTO): Promise<OrderDTO> {
+    const {
+      orderId,
+      user: { role: userRole, id: userId },
+    } = getOrderRequestDTO;
+    if (userRole !== "ADMIN" && userRole !== "CUSTOMER") {
+      Logger.dev(
+        NAMESPACE,
+        `getOrder(getOrderRequestDTO: ${getOrderRequestDTO}): unauthorized`
+      );
+      throw new UnauthorizedException();
+    }
+    const order = await this.orderRepository.findOrderById(orderId); // can throw
+    if (order === null) {
+      Logger.dev(
+        NAMESPACE,
+        `getOrder(getOrderRequestDTO: ${getOrderRequestDTO}): null`
+      );
+      throw new OrderNotExistException();
+    }
+    if (userRole === "CUSTOMER" && order.buyerId !== userId) {
+      Logger.dev(
+        NAMESPACE,
+        `getOrder(getOrderRequestDTO: ${getOrderRequestDTO}): unauthorized`
+      );
+      throw new UnauthorizedException();
+    }
+    const orderDTO = toOrderDTO(order);
+    Logger.dev(
+      NAMESPACE,
+      `getOrder(getOrderRequestDTO: ${getOrderRequestDTO}): ${orderDTO}`
+    );
+    return orderDTO;
   }
 
   rollbackOrderCreation(key: string) {
@@ -287,10 +332,15 @@ export default class OrderService {
   }
 
   async modifyOrderStatus(
-    id: string,
-    newStatus: OrderStatus
+    patchOrderRequestDTO: PatchOrderRequestDTO
   ): Promise<OrderDTO | AppError> {
-    const order = await this.orderRepository.findOrderById(id); // can throw
+    const {
+      orderId,
+      user: { role: userRole, id: userId },
+      newStatus,
+    } = patchOrderRequestDTO;
+
+    const order = await this.orderRepository.findOrderById(orderId); // can throw
     if (order === null) return new AppError(`No order with id ${id}`);
 
     // TODO change mock variables
@@ -331,7 +381,48 @@ export default class OrderService {
     );
   }
 
-  deleteOrder(id: string): Promise<boolean> {
-    return this.orderRepository.deleteOrderById(id);
+  async deleteOrder(deleteRequestDTO: DeleteOrderRequestDTO): Promise<void> {
+    const {
+      orderId,
+      user: { role: userRole, id: userId },
+    } = deleteRequestDTO;
+    if (userRole !== "ADMIN" && userRole !== "CUSTOMER")
+      throw new UnauthorizedException();
+    if (userRole === "CUSTOMER") {
+      const order = await this.orderRepository.findOrderById(orderId);
+      if (order === null) {
+        Logger.dev(
+          NAMESPACE,
+          `deleteOrder(deleteRequestDTO: ${deleteRequestDTO}): no order`
+        );
+        throw new OrderNotExistException();
+      }
+      if (order.buyerId !== userId) throw new UnauthorizedException();
+    }
+    const deletedOrder = await this.orderRepository.deleteOrderById(orderId);
+    if (deletedOrder === null) {
+      Logger.dev(
+        NAMESPACE,
+        `deleteOrder(deleteRequestDTO: ${deleteRequestDTO}): no order`
+      );
+      throw new OrderNotExistException();
+    } else {
+      Logger.dev(
+        NAMESPACE,
+        `deleteOrder(deleteRequestDTO: ${deleteRequestDTO}): deleted`
+      );
+      return this.producerProxy.producer
+        .produce({
+          topic: "order-deleted",
+          messages: [{ key: orderId, value: JSON.stringify(deletedOrder) }], // TODO: right way?}
+        })
+        .then(() => {});
+      // .then(() => true)
+      // .catch(() => {
+      //   // TODO: and now?
+      //   return true;
+      // });
+      // TODO notify on order-deleted
+    }
   }
 }

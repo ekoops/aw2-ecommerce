@@ -1,9 +1,12 @@
 import express from "express";
 import OrderController from "../controllers/order-controller";
-import { validators, checkErrors } from "../validators";
+import { validators, checkErrors } from "../security/validators";
+import {handleJwt} from "../security/jwt";
 
 const getRouter = (orderController: OrderController) => {
   const router = express.Router();
+
+  router.use(handleJwt);
 
   router.get("/", validators.getOrders, checkErrors, orderController.getOrders);
 
