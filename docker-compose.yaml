@@ -46,7 +46,7 @@ services:
     env_file:
       - ./envs/wallet-svc.env.prod
     ports:
-#      - "8080:8080"
+      - "4000:4000"
     networks:
       - wallet-net
       - communication-net
