@@ -47,7 +47,7 @@ class GatewayConfiguration {
                         f ->
                     f.circuitBreaker{
                         //handle failure
-                            it-> it.setFallbackUri("forward:defaultFallback/")
+                            it-> it.setFallbackUri("forward:/api/v1/auth/defaultFallback/")
                     }
 //                    f.rewritePath("/catalog","")
                 }

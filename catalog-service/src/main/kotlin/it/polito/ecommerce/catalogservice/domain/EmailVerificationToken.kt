@@ -21,7 +21,7 @@ data class EmailVerificationToken(
 
 fun EmailVerificationToken.toEmailVerificationTokenDTO(): EmailVerificationTokenDTO {
     val id = this.id ?: throw InconsistentEmailVerificationTokenException(
-        "error"
+        "Email Verification Token id is undefined"
     )
     return EmailVerificationTokenDTO(
         id = id,

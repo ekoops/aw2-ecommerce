@@ -7,8 +7,11 @@ import it.polito.ecommerce.catalogservice.dto.kafkadtos.UserCreatedDTO
 import it.polito.ecommerce.catalogservice.dto.toCreatedUserEmailVerificationTokenInfoDTO
 import it.polito.ecommerce.catalogservice.exceptions.internal.CreateUserInternalException
 import it.polito.ecommerce.catalogservice.exceptions.internal.VerifyUserInternalException
+import it.polito.ecommerce.catalogservice.exceptions.user.ActionNotPermittedException
+import it.polito.ecommerce.catalogservice.exceptions.user.InconsistentUserException
 import it.polito.ecommerce.catalogservice.exceptions.user.NoSuchRoleException
 import it.polito.ecommerce.catalogservice.exceptions.user.UserAlreadyExistsException
+import it.polito.ecommerce.catalogservice.exceptions.user.customer.InconsistentCustomerException
 import it.polito.ecommerce.catalogservice.exceptions.user.emailverificationtoken.EmailVerificationTokenExpiredException
 import it.polito.ecommerce.catalogservice.kafka.dispatch
 import it.polito.ecommerce.catalogservice.repositories.CoroutineUserRepository
@@ -42,7 +45,6 @@ class UserDetailsServiceImpl(
     private val passwordEncoder: PasswordEncoder,
     private val kafkaTemplate: KafkaTemplate <String, UserCreatedDTO>
 ) : ReactiveUserDetailsService {
-    private val baseEmailVerificationUrl = "http://$host:$port$contextPath/auth/confirmRegistration?token="
 
     private suspend fun getUserByUsername(username: String): User {
         return coroutineUserRepository.findByUsername(username)
@@ -68,47 +70,58 @@ class UserDetailsServiceImpl(
             email = email
         )
         // If user is not present, I create it
-        val user = User(
-            username = username,
-            password = passwordEncoder.encode(userDTO.password),
-            email = email,
-            rolesList = listOf(Rolename.CUSTOMER)
-        )
-        val createdUser = coroutineUserRepository.save(user)
-        val customer = Customer(
-            name = userDTO.name,
-            surname = userDTO.surname,
-            deliveryAddress = userDTO.deliveryAddress,
-            user = createdUser
-        )
-        val createdCustomer = customerRepository.save(customer)
-
-        try {
-//            // Creating email verification token
-            val emailVerificationTokenDTO = notificationService
-                .createEmailVerificationToken(createdUser.username)
-
-            val userCreatedDTO = UserCreatedDTO(
-                id = createdUser.id!!,
-                username = createdUser.username,
-                email = createdUser.email,
-                roles = createdUser.getRolenames(),
-                customerInfo = createdCustomer.toCreatedUserCustomerInfoDTO(),
-                emailVerificationTokenInfo = emailVerificationTokenDTO.toCreatedUserEmailVerificationTokenInfoDTO()
+        try{
+            val user = User(
+                username = username,
+                password = passwordEncoder.encode(userDTO.password),
+                email = email,
+                rolesList = listOf(Rolename.CUSTOMER)
             )
+            val createdUser = coroutineUserRepository.save(user)
+            //Creating customer associated to the created user
+            try{
+                val customer = Customer(
+                    name = userDTO.name,
+                    surname = userDTO.surname,
+                    deliveryAddress = userDTO.deliveryAddress,
+                    user = createdUser
+                )
+                val createdCustomer = customerRepository.save(customer)
+                // Creating email verification token
+                try {
+                    val emailVerificationTokenDTO = notificationService
+                        .createEmailVerificationToken(createdUser.username)
 
-            kafkaTemplate.dispatch("user-created", user.id.toString(), userCreatedDTO)
-        } catch (ex: Exception) {
-            when (ex) {
-                is UsernameNotFoundException, is MailException -> throw CreateUserInternalException.from(ex)
-                is KafkaException -> {
-                    // TODO
-                    println(ex.message)
+                    val userCreatedDTO = UserCreatedDTO(
+                        id = createdUser.id!!,
+                        username = createdUser.username,
+                        email = createdUser.email,
+                        roles = createdUser.getRolenames(),
+                        customerInfo = createdCustomer.toCreatedUserCustomerInfoDTO(),
+                        emailVerificationTokenInfo = emailVerificationTokenDTO.toCreatedUserEmailVerificationTokenInfoDTO()
+                    )
+
+                    kafkaTemplate.dispatch("user-created", user.id.toString(), userCreatedDTO)
+                } catch (ex: Exception) {
+                    when (ex) {
+                        is UsernameNotFoundException, is MailException -> throw CreateUserInternalException.from(ex)
+                        is KafkaException -> {
+                            // TODO
+                            println(ex.message)
+                        }
+                        else -> throw ex
+                    }
                 }
-                else -> throw ex
+                return createdUser.toUserDTO()
+
+            }catch (ex:Exception){
+                coroutineUserRepository.delete(createdUser)
+                throw InconsistentCustomerException("Error in saving the customer")
             }
+
+        }catch (ex: Exception){
+            throw InconsistentUserException ("Error in saving the user")
         }
-        return createdUser.toUserDTO()
     }
 
     suspend fun verifyUser(token: String) {
@@ -116,16 +129,16 @@ class UserDetailsServiceImpl(
         val emailVerificationTokenDTO = notificationService.getEmailVerificationToken(
             token = token
         )
-//
-//        // Verifying if email verification token is expired
+
+        // Verifying if email verification token is expired
         if (emailVerificationTokenDTO.expirationDate < LocalDateTime.now()) {
             throw EmailVerificationTokenExpiredException(
                 token = token,
                 expirationDate = emailVerificationTokenDTO.expirationDate
             )
         }
-//
-//        // Enabling corresponding user
+
+        // Enabling corresponding user
         try {
             enableUser(emailVerificationTokenDTO.id)
         } catch (ex: UsernameNotFoundException) {
@@ -136,14 +149,23 @@ class UserDetailsServiceImpl(
 
     suspend fun enableUser(id: Long): Boolean {
         val enabledUser = getUserById(id).enableUser() ?: return false
-        coroutineUserRepository.save(enabledUser)
-        return true
+        try{
+            coroutineUserRepository.save(enabledUser)
+            return true
+        }catch(ex: Exception){
+            throw InconsistentUserException("Error in enabling the user")
+        }
+
     }
 
     suspend fun disableUser(id: Long): Boolean {
         val disabledUser = this.getUserById(id).disableUser() ?: return false
-        coroutineUserRepository.save(disabledUser)
-        return true
+        try{
+            coroutineUserRepository.save(disabledUser)
+            return true
+        }catch(ex: Exception){
+            throw InconsistentUserException("Error in disabling the user")
+        }
     }
 
 
@@ -151,8 +173,13 @@ class UserDetailsServiceImpl(
         try {
             val rolename = Rolename.valueOf(role)
             val newUser = this.getUserByUsername(username).addRolename(rolename) ?: return false
-            coroutineUserRepository.save(newUser)
-            return true
+            try{
+                coroutineUserRepository.save(newUser)
+                return true
+            }catch(ex: Exception){
+                throw InconsistentUserException("Error in adding role to the user")
+            }
+
         } catch (ex: IllegalArgumentException) {
             throw NoSuchRoleException(role = role)
         }
@@ -162,16 +189,36 @@ class UserDetailsServiceImpl(
         try {
             val rolename = Rolename.valueOf(role)
             val newUser = this.getUserByUsername(username).removeRolename(rolename) ?: return false
-            coroutineUserRepository.save(newUser)
-            return true
+            try{
+                coroutineUserRepository.save(newUser)
+                return true
+            }catch(ex: Exception){
+                throw InconsistentUserException("Error in removing role to the user")
+            }
+
         } catch (ex: IllegalArgumentException) {
             throw NoSuchRoleException(role = role)
         }
     }
 
-    suspend fun lockUser(id: Long): User? = this.getUserById(id).lockUser()
+    suspend fun lockUser(id: Long): Boolean {
+        val lockedUser = this.getUserById(id).lockUser() ?: throw ActionNotPermittedException ("The user is already locked")
+        try{
+            coroutineUserRepository.save(lockedUser)
+            return true
+        }catch(ex: Exception){
+            throw InconsistentUserException("Error in locking the user")
+        }
+    }
 
-
-    suspend fun unlockUser(id: Long): User? = this.getUserById(id).unlockUser()
+    suspend fun unlockUser(id: Long): Boolean{
+        val unlockedUser = this.getUserById(id).unlockUser() ?: throw ActionNotPermittedException ("The user is already unlocked")
+        try{
+            coroutineUserRepository.save(unlockedUser)
+            return true
+        }catch(ex: Exception){
+            throw InconsistentUserException("Error in unlocking the user")
+        }
+    }
 }
 

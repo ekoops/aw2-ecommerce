@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping
 @RestController
 class GatewayController {
 
-    @GetMapping("/defaultFallback")
+    @GetMapping("/auth/defaultFallback")
     fun defaultMessage(): String? {
         return "There were some error in connecting. Please try again later."
     }

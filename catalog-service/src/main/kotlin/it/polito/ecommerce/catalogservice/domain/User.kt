@@ -137,7 +137,7 @@ data class User(
 
 fun User.toUserDetailsDTO(): UserDetailsDTO {
     val id = this.id ?: throw InconsistentUserException(
-        "Transaction id or from/to wallet id are undefined"
+        "User id is undefined"
     )
     return UserDetailsDTO(
         id = id,
@@ -151,9 +151,8 @@ fun User.toUserDetailsDTO(): UserDetailsDTO {
 }
 
 fun User.toUserDTO(): UserDTO {
-    // TODO change message
     val id = this.id ?: throw InconsistentUserException(
-       "error"
+        "User id is undefined"
     )
     return UserDTO(
         id = id,
