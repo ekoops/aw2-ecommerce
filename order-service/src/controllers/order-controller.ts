@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 import OrderService from "../services/order-service";
-import { OrderStatus } from "../db/OrderStatus";
+import { OrderStatus, toOrderStatus } from "../db/OrderStatus";
 import AppError from "../models/AppError";
 import {
   DeleteOrderRequestDTO,
@@ -8,10 +8,16 @@ import {
   OrderDTO,
   OrderItemDTO,
   PatchOrderRequestDTO,
-  User
+  User,
 } from "../dtos/DTOs";
-import {OrderNotExistException, UnauthorizedException} from "../exceptions/exceptions";
+import {
+  NotAllowedException, OrderAlreadyCancelledException,
+  OrderNotExistException,
+  UnauthorizedException,
+} from "../exceptions/exceptions";
+import Logger from "../utils/logger";
 
+const NAMESPACE = "ORDER_CONTROLLER";
 
 export default class OrderController {
   private static _instance: OrderController;
@@ -24,39 +30,28 @@ export default class OrderController {
 
   async getOrders(req: Request, res: Response, next: NextFunction) {
     const user: User = res.locals.user;
-    try {
-      const orders = await this.orderService.getOrders(user);
-      res.status(200).json(orders);
-    }
-    catch (ex) {
-      if (ex instanceof UnauthorizedException) {
-        res.status(401).end();
-      }
-      else throw ex;
-    }
+    const orders = await this.orderService.getOrders(user);
+    res.status(200).json(orders);
   }
 
   async getOrder(req: Request, res: Response, next: NextFunction) {
-    const { id : orderId } = req.params;
+    const { id: orderId } = req.params;
     const user: User = res.locals.user;
     const getOrderRequestDTO: GetOrderRequestDTO = {
       orderId,
-      user
-    }
+      user,
+    };
     try {
       const order = await this.orderService.getOrder(getOrderRequestDTO);
       if (order === null) res.status(404).json();
       else res.status(200).json(order);
-    }
-    catch (ex) {
+    } catch (ex) {
       if (ex instanceof UnauthorizedException) {
         res.status(401).end();
       } else if (ex instanceof OrderNotExistException) {
         res.status(404).end();
-      }
-      else throw ex;
+      } else throw ex;
     }
-
   }
 
   postOrder(req: Request, res: Response, next: NextFunction) {
@@ -78,44 +73,64 @@ export default class OrderController {
     });
   }
 
-  patchOrder(req: Request, res: Response, next: NextFunction) {
-    const { id : orderId} = req.params;
+  async patchOrder(req: Request, res: Response, next: NextFunction) {
+    const { id: orderId } = req.params;
     const user: User = res.locals.user;
-    const newStatus = req.body.status as OrderStatus;
+    const newStatus: OrderStatus | undefined = toOrderStatus(req.body.status);
+    if (newStatus === undefined) {
+      Logger.error(NAMESPACE, `patchOrder(): bad status ${newStatus}`);
+      return res.status(400).json({ reason: `bad status ${newStatus}` });
+    }
 
     const patchOrderRequestDTO: PatchOrderRequestDTO = {
       orderId,
       user,
-      newStatus // TODO
+      newStatus,
     };
-    this.orderService.modifyOrderStatus(patchOrderRequestDTO).then((result) => {
-      if (result instanceof AppError) {
-        // TODO: change 400 status code
-        res.status(400).json({
-          error: result.message,
-        });
-      } else res.status(200).json(result);
-    });
-  }
-
-  async deleteOrder(req: Request, res: Response, next: NextFunction) {
-    const { id : orderId } = req.params;
-    const user: User = res.locals.user;
-    const deleteOrderRequestDTO: DeleteOrderRequestDTO = {
-      orderId,
-      user
-    }
     try {
-      await this.orderService.deleteOrder(deleteOrderRequestDTO);
-      res.status(204).end();
-    }
-    catch (ex) {
+      const result = await this.orderService.modifyOrderStatus(
+        patchOrderRequestDTO
+      );
+      res.status(200).json(result);
+    } catch (ex) {
       if (ex instanceof UnauthorizedException) {
         res.status(401).end();
-      } else if (ex instanceof OrderNotExistException) {
+      }
+      else if (ex instanceof OrderNotExistException) {
         res.status(404).end();
+      }
+      else if (ex instanceof NotAllowedException) {
+        res.status(403).end();
       }
       else throw ex;
     }
   }
+
+  async deleteOrder(req: Request, res: Response, next: NextFunction) {
+    const { id: orderId } = req.params;
+    const user: User = res.locals.user;
+    const deleteOrderRequestDTO: DeleteOrderRequestDTO = {
+      orderId,
+      user,
+    };
+    try {
+      await this.orderService.deleteOrder(deleteOrderRequestDTO);
+      res.status(204).end();
+    } catch (ex) {
+      if (ex instanceof OrderNotExistException) {
+        res.status(404).end();
+      }
+      else if (ex instanceof UnauthorizedException) {
+        res.status(401).end();
+      }
+      else if (ex instanceof OrderAlreadyCancelledException) {
+        res.status(204).end();
+      }
+      else if (ex instanceof NotAllowedException) {
+        res.status(403).end();
+      }
+      else throw ex;
+    }
+  }
+
 }

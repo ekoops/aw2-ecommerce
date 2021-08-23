@@ -1,20 +1,23 @@
 import OrderRepository from "../repositories/order-repository";
 import { Order } from "../models/Order";
-import { OrderStatus, toStatusName } from "../db/OrderStatus";
+import {
+  OrderStatus,
+  toOrderStatus,
+  toOrderStatusName,
+} from "../db/OrderStatus";
 import AppError from "../models/AppError";
 import {
+  CannotProduceException,
+  ItemsNotAvailableException,
   KafkaException,
+  NoHandlersException,
+  NotEnoughBudgetException,
   NoValueException,
   ValueParsingFailedException,
-  ItemsNotAvailableException,
-  CannotProduceException,
-  NotEnoughBudgetException,
   WalletOrderCreationFailedException,
   WarehouseOrderCreationFailedException,
-  NoHandlersException,
 } from "../exceptions/kafka/kafka-exceptions";
 import {
-  OctCreationFailedException,
   OctRetrievingFailedException,
   OctSavingFailedException,
 } from "../exceptions/repositories/repositories-exceptions";
@@ -31,9 +34,12 @@ import {
   toOrderDTO,
   toOrderItem,
   User,
+  UserRole,
 } from "../dtos/DTOs";
 import Logger from "../utils/logger";
 import {
+  NotAllowedException,
+  OrderAlreadyCancelledException,
   OrderNotExistException,
   UnauthorizedException,
 } from "../exceptions/exceptions";
@@ -64,12 +70,8 @@ export default class OrderService {
 
   async getOrders(user: User): Promise<OrderDTO[]> {
     const { role: userRole, id: userId } = user;
-    if (userRole !== "ADMIN" && userRole !== "CUSTOMER") {
-      Logger.dev(NAMESPACE, `getOrders(user: ${user}): unauthorized`);
-      throw new UnauthorizedException();
-    }
 
-    const buyerId = userRole === "CUSTOMER" ? userId : undefined;
+    const buyerId = userRole === UserRole.CUSTOMER ? userId : undefined;
     const orders = await this.orderRepository.findOrders(buyerId); // can throw
     const ordersDTO = orders.map(toOrderDTO);
     Logger.dev(NAMESPACE, `getOrders(): ${ordersDTO}`);
@@ -82,13 +84,6 @@ export default class OrderService {
       orderId,
       user: { role: userRole, id: userId },
     } = getOrderRequestDTO;
-    if (userRole !== "ADMIN" && userRole !== "CUSTOMER") {
-      Logger.dev(
-        NAMESPACE,
-        `getOrder(getOrderRequestDTO: ${getOrderRequestDTO}): unauthorized`
-      );
-      throw new UnauthorizedException();
-    }
     const order = await this.orderRepository.findOrderById(orderId); // can throw
     if (order === null) {
       Logger.dev(
@@ -97,7 +92,7 @@ export default class OrderService {
       );
       throw new OrderNotExistException();
     }
-    if (userRole === "CUSTOMER" && order.buyerId !== userId) {
+    if (userRole === UserRole.CUSTOMER && order.buyerId !== userId) {
       Logger.dev(
         NAMESPACE,
         `getOrder(getOrderRequestDTO: ${getOrderRequestDTO}): unauthorized`
@@ -333,52 +328,56 @@ export default class OrderService {
 
   async modifyOrderStatus(
     patchOrderRequestDTO: PatchOrderRequestDTO
-  ): Promise<OrderDTO | AppError> {
+  ): Promise<OrderDTO> {
     const {
       orderId,
       user: { role: userRole, id: userId },
       newStatus,
     } = patchOrderRequestDTO;
 
+    if (userRole !== UserRole.ADMIN) throw new UnauthorizedException();
+
     const order = await this.orderRepository.findOrderById(orderId); // can throw
-    if (order === null) return new AppError(`No order with id ${id}`);
-
-    // TODO change mock variables
-    const isUser = true;
-    const isAdmin = false;
-
-    const actualStatus = order.status! as unknown as OrderStatus;
-    const actualStatusName = toStatusName(actualStatus);
-    const newStatusName = toStatusName(newStatus);
-    if (isUser) {
-      if (
-        actualStatus === OrderStatus.ISSUED &&
-        newStatus === OrderStatus.CANCELED
-      ) {
-        order.status = newStatusName;
-        // TODO: recharge user wallet and warehouse product availability
-        return this.orderRepository.save(order).then(toOrderDTO); // can throw
-      }
-    } else if (isAdmin) {
-      if (
-        (newStatus === OrderStatus.DELIVERING &&
-          actualStatus === OrderStatus.ISSUED) ||
-        (newStatus === OrderStatus.DELIVERED &&
-          actualStatus === OrderStatus.DELIVERING) ||
-        (newStatus === OrderStatus.FAILED &&
-          (actualStatus === OrderStatus.ISSUED ||
-            actualStatus === OrderStatus.DELIVERING))
-      ) {
-        if (newStatus === OrderStatus.FAILED) {
-          // TODO: recharge user wallet and warehouse product availability
-        }
-        order.status = toStatusName(newStatus);
-        return this.orderRepository.save(order).then(toOrderDTO); // can throw
-      }
+    if (order === null) {
+      Logger.dev(
+        NAMESPACE,
+        `modifyOrderStatus(patchOrderRequestDTO: ${patchOrderRequestDTO}): null`
+      );
+      throw new OrderNotExistException();
     }
-    return new AppError(
-      `The requested change of state is not allowed (${actualStatusName} -> ${newStatusName})`
-    );
+
+    const actualStatus: OrderStatus = toOrderStatus(order.status!)!;
+    if (
+      (actualStatus === OrderStatus.ISSUED &&
+        (newStatus === OrderStatus.DELIVERING ||
+          newStatus === OrderStatus.FAILED)) ||
+      (actualStatus === OrderStatus.DELIVERING &&
+        (newStatus === OrderStatus.DELIVERED ||
+          newStatus === OrderStatus.FAILED))
+    ) {
+      order.status = toOrderStatusName(newStatus);
+      const updatedOrder = await this.orderRepository.save(order);
+      const updatedOrderDTO = toOrderDTO(updatedOrder);
+      return this.producerProxy.producer
+        .produce({
+          topic:
+            newStatus === OrderStatus.FAILED
+              ? "order-cancelled"
+              : "order-updated",
+          messages: [{ key: orderId, value: JSON.stringify(updatedOrder) }],
+        })
+        .then(() => updatedOrderDTO)
+        .catch(() => {
+          // TODO and now?
+          return updatedOrderDTO;
+        });
+    } else {
+      Logger.dev(
+        NAMESPACE,
+        `modifyOrderStatus(patchOrderRequestDTO: ${patchOrderRequestDTO}): not allowed`
+      );
+      throw new NotAllowedException();
+    }
   }
 
   async deleteOrder(deleteRequestDTO: DeleteOrderRequestDTO): Promise<void> {
@@ -386,43 +385,49 @@ export default class OrderService {
       orderId,
       user: { role: userRole, id: userId },
     } = deleteRequestDTO;
-    if (userRole !== "ADMIN" && userRole !== "CUSTOMER")
-      throw new UnauthorizedException();
-    if (userRole === "CUSTOMER") {
-      const order = await this.orderRepository.findOrderById(orderId);
-      if (order === null) {
-        Logger.dev(
-          NAMESPACE,
-          `deleteOrder(deleteRequestDTO: ${deleteRequestDTO}): no order`
-        );
-        throw new OrderNotExistException();
-      }
-      if (order.buyerId !== userId) throw new UnauthorizedException();
-    }
-    const deletedOrder = await this.orderRepository.deleteOrderById(orderId);
-    if (deletedOrder === null) {
+
+    const order = await this.orderRepository.findOrderById(orderId);
+    if (order === null) {
       Logger.dev(
         NAMESPACE,
         `deleteOrder(deleteRequestDTO: ${deleteRequestDTO}): no order`
       );
       throw new OrderNotExistException();
-    } else {
+    }
+
+    const orderStatus: OrderStatus = toOrderStatus(order.status!)!;
+
+    if (userRole === UserRole.CUSTOMER && order.buyerId !== userId) {
       Logger.dev(
         NAMESPACE,
-        `deleteOrder(deleteRequestDTO: ${deleteRequestDTO}): deleted`
+        `deleteOrder(deleteRequestDTO: ${deleteRequestDTO}): unauthorized`
       );
-      return this.producerProxy.producer
-        .produce({
-          topic: "order-deleted",
-          messages: [{ key: orderId, value: JSON.stringify(deletedOrder) }], // TODO: right way?}
-        })
-        .then(() => {});
-      // .then(() => true)
-      // .catch(() => {
-      //   // TODO: and now?
-      //   return true;
-      // });
-      // TODO notify on order-deleted
+      throw new UnauthorizedException();
     }
+
+    if (orderStatus === OrderStatus.CANCELLED)
+      throw new OrderAlreadyCancelledException();
+
+    if (orderStatus !== OrderStatus.ISSUED) {
+      Logger.dev(
+        NAMESPACE,
+        `deleteOrder(deleteRequestDTO: ${deleteRequestDTO}): not allowed`
+      );
+      throw new NotAllowedException();
+    }
+
+    order.status = toOrderStatusName(OrderStatus.CANCELLED);
+    const cancelledOrder = await this.orderRepository.save(order);
+    Logger.dev(
+      NAMESPACE,
+      `deleteOrder(deleteRequestDTO: ${deleteRequestDTO}): ${cancelledOrder}`
+    );
+
+    return this.producerProxy.producer
+      .produce({
+        topic: "order-cancelled",
+        messages: [{ key: orderId, value: JSON.stringify(cancelledOrder) }], // TODO: right way?}
+      })
+      .then(() => {});
   }
 }

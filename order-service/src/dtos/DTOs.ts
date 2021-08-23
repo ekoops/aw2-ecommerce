@@ -2,9 +2,18 @@ import {OrderStatus, OrderStatusType} from "../db/OrderStatus";
 import {OrderItem} from "../models/OrderItem";
 import {Order} from "../models/Order";
 
+export enum UserRole {
+    CUSTOMER,
+    ADMIN
+}
+
+export const toUserRole = (key: string): UserRole | undefined => {
+    return UserRole[key as keyof typeof UserRole];
+}
+
 export interface User {
     id: string;
-    role: string;
+    role: UserRole;
 }
 
 export interface GetOrderRequestDTO {

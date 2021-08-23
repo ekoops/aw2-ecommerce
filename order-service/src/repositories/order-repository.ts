@@ -2,7 +2,7 @@ import { Order } from "../models/Order";
 import mongoose from "mongoose";
 import {
   OrderCreationFailedException,
-  OrderDeletionFailedException,
+  OrderDeletionFailedException, OrderSavingFailedException,
   OrdersRetrievingFailedException,
 } from "../exceptions/repositories/repositories-exceptions";
 import Logger from "../utils/logger";
@@ -72,7 +72,7 @@ class OrderRepository {
       return res;
     } catch (ex) {
       Logger.error(NAMESPACE, `save(order: ${order}): ${ex}`);
-      throw new OrderDeletionFailedException();
+      throw new OrderSavingFailedException();
     }
   }
 

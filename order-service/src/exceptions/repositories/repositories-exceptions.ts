@@ -3,6 +3,7 @@ export class RepositoryException {
 }
 export class OrdersRetrievingFailedException extends RepositoryException {}
 export class OrderCreationFailedException extends RepositoryException {}
+export class OrderSavingFailedException extends RepositoryException {}
 export class OrderDeletionFailedException extends RepositoryException {}
 
 export class OctCreationFailedException extends RepositoryException {}
