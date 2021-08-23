@@ -1,6 +1,6 @@
 import mongoose from "mongoose"
 import {OrderItem, orderItemSchema} from "./OrderItem";
-import {OrderStatus, OrderStatusType, toStatusName} from "../db/OrderStatus";
+import {OrderStatus, OrderStatusType, toOrderStatusName} from "../db/OrderStatus";
 
 export interface Order {
   _id?: string;
@@ -22,7 +22,7 @@ const orderSchema = new mongoose.Schema<Order>({
   status: {
     type: String,
     enum: ["ISSUED", "DELIVERING", "DELIVERED", "FAILED", "CANCELED"],
-    default: toStatusName(OrderStatus.ISSUED),
+    default: toOrderStatusName(OrderStatus.ISSUED),
     message: "{VALUE} is not supported",
   },
   items: {
