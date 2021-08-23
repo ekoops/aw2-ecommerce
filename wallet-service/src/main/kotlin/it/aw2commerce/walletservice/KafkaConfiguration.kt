@@ -36,7 +36,7 @@ class KafkaConfiguration {
         val configProps = mutableMapOf<String , Any>()
         configProps[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = "localhost:9092"
         configProps[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
-        configProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = JsonSerializer::class.java
+        configProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = JsonDeserializer::class.java
         configProps[JsonDeserializer.VALUE_DEFAULT_TYPE] = CreateWalletRequestDTO::class.java
         return DefaultKafkaConsumerFactory(configProps)
     }
