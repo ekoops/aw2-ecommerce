@@ -17,5 +17,7 @@ data class SignInUserRequestDTO(
         message = "A password must have at least one lowercase letter (a-z)," +
                 "one uppercase letter (A-Z), one number and a special character among @\$!%*?&"
     )
-    val password: String
+    val password: String,
+
+    val role: String
 )

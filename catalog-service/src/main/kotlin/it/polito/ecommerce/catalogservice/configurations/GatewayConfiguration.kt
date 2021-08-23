@@ -36,23 +36,58 @@ class GatewayConfiguration {
 
     @Bean
     fun routes(builder: RouteLocatorBuilder): RouteLocator {
-        return builder
-            .routes()
-            .route("catalog") {
-                    it -> it
+        return builder.routes()
+            .route("orders") { it -> it
                 //match incoming path
-                .path("/api/v1/auth/regi")
-                .filters{
+                .path("/api/v1/orders/**")
+                .filters{f ->
                     //manipulate outgoing path
-                        f ->
                     f.circuitBreaker{
                         //handle failure
-                            it-> it.setFallbackUri("forward:/api/v1/auth/defaultFallback/")
+                        it.setFallbackUri("forward:/api/v1/defaultFallback/")
                     }
-//                    f.rewritePath("/catalog","")
                 }
                 //switch endpoint to a load balanced one
-                .uri("lb://catalog")
+                .uri("lb://order-svc")
+            }
+            .route("wallets") { it -> it
+                //match incoming path
+                .path("/api/v1/wallets/**")
+                .filters{f ->
+                    //manipulate outgoing path
+                    f.circuitBreaker{
+                        //handle failure
+                        it.setFallbackUri("forward:/api/v1/defaultFallback/")
+                    }
+                }
+                //switch endpoint to a load balanced one
+                .uri("lb://wallet-svc")
+            }
+            .route("warehouses") { it -> it
+                //match incoming path
+                .path("/api/v1/warehouses/**")
+                .filters{f ->
+                    //manipulate outgoing path
+                    f.circuitBreaker{
+                        //handle failure
+                        it.setFallbackUri("forward:/api/v1/defaultFallback/")
+                    }
+                }
+                //switch endpoint to a load balanced one
+                .uri("lb://warehouses-svc")
+            }
+            .route("products") { it -> it
+                //match incoming path
+                .path("/api/v1/pruducts/**")
+                .filters{f ->
+                    //manipulate outgoing path
+                    f.circuitBreaker{
+                        //handle failure
+                        it.setFallbackUri("forward:/api/v1/defaultFallback/")
+                    }
+                }
+                //switch endpoint to a load balanced one
+                .uri("lb://warehouses-svc")
             }
             .build()
     }
@@ -75,6 +110,4 @@ class GatewayConfiguration {
         }
         }
     }
-
-
 }
