@@ -10,7 +10,7 @@ create table if not exists `catalog-db`.`user`(
 
 create table if not exists `catalog-db`.`email_verification_token`(
     id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    expiration_date DATE NOT NULL,
+    expiration_date DATETIME NOT NULL,
     token VARCHAR (255) not null,
     constraint fk_email_verification_token_user FOREIGN KEY (id) references user(id)
     on delete cascade
