@@ -18,7 +18,7 @@ class GatewayController {
 
     @GetMapping("/defaultFallback")
     fun handleGetFallback(): Mono<ServerResponse> {
-        return ServerResponse.ok().body(Mono.empty(), String.javaClass)
+        return ServerResponse.ok().body(Mono.empty(), String::class.java)
     }
 
     @PostMapping("/defaultFallback")

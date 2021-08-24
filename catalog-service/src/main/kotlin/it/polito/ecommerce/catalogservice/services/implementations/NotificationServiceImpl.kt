@@ -29,9 +29,7 @@ class NotificationServiceImpl(
     }
 
     override suspend fun getEmailVerificationToken(token: String): EmailVerificationTokenDTO {
-        val emailVerificationToken = emailVerificationTokenRepository.findByToken(
-            token = token
-        )
+        val emailVerificationToken = emailVerificationTokenRepository.findByToken(token)
         return emailVerificationToken?.toEmailVerificationTokenDTO()
             ?: throw EmailVerificationTokenNotFoundException(token = token)
     }

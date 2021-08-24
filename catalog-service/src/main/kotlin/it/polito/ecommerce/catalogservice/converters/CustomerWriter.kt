@@ -13,7 +13,7 @@ class CustomerWriter: Converter<Customer, OutboundRow> {
     override fun convert(c: Customer): OutboundRow {
         if (c.user.id == null || (c.id != null && c.id != c.user.id)) {
             c.user.id ?: throw InconsistentUserException("The user id can not be null")
-            throw InconsistentCustomerException ("The user id has to be equal to the customer one")
+            throw InconsistentCustomerException ("The user id has to be the same as the customer one")
         }
         return OutboundRow().apply {
             put("id", Parameter.from(c.user.id))

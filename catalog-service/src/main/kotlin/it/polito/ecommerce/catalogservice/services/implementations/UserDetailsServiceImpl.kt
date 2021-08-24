@@ -35,9 +35,6 @@ import java.time.LocalDateTime
 @Service
 @Transactional
 class UserDetailsServiceImpl(
-    @Value("\${server.host}") private val host: String,
-    @Value("\${server.port}") private val port: Int,
-    @Value("\${spring.webflux.base-path}") private val contextPath: String,
     private val userRepository: UserRepository,
     private val coroutineUserRepository: CoroutineUserRepository,
     private val customerRepository: CustomerRepository,
@@ -80,7 +77,7 @@ class UserDetailsServiceImpl(
             )
             createdUser = coroutineUserRepository.save(user)
         } catch (ex: Exception) {
-            println(ex.message);
+            println(ex.message)
             throw InconsistentUserException("Error in saving the user")
         }
         val createdCustomer: Customer
@@ -94,7 +91,7 @@ class UserDetailsServiceImpl(
             )
             createdCustomer = customerRepository.save(customer)
         } catch (ex: Exception) {
-            println(ex.message);
+            println(ex.message)
             coroutineUserRepository.delete(createdUser)
             throw InconsistentCustomerException("Error in saving the customer")
         }
@@ -150,79 +147,79 @@ suspend fun verifyUser(token: String) {
     notificationService.removeEmailVerificationToken(token)
 }
 
-suspend fun enableUser(id: Long): Boolean {
-    val enabledUser = getUserById(id).enableUser() ?: return false
-    try {
-        coroutineUserRepository.save(enabledUser)
-        return true
-    } catch (ex: Exception) {
-        throw InconsistentUserException("Error in enabling the user")
-    }
-
-}
-
-suspend fun disableUser(id: Long): Boolean {
-    val disabledUser = this.getUserById(id).disableUser() ?: return false
-    try {
-        coroutineUserRepository.save(disabledUser)
-        return true
-    } catch (ex: Exception) {
-        throw InconsistentUserException("Error in disabling the user")
-    }
-}
-
-
-suspend fun addUserRole(username: String, role: String): Boolean {
-    try {
-        val rolename = Rolename.valueOf(role)
-        val newUser = this.getUserByUsername(username).addRolename(rolename) ?: return false
+    suspend fun enableUser(id: Long): Boolean {
+        val enabledUser = getUserById(id).enableUser() ?: return false
         try {
-            coroutineUserRepository.save(newUser)
+            coroutineUserRepository.save(enabledUser)
             return true
         } catch (ex: Exception) {
-            throw InconsistentUserException("Error in adding role to the user")
+            throw InconsistentUserException("Error in enabling the user")
         }
 
-    } catch (ex: IllegalArgumentException) {
-        throw NoSuchRoleException(role = role)
     }
-}
 
-suspend fun removeUserRole(username: String, role: String): Boolean {
-    try {
-        val rolename = Rolename.valueOf(role)
-        val newUser = this.getUserByUsername(username).removeRolename(rolename) ?: return false
+    suspend fun disableUser(id: Long): Boolean {
+        val disabledUser = this.getUserById(id).disableUser() ?: return false
         try {
-            coroutineUserRepository.save(newUser)
+            coroutineUserRepository.save(disabledUser)
             return true
         } catch (ex: Exception) {
-            throw InconsistentUserException("Error in removing role to the user")
+            throw InconsistentUserException("Error in disabling the user")
         }
-
-    } catch (ex: IllegalArgumentException) {
-        throw NoSuchRoleException(role = role)
     }
-}
 
-suspend fun lockUser(id: Long): Boolean {
-    val lockedUser = this.getUserById(id).lockUser() ?: throw ActionNotPermittedException("The user is already locked")
-    try {
-        coroutineUserRepository.save(lockedUser)
-        return true
-    } catch (ex: Exception) {
-        throw InconsistentUserException("Error in locking the user")
-    }
-}
 
-suspend fun unlockUser(id: Long): Boolean {
-    val unlockedUser =
-        this.getUserById(id).unlockUser() ?: throw ActionNotPermittedException("The user is already unlocked")
-    try {
-        coroutineUserRepository.save(unlockedUser)
-        return true
-    } catch (ex: Exception) {
-        throw InconsistentUserException("Error in unlocking the user")
+    suspend fun addUserRole(username: String, role: String): Boolean {
+        try {
+            val rolename = Rolename.valueOf(role)
+            val newUser = this.getUserByUsername(username).addRolename(rolename) ?: return false
+            try {
+                coroutineUserRepository.save(newUser)
+                return true
+            } catch (ex: Exception) {
+                throw InconsistentUserException("Error in adding role to the user")
+            }
+
+        } catch (ex: IllegalArgumentException) {
+            throw NoSuchRoleException(role = role)
+        }
     }
-}
+
+    suspend fun removeUserRole(username: String, role: String): Boolean {
+        try {
+            val rolename = Rolename.valueOf(role)
+            val newUser = this.getUserByUsername(username).removeRolename(rolename) ?: return false
+            try {
+                coroutineUserRepository.save(newUser)
+                return true
+            } catch (ex: Exception) {
+                throw InconsistentUserException("Error in removing role to the user")
+            }
+
+        } catch (ex: IllegalArgumentException) {
+            throw NoSuchRoleException(role = role)
+        }
+    }
+
+    suspend fun lockUser(id: Long): Boolean {
+        val lockedUser = this.getUserById(id).lockUser() ?: throw ActionNotPermittedException("The user is already locked")
+        try {
+            coroutineUserRepository.save(lockedUser)
+            return true
+        } catch (ex: Exception) {
+            throw InconsistentUserException("Error in locking the user")
+        }
+    }
+
+    suspend fun unlockUser(id: Long): Boolean {
+        val unlockedUser =
+            this.getUserById(id).unlockUser() ?: throw ActionNotPermittedException("The user is already unlocked")
+        try {
+            coroutineUserRepository.save(unlockedUser)
+            return true
+        } catch (ex: Exception) {
+            throw InconsistentUserException("Error in unlocking the user")
+        }
+    }
 }
 

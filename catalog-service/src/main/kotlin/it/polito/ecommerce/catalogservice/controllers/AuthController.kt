@@ -34,7 +34,7 @@ class AuthController(
 
     @PostMapping("/signin")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun signin(
+    suspend fun signin(
         @Valid @RequestBody signInUserRequestDTO: SignInUserRequestDTO,
         response: HttpServerResponse
     ) = authenticationManager.authenticate(

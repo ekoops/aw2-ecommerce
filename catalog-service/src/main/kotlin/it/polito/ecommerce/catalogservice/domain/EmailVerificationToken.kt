@@ -23,6 +23,7 @@ fun EmailVerificationToken.toEmailVerificationTokenDTO(): EmailVerificationToken
     val id = this.id ?: throw InconsistentEmailVerificationTokenException(
         "Email Verification Token id is undefined"
     )
+    println("DENTRO IL toEmailVerificationTokenDTO:  $this")
     return EmailVerificationTokenDTO(
         id = id,
         expirationDate = this.expirationDate,
