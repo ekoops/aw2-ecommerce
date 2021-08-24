@@ -27,6 +27,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
 //    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.hibernate.validator:hibernate-validator")
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
     implementation("io.jsonwebtoken:jjwt-api:0.11.2")
