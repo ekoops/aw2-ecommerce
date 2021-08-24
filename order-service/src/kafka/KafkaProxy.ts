@@ -6,13 +6,14 @@ import {
   RecordMetadata,
   ITopicConfig,
   KafkaConfig,
+  KafkaMessage,
 } from "kafkajs";
-import config from "../config/config";
 import {
   CannotCreateAdminException,
   CannotCreateConsumerException,
   CannotCreateProducerException,
   CannotCreateTopicException,
+  CannotProduceException,
   CannotRetrieveTopicListException,
 } from "../exceptions/kafka/kafka-exceptions";
 import Logger from "../utils/logger";
@@ -28,7 +29,7 @@ export interface Producer {
 
 export interface Consumer {
   consume(
-    callback: (payload: EachMessagePayload) => Promise<void>
+    callback: (key: string, value: string | undefined) => Promise<void>
   ): Promise<void>;
 }
 
@@ -106,13 +107,20 @@ export default class KafkaProxy {
       await producer.connect();
       Logger.dev(NAMESPACE, "cluster producer connection established");
       return {
-        produce: async (producerRecord: ProducerRecord) => {
-          const result = await producer.send(producerRecord);
-          Logger.dev(
-            NAMESPACE,
-            `message produced: ${JSON.stringify(result, null, " ")}`
-          );
-          return result;
+        produce: async (
+          producerRecord: ProducerRecord
+        ): Promise<RecordMetadata[]> => {
+          try {
+            const result = await producer.send(producerRecord);
+            Logger.dev(
+              NAMESPACE,
+              `produced: ${JSON.stringify(producerRecord)}`
+            );
+            return result;
+          } catch (ex) {
+            Logger.error(NAMESPACE, `failed to produce ${producerRecord}`);
+            throw new CannotProduceException(ex.toString());
+          }
         },
       };
     } catch (ex) {
@@ -137,25 +145,35 @@ export default class KafkaProxy {
     });
 
     try {
+      Logger.dev(
+        NAMESPACE,
+        `creating consumer... trying to subscript to the topics ${JSON.stringify(
+          topics
+        )}`
+      );
       await Promise.all(subscriptionsPromises);
-
-      if (config.environment === "development") {
-        console.log("Kafka's consumer connected to cluster");
-      }
 
       Logger.dev(
         NAMESPACE,
-        `trying to established a cluster consumer connection on group ${groupId}`
+        `topics subscription done... trying to established a cluster consumer connection on group ${groupId}`
       );
       await consumer.connect();
+
       Logger.dev(
         NAMESPACE,
         `cluster consumer connection established on group ${groupId}`
       );
       return {
-        consume: (callback: (payload: EachMessagePayload) => Promise<void>) => {
+        consume: (
+          callback: (key: string, value: string | undefined) => Promise<void>
+        ) => {
           return consumer.run({
-            eachMessage: callback,
+            eachMessage: async (payload) => {
+              const key = payload.message.key.toString();
+              const value = payload.message.value?.toString();
+              Logger.dev(NAMESPACE, `consumed: {key: ${key}, value: ${value}}`);
+              await callback(key, value);
+            },
           });
         },
       };

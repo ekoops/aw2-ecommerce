@@ -23,18 +23,19 @@ import {
 } from "../exceptions/repositories/repositories-exceptions";
 import ProducerProxy from "../kafka/ProducerProxy";
 import { generateUUID } from "../utils/utils";
-import RequestStore from "../kafka/RequestStore";
+import RequestStore, {FailurePayload} from "../kafka/RequestStore";
 import OctRepository from "../repositories/oct-repository";
 import {
   ApprovationDTO,
   DeleteOrderRequestDTO,
   GetOrderRequestDTO,
+  GetOrdersRequestDTO,
   OrderDTO,
-  PatchOrderRequestDTO,
+  ModifyOrderStatusRequestDTO,
   toOrderDTO,
   toOrderItem,
   User,
-  UserRole,
+  UserRole, AddOrderRequestDTO,
 } from "../dtos/DTOs";
 import Logger from "../utils/logger";
 import {
@@ -68,8 +69,10 @@ export default class OrderService {
     );
   }
 
-  async getOrders(user: User): Promise<OrderDTO[]> {
-    const { role: userRole, id: userId } = user;
+  getOrders = async (
+    getOrdersRequestDTO: GetOrdersRequestDTO
+  ): Promise<OrderDTO[]> => {
+    const { role: userRole, id: userId } = getOrdersRequestDTO;
 
     const buyerId = userRole === UserRole.CUSTOMER ? userId : undefined;
     const orders = await this.orderRepository.findOrders(buyerId); // can throw
@@ -77,9 +80,9 @@ export default class OrderService {
     Logger.dev(NAMESPACE, `getOrders(): ${ordersDTO}`);
 
     return ordersDTO;
-  }
+  };
 
-  async getOrder(getOrderRequestDTO: GetOrderRequestDTO): Promise<OrderDTO> {
+  getOrder = async (getOrderRequestDTO: GetOrderRequestDTO): Promise<OrderDTO> => {
     const {
       orderId,
       user: { role: userRole, id: userId },
@@ -105,22 +108,20 @@ export default class OrderService {
       `getOrder(getOrderRequestDTO: ${getOrderRequestDTO}): ${orderDTO}`
     );
     return orderDTO;
-  }
+  };
 
-  rollbackOrderCreation(key: string) {
-    return this.producerProxy.producer
+  rollbackOrderCreation = (key: string) => this.producerProxy.producer
       .produce({
         topic: "order-cancelled",
-        messages: [{ key: key, value: JSON.stringify(key) }], // TODO: right way?}
+        messages: [{key: key, value: JSON.stringify(key)}], // TODO: right way?}
       })
       .then(() => new AppError("Order creation failed"))
       .catch(() => {
         // TODO: and now?
         return new AppError("Error creation failed");
       });
-  }
 
-  async createOrder(message: { key: string; value: OrderDTO }) {
+  createOrder = async (message: { key: string; value: OrderDTO }) => {
     const { key, value: orderDTO } = message;
 
     const order: Order = {
@@ -147,9 +148,9 @@ export default class OrderService {
         // TODO: and now?
         return new AppError("Error");
       });
-  }
+  };
 
-  async handleApproveOrderFailure(err: KafkaException) {
+  handleApproveOrderFailure = async (err: FailurePayload) => {
     if (err instanceof CannotProduceException) {
       // request already removed, just return the error to the client
       return new AppError("Order creation failed");
@@ -157,10 +158,10 @@ export default class OrderService {
       // request handlers are not present: no need to remove them
       return new AppError("Order creation failed");
     } else if (err instanceof NoValueException) {
-      requestStore.removeRequestHandlers(err.requestId!);
+      requestStore.remove(err.requestId!);
       return new AppError("Order creation failed");
     } else if (err instanceof ValueParsingFailedException) {
-      requestStore.removeRequestHandlers(err.requestId!);
+      requestStore.remove(err.requestId!);
       return new AppError("Order creation failed");
     } else if (
       err instanceof WalletOrderCreationFailedException ||
@@ -168,18 +169,18 @@ export default class OrderService {
     ) {
       // technically, only in this case and in the CannotProduceException case there is
       // the needing to return AppError...
-      requestStore.removeRequestHandlers(err.requestId!);
+      requestStore.remove(err.requestId!);
       return this.rollbackOrderCreation(err.requestId!);
     } else {
       return new AppError(err.message);
     }
-  }
+  };
 
   //TODO adjust return type
-  async handleOct(message: {
+  handleOct = async (message: {
     key: string;
     value: ApprovationDTO;
-  }): Promise<any> {
+  }): Promise<any> => {
     const {
       key: transactionId,
       value: { approver, orderDTO },
@@ -214,7 +215,7 @@ export default class OrderService {
       } else {
         return new Promise<{ key: string; value: ApprovationDTO }>(
           (resolve, reject) => {
-            requestStore.setRequestHandlers(transactionId, resolve, reject);
+            requestStore.set(transactionId, resolve, reject);
           }
         )
           .then(this.handleOct)
@@ -233,16 +234,16 @@ export default class OrderService {
       }
       return new AppError("Order creation failed");
     }
-  }
+  };
 
-  async approveOrder(message: { key: string; value: OrderDTO }) {
+  approveOrder = async (message: { key: string; value: OrderDTO }) => {
     const { key, value: orderDTO } = message;
 
     try {
       await this.octRepository.createOct(key);
     } catch (ex) {
       // if (ex instanceof OctCreationFailedException) {
-      requestStore.removeRequestHandlers(key);
+      requestStore.remove(key);
       return new AppError("Order creation failed");
       // }
     }
@@ -255,9 +256,9 @@ export default class OrderService {
       )
       .then(this.handleOct)
       .catch(this.handleApproveOrderFailure);
-  }
+  };
 
-  async handleRequestBudgetAvailabilityFailure(err: KafkaException) {
+  handleRequestBudgetAvailabilityFailure = async (err: FailurePayload) => {
     if (err instanceof CannotProduceException) {
       // request already removed, just return the error to the client
       return new AppError("Order creation failed");
@@ -265,21 +266,21 @@ export default class OrderService {
       // request handlers are not present: no need to remove them
       return new AppError("Order creation failed");
     } else if (err instanceof NoValueException) {
-      requestStore.removeRequestHandlers(err.requestId!);
+      requestStore.remove(err.requestId!);
       return new AppError("Order creation failed");
     } else if (err instanceof ValueParsingFailedException) {
-      requestStore.removeRequestHandlers(err.requestId!);
+      requestStore.remove(err.requestId!);
       return new AppError("Order creation failed");
     } else if (err instanceof NotEnoughBudgetException) {
       // technically, only in this case and in the CannotProduceException case there is
       // the needing to return AppError...
-      requestStore.removeRequestHandlers(err.requestId!);
+      requestStore.remove(err.requestId!);
       return new AppError("Order creation failed: insufficient budget");
     } else {
       return new AppError(err.message);
     }
-  }
-  async requestBudgetAvailability(message: { key: string; value: OrderDTO }) {
+  };
+  requestBudgetAvailability = async (message: { key: string; value: OrderDTO }) => {
     const { key, value: orderDTO } = message;
     return this.producerProxy
       .produceAndWaitForResponse<OrderDTO>(
@@ -289,9 +290,10 @@ export default class OrderService {
       )
       .then(this.approveOrder)
       .catch(this.handleRequestBudgetAvailabilityFailure);
-  }
+  };
 
-  async handleRequestOrderCreationFailure(err: KafkaException) {
+  handleRequestOrderCreationFailure = async (err: FailurePayload) => {
+    Logger.dev(NAMESPACE, `handleRequestOrderCreationFailure(err: ${err.constructor.name})`);
     if (err instanceof CannotProduceException) {
       // request already removed, just return the error to the client
       return new AppError("Order creation failed");
@@ -299,41 +301,41 @@ export default class OrderService {
       // request handlers are not present: no need to remove them
       return new AppError("Order creation failed");
     } else if (err instanceof NoValueException) {
-      requestStore.removeRequestHandlers(err.requestId!);
+      requestStore.remove(err.requestId!);
       return new AppError("Order creation failed");
     } else if (err instanceof ValueParsingFailedException) {
-      requestStore.removeRequestHandlers(err.requestId!);
+      requestStore.remove(err.requestId!);
       return new AppError("Order creation failed");
     } else if (err instanceof ItemsNotAvailableException) {
       // technically, only in this case and in the CannotProduceException case there is
       // the needing to return AppError...
-      requestStore.removeRequestHandlers(err.requestId!);
+      requestStore.remove(err.requestId!);
       return new AppError("Order creation failed: items not available");
     } else {
       return new AppError("Order creation failed");
     }
-  }
+  };
 
-  async addOrder(orderDTO: OrderDTO) {
-    let uuid: string = generateUUID();
+  addOrder = async (addOrderRequestDTO: AddOrderRequestDTO) => {
+    const uuid: string = generateUUID();
     return this.producerProxy
       .produceAndWaitForResponse<OrderDTO>(
         "order-creation-requested",
-        orderDTO,
+        addOrderRequestDTO,
         uuid
       )
       .then(this.requestBudgetAvailability)
       .catch(this.handleRequestOrderCreationFailure);
-  }
+  };
 
-  async modifyOrderStatus(
-    patchOrderRequestDTO: PatchOrderRequestDTO
-  ): Promise<OrderDTO> {
+  modifyOrderStatus = async (
+    modifyOrderStatusRequestDTO: ModifyOrderStatusRequestDTO
+  ): Promise<OrderDTO> => {
     const {
       orderId,
       user: { role: userRole, id: userId },
       newStatus,
-    } = patchOrderRequestDTO;
+    } = modifyOrderStatusRequestDTO;
 
     if (userRole !== UserRole.ADMIN) throw new UnauthorizedException();
 
@@ -341,7 +343,7 @@ export default class OrderService {
     if (order === null) {
       Logger.dev(
         NAMESPACE,
-        `modifyOrderStatus(patchOrderRequestDTO: ${patchOrderRequestDTO}): null`
+        `modifyOrderStatus(patchOrderRequestDTO: ${modifyOrderStatusRequestDTO}): null`
       );
       throw new OrderNotExistException();
     }
@@ -374,23 +376,25 @@ export default class OrderService {
     } else {
       Logger.dev(
         NAMESPACE,
-        `modifyOrderStatus(patchOrderRequestDTO: ${patchOrderRequestDTO}): not allowed`
+        `modifyOrderStatus(patchOrderRequestDTO: ${modifyOrderStatusRequestDTO}): not allowed`
       );
       throw new NotAllowedException();
     }
-  }
+  };
 
-  async deleteOrder(deleteRequestDTO: DeleteOrderRequestDTO): Promise<void> {
+  deleteOrder = async (
+    deleteOrderRequestDTO: DeleteOrderRequestDTO
+  ): Promise<void> => {
     const {
       orderId,
       user: { role: userRole, id: userId },
-    } = deleteRequestDTO;
+    } = deleteOrderRequestDTO;
 
     const order = await this.orderRepository.findOrderById(orderId);
     if (order === null) {
       Logger.dev(
         NAMESPACE,
-        `deleteOrder(deleteRequestDTO: ${deleteRequestDTO}): no order`
+        `deleteOrder(deleteRequestDTO: ${deleteOrderRequestDTO}): no order`
       );
       throw new OrderNotExistException();
     }
@@ -400,7 +404,7 @@ export default class OrderService {
     if (userRole === UserRole.CUSTOMER && order.buyerId !== userId) {
       Logger.dev(
         NAMESPACE,
-        `deleteOrder(deleteRequestDTO: ${deleteRequestDTO}): unauthorized`
+        `deleteOrder(deleteRequestDTO: ${deleteOrderRequestDTO}): unauthorized`
       );
       throw new UnauthorizedException();
     }
@@ -411,7 +415,7 @@ export default class OrderService {
     if (orderStatus !== OrderStatus.ISSUED) {
       Logger.dev(
         NAMESPACE,
-        `deleteOrder(deleteRequestDTO: ${deleteRequestDTO}): not allowed`
+        `deleteOrder(deleteRequestDTO: ${deleteOrderRequestDTO}): not allowed`
       );
       throw new NotAllowedException();
     }
@@ -420,7 +424,7 @@ export default class OrderService {
     const cancelledOrder = await this.orderRepository.save(order);
     Logger.dev(
       NAMESPACE,
-      `deleteOrder(deleteRequestDTO: ${deleteRequestDTO}): ${cancelledOrder}`
+      `deleteOrder(deleteRequestDTO: ${deleteOrderRequestDTO}): ${cancelledOrder}`
     );
 
     return this.producerProxy.producer
@@ -429,5 +433,5 @@ export default class OrderService {
         messages: [{ key: orderId, value: JSON.stringify(cancelledOrder) }], // TODO: right way?}
       })
       .then(() => {});
-  }
+  };
 }

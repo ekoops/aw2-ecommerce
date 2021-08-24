@@ -14,7 +14,7 @@ export default class OctRepository {
     return this._instance || (this._instance = new this(OctModel));
   }
 
-  async createOct(id: string) {
+  createOct = async (id: string) => {
     const octModel = new this.OctModel({_id: id});
     try {
       const concreteOct = await octModel.save();
@@ -23,9 +23,9 @@ export default class OctRepository {
     } catch (ex) {
       throw new OctCreationFailedException();
     }
-  }
+  };
 
-  async findOctById(id: string): Promise<Oct | null> {
+  findOctById = async (id: string): Promise<Oct | null> => {
     try {
       const oct = await this.OctModel.findById(id);
       console.log(`FIND BY ID(${id}) - `, oct);
@@ -34,19 +34,19 @@ export default class OctRepository {
     catch (ex) {
       throw new OctRetrievingFailedException();
     }
-  }
+  };
 
-   save(oct: Oct): Promise<Oct> {
+   save = (oct: Oct): Promise<Oct> => {
       // @ts-ignore
       return oct.save().catch(() => {throw new OctSavingFailedException()});
-  }
+  };
 
-  async deleteOctById(id: string): Promise<boolean> {
+  deleteOctById = async (id: string): Promise<boolean> => {
     // const deleteOrder = promisify<FilterQuery<Order>, any>(OrderModel.deleteOne.bind(OrderModel));
     const res = await this.OctModel.deleteOne({ _id: id });
     console.log("DELETE - ", res);
     return res.deletedCount === 1;
-  }
+  };
 }
 
 OctRepository.getInstance(OctModel);

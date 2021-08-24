@@ -8,7 +8,7 @@ import {
 } from "express-validator";
 import mongoose from "mongoose";
 import { NextFunction, Request, RequestHandler, Response } from "express";
-import { OrderStatus } from "../db/OrderStatus";
+import { OrderStatus, toOrderStatus } from "../db/OrderStatus";
 
 interface Validators {
   [key: string]: ValidationChain[];
@@ -45,23 +45,27 @@ const validators: Validators = {
   getOrders: [],
   getOrder: [validateId(param("id"))],
   postOrder: [
-    validateId(body("buyerId")),
-    body("products")
+    // validateId(body("buyerId")),
+    body("items")
       .isArray({ min: 1 })
-      .withMessage("A valid products list must be specified"),
-    validateId(body("products.*.id")),
-    body("products.*.amount")
+      .withMessage("A valid items list must be specified"),
+    validateId(body("items.*.productId")),
+    body("items.*.amount")
       .isInt({ min: 1 })
-      .withMessage("The products amount must be greater than 0"),
+      .withMessage("The items amount must be greater than 0"),
   ],
   patchOrder: [
     validateId(param("id")),
-    body("status").custom((status) =>
-        // TODO optimize check
-      Object.keys(OrderStatus)
-        .filter((s) => isNaN(+s))
-        .includes(status)
-    ),
+    body("status")
+      .isString()
+      .withMessage("The new status must be a valid one")
+      .bail()
+      .custom((status) => {
+        // try to see if the string status contains a number...
+        if (!isNaN(status) || toOrderStatus(status)) {
+          throw new Error("The new status must be a valid one");
+        }
+      }),
   ],
   deleteOrder: [validateId(param("id"))],
 };

@@ -57,7 +57,7 @@ const run = async () => {
   const { rootPath } = config.server.api;
   const webServerPort = config.server.port;
 
-  const app = await getApp(rootPath, orderController);
+  const app = await getApp(rootPath, orderController, producerProxy);
   app.listen(webServerPort, async () => {
     Logger.log(NAMESPACE, `Server is listening on port ${webServerPort}`);
     // try {
