@@ -19,15 +19,13 @@ export default class ConsumerProxy {
     exceptionBuilder: ExceptionBuilder
   ) {
     return this.consumer
-      .consume(async ({ message }) => {
-        const key = message.key.toString();
-        if (key === undefined) return;
+      .consume(async ( key: string, value: string | undefined ) => {
+        if (key === "") return; // TODO right control?
 
-        const handlers = requestStore.getRequestHandlers(key);
+        const handlers = requestStore.get(key);
         if (handlers === undefined) return failureHandler(new NoHandlersException());
         const [resolve, reject] = handlers;
 
-        const value = message.value?.toString();
         if (value === undefined) return reject(new NoValueException(key));
 
         let obj;
@@ -39,9 +37,10 @@ export default class ConsumerProxy {
         if ("failure" in obj) {
             return reject(exceptionBuilder(key, obj.failure));
         }
-        if ("ok" in obj) {
+        else if ("ok" in obj) {
           return resolve({ key, value: obj.ok as SuccessResponseType });
         }
+        // else reject() // TODO
       });
   }
 }

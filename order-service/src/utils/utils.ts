@@ -8,7 +8,7 @@ export const generateUUID = (isUuidForRequest: boolean = true): string => {
   let uuid: string;
   do {
     uuid = uuidv4();
-  } while (requestStore.getRequestHandlers(uuid));
+  } while (requestStore.get(uuid));
   return uuid;
 };
 

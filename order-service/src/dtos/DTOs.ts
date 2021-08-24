@@ -10,26 +10,6 @@ export enum UserRole {
 export const toUserRole = (key: string): UserRole | undefined => {
     return UserRole[key as keyof typeof UserRole];
 }
-
-export interface User {
-    id: string;
-    role: UserRole;
-}
-
-export interface GetOrderRequestDTO {
-    orderId: string;
-    user: User;
-}
-export interface PatchOrderRequestDTO {
-    orderId: string;
-    user: User;
-    newStatus: OrderStatus
-}
-export interface DeleteOrderRequestDTO {
-    orderId: string;
-    user: User;
-}
-
 export interface OrderItemDTO {
     id?: string;
     productId: string;
@@ -77,6 +57,31 @@ export const toOrderItem = (orderItemDTO: OrderItemDTO): OrderItem => {
         amount: orderItemDTO.amount,
         perItemPrice: orderItemDTO.perItemPrice!
     }
+}
+
+
+export interface User {
+    id: string;
+    role: UserRole;
+}
+
+export type GetOrdersRequestDTO = User;
+
+export interface GetOrderRequestDTO {
+    orderId: string;
+    user: User;
+}
+
+export type AddOrderRequestDTO = OrderDTO;
+
+export interface ModifyOrderStatusRequestDTO {
+    orderId: string;
+    user: User;
+    newStatus: OrderStatus
+}
+export interface DeleteOrderRequestDTO {
+    orderId: string;
+    user: User;
 }
 
 

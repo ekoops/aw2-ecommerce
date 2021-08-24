@@ -1,7 +1,7 @@
 import {ITopicConfig} from "kafkajs";
 import {Admin} from "./KafkaProxy";
 
-const initTopics = async (admin: Admin) =>  {
+const initTopics = async (admin: Admin): Promise<void> =>  {
     const actualTopicList = await admin.listTopics();
     const desiredTopicList = [
         "order-creation-requested",
@@ -18,7 +18,9 @@ const initTopics = async (admin: Admin) =>  {
         .filter(topicName => !actualTopicList.includes(topicName))
         .map(topicName => ({topic: topicName, numPartitions: 1}));
 
-    return admin.createTopics(topicsToCreateList);
+    if (topicsToCreateList.length !== 0) {
+        return admin.createTopics(topicsToCreateList);
+    }
 };
 
 export default initTopics;

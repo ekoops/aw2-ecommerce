@@ -18,7 +18,7 @@ class OrderRepository {
     return this._instance || (this._instance = new this(OrderModel));
   }
 
-  async findOrderById(id: string): Promise<Order | null> {
+  findOrderById = async (id: string): Promise<Order | null> => {
     try {
       const order = await this.OrderModel.findById(id);
       Logger.dev(NAMESPACE, `findOrderById(id: ${id}): ${order}`);
@@ -27,9 +27,9 @@ class OrderRepository {
       Logger.error(NAMESPACE, `findOrderById(id: ${id}): ${ex}`);
       throw new OrdersRetrievingFailedException();
     }
-  }
+  };
 
-  async findOrders(buyerId?: string): Promise<Order[]> {
+  findOrders = async (buyerId?: string): Promise<Order[]> => {
     try {
       const orders: Order[] = await (buyerId
         ? this.OrderModel.find({ buyerId })
@@ -40,19 +40,9 @@ class OrderRepository {
       Logger.error(NAMESPACE, `findAllOrders(): ${ex}`);
       throw new OrdersRetrievingFailedException();
     }
-  }
-  async findUserOrders(userId: string) {
-    try {
-      const orders: Order[] = await this.OrderModel.find({ buyerId: userId });
-      Logger.dev(NAMESPACE, `findAllOrders(): ${orders}`);
-      return orders;
-    } catch (ex) {
-      Logger.error(NAMESPACE, `findAllOrders(): ${ex}`);
-      throw new OrdersRetrievingFailedException();
-    }
-  }
+  };
 
-  async createOrder(order: Order): Promise<Order> {
+  createOrder = async (order: Order): Promise<Order> => {
     const orderModel = new this.OrderModel(order);
     try {
       const concreteOrder = await orderModel.save();
@@ -62,9 +52,9 @@ class OrderRepository {
       Logger.error(NAMESPACE, `createOrder(order: ${order}): ${ex}`);
       throw new OrderCreationFailedException();
     }
-  }
+  };
 
-  async save(order: Order): Promise<Order> {
+  save = async (order: Order): Promise<Order> => {
     try {
       // @ts-ignore
       const res = await order.save();
@@ -74,9 +64,9 @@ class OrderRepository {
       Logger.error(NAMESPACE, `save(order: ${order}): ${ex}`);
       throw new OrderSavingFailedException();
     }
-  }
+  };
 
-  async deleteOrderById(id: string): Promise<Order | null> {
+  deleteOrderById = async (id: string): Promise<Order | null> => {
     try {
       const deletedOrder = await this.OrderModel.findOneAndDelete({_id: id})
       Logger.dev(NAMESPACE, `deleteOrderById(id: ${id}): ${deletedOrder}`);
@@ -85,6 +75,6 @@ class OrderRepository {
       Logger.error(NAMESPACE, `deleteOrderById(id: ${id}): ${ex}`);
       throw new OrderDeletionFailedException();
     }
-  }
+  };
 }
 export default OrderRepository;
