@@ -27,7 +27,9 @@ class DBConfig(
         return ConnectionFactories.get(dbUrl)
     }
 
-    //    @Bean(name=["connFactory"])
+    //TODO: perchè questo pezzo è commentato?
+
+//        @Bean(name=["connFactory"])
 //    override fun connectionFactory(): ConnectionFactory {
 //        return ConnectionFactories.get(
 //            ConnectionFactoryOptions.builder().apply{
@@ -42,7 +44,7 @@ class DBConfig(
 //        )
 //    }
 //
-    //in questo cso devo per forza creare un db, non posso crearlo se non esiste
+    //in questo caso devo per forza creare un db, non posso crearlo se non esiste
     //ResourceDatabasePopulator cerca "schema.sql" che io definisco e lo lancia all'inzio
     @Bean
     fun initializer(connectionFactory: ConnectionFactory): ConnectionFactoryInitializer {

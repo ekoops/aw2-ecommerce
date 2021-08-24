@@ -102,7 +102,7 @@ class GatewayConfiguration {
                 TimeLimiterConfig
                             .custom()
                             .timeoutDuration(
-                                //if after 4 seconds the application brakes
+                                //if after 4 seconds the application does not respond, it brakes
                                 Duration.ofSeconds(4)
                             ).build()
             )

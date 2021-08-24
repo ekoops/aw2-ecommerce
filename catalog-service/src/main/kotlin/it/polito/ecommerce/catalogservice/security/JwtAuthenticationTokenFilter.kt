@@ -19,7 +19,6 @@ class JwtAuthenticationTokenFilter(
 ) : WebFilter {
 
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
-        println("QUA1")
         val authorizationHeader: String? = exchange.request.headers[jwtHeader]?.removeFirstOrNull()
         if (authorizationHeader != null) {
             val jwt = authorizationHeader.removePrefix("$jwtHeaderStart ")
@@ -30,14 +29,11 @@ class JwtAuthenticationTokenFilter(
                     null,
                     detailsFromJwtToken.authorities
                 )
-                println("QUA2")
 
 //                authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
                 ReactiveSecurityContextHolder.getContext().map { it.authentication = authentication }.block()
-                println("QUA3")
             }
         }
-        println("QUA4")
 
         return chain.filter(exchange)
     }

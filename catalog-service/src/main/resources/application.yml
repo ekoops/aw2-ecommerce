@@ -23,7 +23,19 @@ spring:
       max-size: 10
 #  cloud:
 #    gateway:
-#      routes:
+#      default-filters:
+#        - name: Retry
+#          args:
+#            retries: 3
+#            methods: GET
+#            series: SERVER_ERROR
+#            exceptions: java.io.IOException, java.util.concurrent.TimeoutException
+#            backoff:
+#              firstBackoff: 50ms
+#              maxBackOff: 500ms
+#              factor: 2
+#              basedOnPreviousValue: false
+  #      routes:
 #      - id: order-svc
 #        uri: lb://order-service
 #        predicates:
