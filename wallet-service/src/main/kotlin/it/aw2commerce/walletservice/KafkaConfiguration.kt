@@ -49,14 +49,12 @@ class KafkaConfiguration {
     }
 
 
-    @Bean
-    fun topic1(): NewTopic{
-        return TopicBuilder.name("prova")
-            .replicas(2)
-            .build()
-    }
-
-
+//    @Bean
+//    fun topic1(): NewTopic{
+//        return TopicBuilder.name("prova")
+//            .replicas(2)
+//            .build()
+//    }
 
 
 

@@ -16,6 +16,7 @@ services:
     depends_on:
       - catalog-db
       - kafka
+      - wallet-svc
   #      - discovery-svc
       - mail-svc
   #      - order-svc
@@ -45,8 +46,8 @@ services:
       context: ./wallet-service/build/libs
     env_file:
       - ./envs/wallet-svc.env.prod
-    ports:
-      - "4000:4000"
+#    ports:
+#      - "4000:4000"
     networks:
       - wallet-net
       - communication-net
@@ -54,8 +55,6 @@ services:
       - wallet-db
       - kafka
   #      - discovery-svc
-  #      - mail-svc
-  #      - order-svc
   #    logging:
   #      driver: none
 

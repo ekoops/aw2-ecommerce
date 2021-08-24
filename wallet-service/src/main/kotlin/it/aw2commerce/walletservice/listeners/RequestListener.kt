@@ -8,13 +8,13 @@ import org.springframework.stereotype.Component
 @Component
 class RequestListener {
 
-    @KafkaListener(
-        id = "walletService" ,
-        topics = ["prova"],
-        containerFactory = "createWalletRequestDTOContainerFactory"
-    )
-    fun listen(createWalletRequestDTO: CreateWalletRequestDTO){
-        //TODO
-    }
+//    @KafkaListener(
+//        id = "walletService" ,
+//        topics = ["prova"],
+//        containerFactory = "createWalletRequestDTOContainerFactory"
+//    )
+//    fun listen(createWalletRequestDTO: CreateWalletRequestDTO){
+//        //TODO
+//    }
 
 }

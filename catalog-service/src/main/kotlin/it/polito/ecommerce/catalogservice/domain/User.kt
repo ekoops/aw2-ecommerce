@@ -161,6 +161,7 @@ fun User.toUserDTO(): UserDTO {
     )
 }
 
+
 fun Row.extractUser(): User = User(
     id = this.get("id").toString().toLong(),
     username = this.get("username").toString(),
