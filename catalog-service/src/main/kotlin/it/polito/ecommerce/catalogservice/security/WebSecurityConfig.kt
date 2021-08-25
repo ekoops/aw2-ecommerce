@@ -83,7 +83,7 @@ class WebSecurityConfig(
             .and()
             .exceptionHandling()
             //TODO: capire perche se si decommenta la seguente riga non funziona
-//            .authenticationEntryPoint(authenticationEntryPoint)
+            .authenticationEntryPoint(authenticationEntryPoint)
             .and()
             .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
             .addFilterBefore(jwtAuthenticationTokenFilter, SecurityWebFiltersOrder.AUTHENTICATION)

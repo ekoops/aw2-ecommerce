@@ -15,7 +15,6 @@ class EmailVerificationTokenWriter : Converter<EmailVerificationToken, OutboundR
             evt.user.id ?: throw InconsistentUserException("The user id can not be null")
             throw InconsistentEmailVerificationTokenException ("The emailVerificationTocken id has to be the same as the user one")
         }
-        println("DENTRO IL WRITER")
         return OutboundRow().apply {
             put("id", Parameter.from(evt.user.id))
             put("expiration_date", Parameter.from(evt.expirationDate))
