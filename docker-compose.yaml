@@ -66,8 +66,8 @@ services:
       - ./envs/wallet-db.env
     #    ports:
     #      - "3306:3306"
-    volumes:
-      - ./volumes/wallet-db:/var/lib/mysql
+#    volumes:
+#      - ./volumes/wallet-db:/var/lib/mysql
     networks:
       - wallet-net
     logging:
