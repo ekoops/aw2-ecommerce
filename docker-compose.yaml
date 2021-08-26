@@ -7,7 +7,7 @@ services:
       dockerfile: ../../Dockerfile # relative to the build context
       context: ./catalog-service/build/libs
     env_file:
-      - ./envs/catalog-svc.env.prod
+      - envs/catalog-svc.env.prod
     ports:
       - "8080:8080"
     networks:
@@ -28,7 +28,7 @@ services:
     container_name: catalog-db
 #    restart: always
     env_file:
-      - ./envs/catalog-db.env
+      - envs/catalog-db.env.prod
     #    ports:
     #      - "3306:3306"
 #    volumes:
@@ -45,7 +45,7 @@ services:
       dockerfile: ../../Dockerfile # relative to the build context
       context: ./wallet-service/build/libs
     env_file:
-      - ./envs/wallet-svc.env.prod
+      - envs/wallet-svc.env.prod
 #    ports:
 #      - "4000:4000"
     networks:
@@ -63,7 +63,7 @@ services:
     container_name: wallet-db
     restart: always
     env_file:
-      - ./envs/wallet-db.env
+      - envs/wallet-db.env.prod
     #    ports:
     #      - "3306:3306"
 #    volumes:
@@ -81,7 +81,7 @@ services:
       context: ./order-service/build
     #    restart: always
     env_file:
-      - ./order-service/prod.env
+      - envs/order-svc.env.prod
     ports:
       - "3000:3000"
     networks:
@@ -97,7 +97,7 @@ services:
     container_name: order-db
     #    restart: always
     env_file:
-      - ./envs/order-db.env
+      - envs/order-db.env.prod
     #    ports:
     #      - "27017:27017"
     #    volumes:
@@ -115,7 +115,7 @@ services:
       context: ./mail-service/build
     restart: always
     env_file:
-      - ./mail-service/prod.env
+      - envs/mail-svc.env.prod
     networks:
       - communication-net
     depends_on:

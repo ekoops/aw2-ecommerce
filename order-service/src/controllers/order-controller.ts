@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import OrderService from "../services/order-service";
 import { OrderStatus, toOrderStatus } from "../db/OrderStatus";
-import AppError from "../models/AppError";
+import FailureWrapper from "../models/FailureWrapper";
 import {
   DeleteOrderRequestDTO,
   GetOrderRequestDTO, GetOrdersRequestDTO,

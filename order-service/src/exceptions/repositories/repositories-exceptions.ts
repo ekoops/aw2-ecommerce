@@ -9,3 +9,4 @@ export class OrderDeletionFailedException extends RepositoryException {}
 export class OctCreationFailedException extends RepositoryException {}
 export class OctRetrievingFailedException extends RepositoryException {}
 export class OctSavingFailedException extends RepositoryException {}
+export class OctDeletionFailedException extends RepositoryException {}

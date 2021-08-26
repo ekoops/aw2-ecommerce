@@ -12,16 +12,18 @@ export const generateUUID = (isUuidForRequest: boolean = true): string => {
   return uuid;
 };
 
-export const retry = async (
-  retry: number,
-  callback: (...args: any) => Promise<any>
-): Promise<any> => {
-  while (retry) {
-    try {
-      return callback();
-    } catch (ex) {
-      retry--;
-      if (retry === 0) throw ex;
+
+export const retry = async (attempts: number, interval: number, f: Function, ...args: any[]) => {
+  try {
+    return await f(...args);
+  }
+  catch (ex) {
+    if (attempts !== Infinity) {
+      attempts--;
+      if (attempts === 0) throw ex;
     }
+    setTimeout(retry.bind(null, attempts, f(...args)), interval);
   }
 };
+
+export const force = retry.bind(null, Infinity, 5000);

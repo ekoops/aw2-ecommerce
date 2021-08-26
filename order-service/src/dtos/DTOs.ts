@@ -2,14 +2,6 @@ import {OrderStatus, OrderStatusType} from "../db/OrderStatus";
 import {OrderItem} from "../models/OrderItem";
 import {Order} from "../models/Order";
 
-export enum UserRole {
-    CUSTOMER,
-    ADMIN
-}
-
-export const toUserRole = (key: string): UserRole | undefined => {
-    return UserRole[key as keyof typeof UserRole];
-}
 export interface OrderItemDTO {
     id?: string;
     productId: string;
@@ -25,9 +17,19 @@ export interface OrderDTO {
     items: OrderItemDTO[];
 }
 
+export enum Approver {
+    WALLET,
+    WAREHOUSE
+}
+
 export interface ApprovationDTO {
-    approver: "wallet" | "warehouse";
+    approverName: "WALLET" | "WAREHOUSE";
     orderDTO: OrderDTO;
+}
+
+export const toApprover = (key: string): Approver | undefined => {
+    if (!isNaN(Number(key))) return undefined;
+    return Approver[key as keyof typeof Approver];
 }
 
 export const toOrderDTO = (order: Order): OrderDTO => {
@@ -59,6 +61,15 @@ export const toOrderItem = (orderItemDTO: OrderItemDTO): OrderItem => {
     }
 }
 
+
+export enum UserRole {
+    CUSTOMER,
+    ADMIN
+}
+
+export const toUserRole = (key: string): UserRole | undefined => {
+    return UserRole[key as keyof typeof UserRole];
+}
 
 export interface User {
     id: string;

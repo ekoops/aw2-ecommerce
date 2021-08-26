@@ -57,15 +57,16 @@ class OrderRepository {
   save = async (order: Order): Promise<Order> => {
     try {
       // @ts-ignore
-      const res = await order.save();
-      Logger.dev(NAMESPACE, `save(order: ${order}): ${res}`);
-      return res;
+      const updatedOrder = await order.save();
+      Logger.dev(NAMESPACE, `save(order: ${order}): ${updatedOrder}`);
+      return updatedOrder;
     } catch (ex) {
       Logger.error(NAMESPACE, `save(order: ${order}): ${ex}`);
       throw new OrderSavingFailedException();
     }
   };
 
+  // NOT USED
   deleteOrderById = async (id: string): Promise<Order | null> => {
     try {
       const deletedOrder = await this.OrderModel.findOneAndDelete({_id: id})

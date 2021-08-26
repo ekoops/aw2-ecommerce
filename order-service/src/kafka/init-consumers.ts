@@ -2,15 +2,16 @@ import KafkaProxy from "./KafkaProxy";
 import {
   CannotCreateConsumerException,
   HandlersBindingFailedException,
-  ItemsNotAvailableException,
-  NotEnoughBudgetException,
-  WalletOrderCreationFailedException,
-  WarehouseOrderCreationFailedException,
 } from "../exceptions/kafka/kafka-exceptions";
 import OrderService from "../services/order-service";
 import ConsumerProxy, { ExceptionBuilder } from "./ConsumerProxy";
 import { ApprovationDTO, OrderDTO } from "../dtos/DTOs";
 import { FailureHandler } from "./RequestStore";
+import {
+  ItemsNotAvailableException,
+  NotEnoughBudgetException, WalletOrderCreationFailedException,
+  WarehouseOrderCreationFailedException
+} from "../exceptions/application-exceptions";
 
 const initConsumers = (kafkaProxy: KafkaProxy, orderService: OrderService) => {
   const groupId = "order-svc-grp";
@@ -43,27 +44,27 @@ const initConsumers = (kafkaProxy: KafkaProxy, orderService: OrderService) => {
       exceptionBuilder: ItemsNotAvailableException.fromJson,
     }),
 
-    // startConsumer<OrderDTO>({
-    //   topic: "budget-availability-produced",
-    //   // onSuccessFallback: orderService.approveOrder,
-    //   failureHandler: orderService.handleRequestBudgetAvailabilityFailure,
-    //   exceptionBuilder: NotEnoughBudgetException.fromJson,
-    // }),
-    //
-    // // COUPLED CONSUMER
-    // startConsumer<ApprovationDTO>({
-    //   topic: "order-approved-by-warehouse",
-    //   // onSuccessFallback: orderService.handleOct,
-    //   failureHandler: orderService.handleApproveOrderFailure,
-    //   exceptionBuilder: WarehouseOrderCreationFailedException.fromJson,
-    // }),
-    //
-    // startConsumer<ApprovationDTO>({
-    //   topic: "order-approved-by-wallet",
-    //   // onSuccessFallback: orderService.handleOct,
-    //   failureHandler: orderService.handleApproveOrderFailure,
-    //   exceptionBuilder: WalletOrderCreationFailedException.fromJson,
-    // }),
+    startConsumer<OrderDTO>({
+      topic: "budget-availability-produced",
+      // onSuccessFallback: orderService.approveOrder,
+      failureHandler: orderService.handleRequestBudgetAvailabilityFailure,
+      exceptionBuilder: NotEnoughBudgetException.fromJson,
+    }),
+
+    // COUPLED CONSUMER
+    startConsumer<ApprovationDTO>({
+      topic: "order-approved-by-warehouse",
+      // onSuccessFallback: orderService.handleOct,
+      failureHandler: orderService.handleApproveOrderFailure,
+      exceptionBuilder: WarehouseOrderCreationFailedException.fromJson,
+    }),
+
+    startConsumer<ApprovationDTO>({
+      topic: "order-approved-by-wallet",
+      // onSuccessFallback: orderService.handleOct,
+      failureHandler: orderService.handleApproveOrderFailure,
+      exceptionBuilder: WalletOrderCreationFailedException.fromJson,
+    }),
   ];
 
   // TODO

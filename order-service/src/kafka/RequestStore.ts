@@ -1,4 +1,6 @@
-import {ApplicationException, KafkaException} from "../exceptions/kafka/kafka-exceptions";
+import {CannotProduceException} from "../exceptions/kafka/kafka-exceptions";
+import {CommunicationException} from "../exceptions/communication-exceptions";
+import {ApplicationException} from "../exceptions/application-exceptions";
 
 // TODO redefine and use the two following types
 
@@ -6,7 +8,7 @@ export interface SuccessPayload {
     key: string;
     value: any;
 }
-export type FailurePayload = KafkaException | ApplicationException
+export type FailurePayload = CannotProduceException | CommunicationException | ApplicationException
 
 export type SuccessHandler = (successPayload: SuccessPayload) => any
 export type FailureHandler = (failurePayload: FailurePayload) => any

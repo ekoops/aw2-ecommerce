@@ -35,7 +35,7 @@ const run = async () => {
   const kafkaProxy = KafkaProxy.getInstance(kafkaConfig);
 
   const [_, admin, producer] = await Promise.all([
-    retry(3, initDbConnection),
+    retry(3, 3000, initDbConnection),
     kafkaProxy.createAdmin(),
     kafkaProxy.createProducer(),
   ]);

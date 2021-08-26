@@ -1,6 +1,7 @@
 import { Producer } from "./KafkaProxy";
 import { generateUUID } from "../utils/utils";
 import RequestStore from "./RequestStore";
+import { CannotProduceException } from "../exceptions/kafka/kafka-exceptions";
 
 const requestStore = RequestStore.getInstance();
 
@@ -22,6 +23,7 @@ export default class ProducerProxy {
           });
         } catch (ex) {
           requestStore.remove(uuid);
+          if (ex instanceof CannotProduceException) ex.transactionId = uuid;
           reject(ex);
         }
       }

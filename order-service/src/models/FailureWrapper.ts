@@ -1,3 +1,3 @@
-export default class AppError {
+export default class FailureWrapper {
   constructor(public message: string) {}
 }

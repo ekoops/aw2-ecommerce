@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon -r dotenv/config src/server.ts dotenv_config_path=./dev.env",
     "build": "tsc && cp package*.json build",
-    "start": "node -r dotenv/config build/server.js dotenv_config_path=./prod.env"
+    "docker": "docker build -f Dockerfile -t aw2-ecommerce/mail-svc:latest build/"
   },
   "repository": {
     "type": "git",
