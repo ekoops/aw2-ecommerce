@@ -132,7 +132,7 @@ services:
       - ./volumes/zookeeper/datalog:/datalog
       - ./volumes/zookeeper/logs:/logs
     networks:
-      - zookeeper-kafka-net
+      - kafka-net
     logging:
       driver: none
 
@@ -147,12 +147,29 @@ services:
       #      - ./volumes/kafka/secrets:/etc/kafka/secrets # not needed
       - ./volumes/kafka/data:/var/lib/kafka/data
     networks:
-      - zookeeper-kafka-net
+      - kafka-net
       - communication-net
     depends_on:
       - zookeeper
   #    logging:
   #      driver: none
+
+#  kafka-connect:
+#    image: debezium/connect
+#    container_name: kafka-connect
+#    #    ports:
+#    #      - "8083:8083"
+#    env_file:
+#      - ./envs/kafka-connect.env.prod
+##    volumes:
+##      -
+#    networks:
+#      - kafka-net
+#    depends_on:
+#      - kafka
+#      - zookeeper
+
+
 
   discovery-svc:
     image: aw2-ecommerce/discovery-svc
@@ -174,7 +191,7 @@ networks:
     name: wallet-net
   order-net:
     name: order-net
-  zookeeper-kafka-net:
-    name: zookeeper-kafka-net
+  kafka-net:
+    name: kafka-net
   communication-net:
     name: communication-net

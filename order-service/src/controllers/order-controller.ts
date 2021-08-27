@@ -74,7 +74,7 @@ export default class OrderController {
     };
 
     try {
-      const result = await this.orderService.addOrder(orderDTO as AddOrderRequestDTO);
+      const result = await this.orderService.requestOrderCreation(orderDTO as AddOrderRequestDTO);
       res.status(201).json(result);
     }
     catch (ex) {

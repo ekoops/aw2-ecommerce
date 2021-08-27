@@ -12,14 +12,14 @@ let mongooseOptions: ConnectOptions = {
   useUnifiedTopology: true,
 };
 
-if (config.environment === "production") {
+// if (config.environment === "production") {
   mongooseOptions = {
     ...mongooseOptions,
     user: config.db.user,
     pass: config.db.pass,
     authSource: config.db.authSource,
   };
-}
+// }
 
 const initDbConnection = async () => {
   const credentials = `${config.db.authSource}:${config.db.user}:${config.db.pass}`;
@@ -27,13 +27,12 @@ const initDbConnection = async () => {
   Logger.dev(NAMESPACE, message);
   try {
     await mongoose.connect(uri, mongooseOptions);
+    Logger.dev(NAMESPACE, "connected successfully to db")
+
     mongoose.set("runValidators", true);
     // handling error after initial connection
     mongoose.connection.on("error", (err) =>
       Logger.error(NAMESPACE, `connection to db lost: ${err}`)
-    );
-    mongoose.connection.once("open", () =>
-      Logger.dev(NAMESPACE, "connected successfully")
     );
   } catch (ex) {
     // handling initial connection fail

@@ -45,11 +45,11 @@ const getApp = async (
 
 
   const notFoundHandler: RequestHandler = (req, res, next) => {
-    const notFoundError = new ErrorResponse(404, "Route not found");
+    const notFoundError = new ErrorResponse(404, "route not found");
     next(notFoundError);
   };
 
-  const internalServerError = new ErrorResponse(500, "InternalServerError");
+  const internalServerError = new ErrorResponse(500, "internal server error");
   const exceptionHandler: ErrorRequestHandler = (err, req, res, next) => {
     if (!(err instanceof ErrorResponse)) {
       err = internalServerError;

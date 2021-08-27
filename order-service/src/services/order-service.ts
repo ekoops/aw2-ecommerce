@@ -8,7 +8,7 @@ import {
 import FailureWrapper from "../models/FailureWrapper";
 import { CannotProduceException } from "../exceptions/kafka/kafka-exceptions";
 import ProducerProxy from "../kafka/ProducerProxy";
-import {force, generateUUID} from "../utils/utils";
+import { force, generateUUID } from "../utils/utils";
 import RequestStore, {
   FailurePayload,
   SuccessPayload,
@@ -39,9 +39,7 @@ import {
   NoOctException,
   OctHandlingFailedException,
 } from "../exceptions/application-exceptions";
-import {
-  ValueFormatNotValidException,
-} from "../exceptions/communication-exceptions";
+import { ValueFormatNotValidException } from "../exceptions/communication-exceptions";
 
 const NAMESPACE = "ORDER_SERVICE";
 
@@ -122,6 +120,10 @@ export default class OrderService {
     key: string;
     value: OrderDTO;
   }): Promise<OrderDTO | FailureWrapper> => {
+    Logger.dev(
+      NAMESPACE,
+      `createOrder(message: ${JSON.stringify(message, null, " ")})`
+    );
     const { key, value: orderDTO } = message;
 
     const order: Order = {
@@ -140,6 +142,7 @@ export default class OrderService {
       });
       return createdOrderDTO;
     } catch (ex) {
+      Logger.dev(NAMESPACE, `createOrder(err: ${ex.constructor.name})`);
       // the exception can be only of type OrderCreationFailedException or CannotProduceException
       force(this.cancelOrder, key);
       force(this.octRepository.deleteOctById, key);
@@ -156,6 +159,10 @@ export default class OrderService {
     key: string;
     value: ApprovationDTO;
   }): Promise<OrderDTO | FailureWrapper> => {
+    Logger.dev(
+      NAMESPACE,
+      `handleOct(message: ${JSON.stringify(message, null, " ")})`
+    );
     const {
       key: transactionId,
       value: { approverName, orderDTO },
@@ -171,7 +178,9 @@ export default class OrderService {
     try {
       oct = await this.octRepository.findOctById(transactionId);
       if (oct === null) {
-        return this.handleApproveOrderFailure(new NoOctException(transactionId));
+        return this.handleApproveOrderFailure(
+          new NoOctException(transactionId)
+        );
       }
       if (approver === Approver.WALLET) {
         if (!oct.walletHasApproved) {
@@ -208,6 +217,10 @@ export default class OrderService {
   handleApproveOrderFailure = async (
     err: FailurePayload
   ): Promise<FailureWrapper> => {
+    Logger.dev(
+      NAMESPACE,
+      `handleApproveOrderFailure(err: ${err.constructor.name})`
+    );
     if (!(err instanceof CannotProduceException)) {
       force(this.cancelOrder, err.transactionId);
     }
@@ -252,11 +265,15 @@ export default class OrderService {
   approveOrder = async (
     message: SuccessPayload
   ): Promise<OrderDTO | FailureWrapper> => {
+    Logger.dev(
+      NAMESPACE,
+      `approveOrder(message: ${JSON.stringify(message, null, " ")})`
+    );
     const { key, value: orderDTO } = message;
-
     try {
       await this.octRepository.createOct(key);
     } catch (ex) {
+      Logger.dev(NAMESPACE, `approveOrder(err: ${ex.constructor.name})`);
       // the exception can only be an OctCreationFailedException
       // if (ex instanceof OctCreationFailedException) {
       requestStore.remove(key);
@@ -279,7 +296,7 @@ export default class OrderService {
   ): FailureWrapper => {
     Logger.dev(
       NAMESPACE,
-      `handleRequestOrderCreationFailure(err: ${err.constructor.name})`
+      `handleRequestBudgetAvailabilityFailure(err: ${err.constructor.name})`
     );
     // the commented code below can be simplified with these two statements
     //
@@ -312,6 +329,14 @@ export default class OrderService {
   requestBudgetAvailability = (
     message: SuccessPayload
   ): Promise<OrderDTO | FailureWrapper> => {
+    Logger.dev(
+      NAMESPACE,
+      `requestBudgetAvailability(message: ${JSON.stringify(
+        message,
+        null,
+        " "
+      )})`
+    );
     const { key, value: orderDTO } = message;
     return this.producerProxy
       .produceAndWaitForResponse<OrderDTO>(
@@ -357,7 +382,7 @@ export default class OrderService {
     // }
   };
 
-  addOrder = (
+  requestOrderCreation = (
     addOrderRequestDTO: AddOrderRequestDTO
   ): Promise<OrderDTO | FailureWrapper> => {
     const uuid: string = generateUUID();
@@ -470,11 +495,14 @@ export default class OrderService {
       `deleteOrder(deleteRequestDTO: ${deleteOrderRequestDTO}): ${cancelledOrder}`
     );
 
-    return this.producerProxy.producer
-      .produce({
+    try {
+      await this.producerProxy.producer.produce({
         topic: "order-cancelled",
         messages: [{ key: orderId, value: JSON.stringify(cancelledOrder) }], // TODO: right way?}
-      })
-      .then(() => {});
+      });
+    } catch (ex) {
+      // the only exception that can be thrown is of type CannotProduceException;
+      // TODO: and now?
+    }
   };
 }
