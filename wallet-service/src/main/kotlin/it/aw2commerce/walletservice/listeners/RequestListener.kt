@@ -65,11 +65,12 @@ class RequestListener(
             BudgetAvailabilityProducedDTO(
                 failure = "no budget" // TODO: change error description
             )
-        budgetAvailabilityProducedKafkaTemplate.send(
+      val kafkaMsg = budgetAvailabilityProducedKafkaTemplate.send(
             "budget-availability-produced",
             key,
             budgetAvailabilityProducedDTO
         ).get()
+//        kafkaMsg.
         // TODO handle possibile kafka exception
     }
 
@@ -174,4 +175,3 @@ class RequestListener(
     }
     }
 
-}

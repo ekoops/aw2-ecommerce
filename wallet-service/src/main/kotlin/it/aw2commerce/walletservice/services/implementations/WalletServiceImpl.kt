@@ -1,12 +1,10 @@
 package it.aw2commerce.walletservice.services.implementations;
 
 
-import it.aw2commerce.walletservice.domain.Transaction
-import it.aw2commerce.walletservice.domain.Wallet
-import it.aw2commerce.walletservice.domain.toTransactionDTO
-import it.aw2commerce.walletservice.domain.toWalletDTO
+import it.aw2commerce.walletservice.domain.*
 import it.aw2commerce.walletservice.dto.TransactionDTO
 import it.aw2commerce.walletservice.dto.TransactionsPageDTO
+import it.aw2commerce.walletservice.dto.UserDetailsDTO
 import it.aw2commerce.walletservice.dto.WalletDTO
 import it.aw2commerce.walletservice.dto.incoming.CreateTransactionRequestDTO
 import it.aw2commerce.walletservice.exceptions.transaction.TransactionFailedException
@@ -16,10 +14,13 @@ import it.aw2commerce.walletservice.repositories.TransactionRepository
 import it.aw2commerce.walletservice.repositories.WalletRepository
 import it.aw2commerce.walletservice.services.WalletService
 import org.springframework.data.domain.PageRequest
-import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import kotlin.streams.toList
+
 
 @Service
 @Transactional
@@ -73,7 +74,10 @@ class WalletServiceImpl(
     ): TransactionDTO {
         // 404 if not present...
         //TODO: check admin
-        val isAdmin = false
+
+        val auth: Authentication = SecurityContextHolder.getContext().authentication
+        val isAdmin = auth.authorities.equals("ADMIN")
+
         val customerId = 0L
 
         val purchasingWallet =  if(isAdmin) this.getWalletEntityByCustomerId(customerId)

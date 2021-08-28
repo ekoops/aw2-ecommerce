@@ -25,17 +25,15 @@ class JwtAuthenticationTokenFilter(
         val authorizationHeader: String? = request.getHeader(jwtHeader)
         if (authorizationHeader != null) {
             val jwt = authorizationHeader.removePrefix("$jwtHeaderStart ")
-            if (jwtUtils.validateJwtToken(jwt)) {
-                val detailsFromJwtToken = jwtUtils.getDetailsFromJwtToken(jwt)
-                val authentication = UsernamePasswordAuthenticationToken(
-                    detailsFromJwtToken,
-                    null,
-                    detailsFromJwtToken.authorities
-                )
-                authentication.details = WebAuthenticationDetailsSource()
-                    .buildDetails(request)
-                SecurityContextHolder.getContext().authentication = authentication
-            }
+            val detailsFromJwtToken = jwtUtils.getDetailsFromJwtToken(jwt)
+            val authentication = UsernamePasswordAuthenticationToken(
+                detailsFromJwtToken,
+                null,
+                detailsFromJwtToken.authorities
+            )
+            authentication.details = WebAuthenticationDetailsSource()
+                .buildDetails(request)
+            SecurityContextHolder.getContext().authentication = authentication
         }
 
         filterChain.doFilter(request, response)

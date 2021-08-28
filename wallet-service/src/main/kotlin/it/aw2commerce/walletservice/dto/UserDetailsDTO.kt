@@ -9,28 +9,19 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 data class UserDetailsDTO(
     private val id: Long,
     private val username: String,
-    private val password: String? = null,
     private val email: String,
-    private val roles: Set<Rolename>,
-    private val isEnabled: Boolean,
-    private val isLocked: Boolean = false
-//    private val isAccountNonExpired: Boolean = true,
-//    private val isAccountNonLocked: Boolean = true,
-//    private val isCredentialsNonExpired: Boolean = true,
-//    private val authorities: MutableCollection<out GrantedAuthority> = mutableListOf()
+    private val role: Rolename,
 ) : UserDetails {
     fun getId(): Long = id
 
     override fun getUsername(): String = username
 
-    override fun getPassword(): String? = password
+    override fun getPassword(): String = ""
 
-    fun getEmail(): String = email
-
-    override fun isEnabled(): Boolean = isEnabled
+    override fun isEnabled(): Boolean = true
 
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
-        return this.roles.map { SimpleGrantedAuthority(it.toString()) }.toMutableList()
+        return mutableListOf(SimpleGrantedAuthority(this.role.toString()))
     }
 
     override fun isAccountNonExpired(): Boolean {
@@ -38,7 +29,7 @@ data class UserDetailsDTO(
     }
 
     override fun isAccountNonLocked(): Boolean {
-        return !this.isLocked
+        return true
     }
 
     override fun isCredentialsNonExpired(): Boolean {

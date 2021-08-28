@@ -13,29 +13,11 @@ import java.util.*
 
 @Component
 class JwtUtils constructor(
-    @Value("\${application.jwt.jwtSecret}") private val jwtSecret: String,
-    @Value("\${application.jwt.jwtExpirationMs}") private val jwtExpirationMs: Long,
 ) {
-    private val key = Keys.hmacShaKeyFor(jwtSecret.toByteArray())
-
-
-    fun validateJwtToken(authToken: String) = try {
-        Jwts
-            .parserBuilder()
-            .setSigningKey(key)
-            .build()
-            .parseClaimsJws(authToken)
-
-        true
-    } catch (e: Exception) {
-        e.printStackTrace()
-        false
-    }
-
     fun getDetailsFromJwtToken(authToken: String): UserDetailsDTO {
         val claims = Jwts
             .parserBuilder()
-            .setSigningKey(key)
+//            .setSigningKey(key)
             .build()
             .parseClaimsJws(authToken).body
 
@@ -43,8 +25,7 @@ class JwtUtils constructor(
             id = claims["id"].toString().toLong(),
             username = claims["username"].toString(),
             email = claims["email"].toString(),
-            roles = claims["roles"].toString().split(",").map { Rolename.valueOf(it) }.toSet(),
-            isEnabled = true
+            role =  Rolename.valueOf(claims["role"].toString() )
         )
     }
 }

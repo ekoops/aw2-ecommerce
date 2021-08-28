@@ -8,6 +8,7 @@ import it.aw2commerce.walletservice.dto.incoming.CreateWalletRequestDTO
 import it.aw2commerce.walletservice.exceptions.InvalidIntervalException
 import it.aw2commerce.walletservice.services.WalletService
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.time.Instant
 import java.time.LocalDateTime
@@ -21,13 +22,14 @@ import javax.validation.constraints.Min
 class WalletController(
     val walletService: WalletService
 ) {
-
+    @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
     @GetMapping("/{walletId}")
     @ResponseStatus(HttpStatus.OK)
     fun getWallet(
         @PathVariable("walletId") walletId: Long
     ): WalletDTO = walletService.getWallet(walletId)
 
+    @PreAuthorize("#walletDTO.customerId == authentication.principal.id")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createWallet(
@@ -37,7 +39,7 @@ class WalletController(
     }
 
 
-   // @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
+    @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
     @PostMapping("/{walletId}/transactions")
     @ResponseStatus(HttpStatus.CREATED)
     fun createTransaction(
@@ -50,7 +52,7 @@ class WalletController(
 
 
 
-   // @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
+    @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
     @GetMapping("/{walletId}/transactions")
     @ResponseStatus(HttpStatus.OK)
     fun getTransactionsInDateRange(
@@ -97,7 +99,7 @@ class WalletController(
     }
 
 
- //   @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
+    @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
     @GetMapping("/{walletId}/transactions/{transactionId}")
     @ResponseStatus(HttpStatus.OK)
     fun getTransaction(
