@@ -40,6 +40,14 @@ interface TransactionRepository : PagingAndSortingRepository<Transaction, Long> 
         pageable: Pageable
     ): Page<Transaction>
 
+    fun findAllByPurchasingWallet(
+        purchasingWallet: Wallet,
+    ): List<Transaction>
+
+    fun findAllByRechargingWallet(
+        rechargingWallet: Wallet,
+    ): List<Transaction>
+
     companion object {
         const val TRANSACTION_PAGE_SIZE: Int = 10
     }

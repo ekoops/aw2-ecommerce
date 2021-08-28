@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.messaging.handler.annotation.Header
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.RequestHeader
 import java.time.Instant
@@ -52,11 +53,9 @@ class RequestListener(
             return
         }
 
-        val walletTransactions:Page<Transaction> =  this.transactionRepository.findAllByPurchasingWalletOrRechargingWallet(
-            purchasingWallet = wallet,
-            rechargingWallet = wallet,
-            pageable = PageRequest.of(0, TransactionRepository.TRANSACTION_PAGE_SIZE)) //todo check zero
-        val budget = walletTransactions.fold(0L) { acc, transaction -> acc + transaction.amount }
+        var budget:Long = this.transactionRepository.findAllByRechargingWallet(wallet).fold(0L) { acc, transaction -> acc + transaction.amount }
+        budget-= this.transactionRepository.findAllByPurchasingWallet(wallet).fold(0L) {acc, transaction -> acc + transaction.amount  }
+
 
         val isBudgetAvailable = budget > amount*100
         val budgetAvailabilityProducedDTO = if (isBudgetAvailable)
@@ -79,8 +78,8 @@ class RequestListener(
         topics = ["order-approved"],
         containerFactory = "orderApprovedContainerFactory"
     )
-    fun listenOrderApproved(@RequestHeader("key") key: String, orderDTO: OrderDTO) {
-        //TODO controlla se RequestHeader va bene
+    fun listenOrderApproved(@Header("key") key: String, orderDTO: OrderDTO) {
+        //TODO controlla se RequestHeader / Header va bene
         val wallet = this.walletRepository.getWalletByCustomerId(orderDTO.buyerId.toLong())
         if (wallet == null) {
             val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
@@ -126,8 +125,53 @@ class RequestListener(
         topics = ["order-cancelled"],
         containerFactory = "orderCancelledContainerFactory"
     )
-    fun listenOrderCancelled(orderDTO: OrderDTO) {
-        //TODO
+    fun listenOrderCancelled(@Header("key") key: String, orderDTO: OrderDTO) {
+        //todo check header
+        //TODO a rollback must be done
+        /*
+        per ora il rollback è fatto creando una transazione opposta a quella da annullare
+         */
+        val wallet = this.walletRepository.getWalletByCustomerId(orderDTO.buyerId.toLong())
+
+        if (wallet == null) {
+            val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
+                failure = "no wallet"
+            )
+            orderApprovedByWalletKafkaTemplate.send(
+                "order-approved-by-wallet",
+                key,
+                orderApprovedByWalletDTO
+            ).get()
+            return
+        }
+
+        val amount = orderDTO.items.fold(0.0) { acc, orderItemDTO ->
+            acc + orderItemDTO.amount * orderItemDTO.perItemPrice
+        }
+        val transaction = Transaction(
+            purchasingWallet = wallet,
+            rechargingWallet = wallet, // TODO who has to be recharged???,
+            amount = -(amount * 100).toLong(),
+            timeInstant = LocalDateTime.now(),
+        )
+        val createdTransaction = transactionRepository.save(transaction)
+
+        val orderApprovedByWalletDTO = if (createdTransaction.getId() == null) {
+            OrderApprovedByWalletDTO(
+                failure = "no wallet"
+            )
+        } else {
+            OrderApprovedByWalletDTO(
+                ok = ApprovationDTO("WALLET", orderDTO)
+            )
+
+        }
+        orderApprovedByWalletKafkaTemplate.send(
+            "order-approved-by-wallet",
+            key,
+            orderApprovedByWalletDTO
+        ).get()
+    }
     }
 
 }
