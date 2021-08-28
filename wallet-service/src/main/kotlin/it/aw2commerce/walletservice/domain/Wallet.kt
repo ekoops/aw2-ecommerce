@@ -30,10 +30,10 @@ class Wallet(
     )
     var rechargingTransactions: Set<Transaction>,
 
-    //todo ho messo la quantità a 1000 per test
+
     @field:Min(value = 0, message = "The wallet amount must be greater or equal than zero")
     @Column(name = "amount", nullable = false)
-    var amount: Long = 1000
+    var amount: Long = 0
 
 ) : EntityBase<Long>()
 
