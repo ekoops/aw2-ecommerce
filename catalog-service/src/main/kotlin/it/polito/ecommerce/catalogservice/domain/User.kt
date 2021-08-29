@@ -162,12 +162,16 @@ fun User.toUserDTO(): UserDTO {
 }
 
 
-fun Row.extractUser(): User = User(
-    id = this.get("id").toString().toLong(),
-    username = this.get("username").toString(),
-    email = this.get("email").toString(),
-    password = this.get("password").toString(),
-    isEnabled = this.get("is_enabled").toString().toBoolean(),
-    isLocked = this.get("is_locked").toString().toBoolean(),
-    rolesList = this.get("roles").toString().split(",").map { Rolename.valueOf(it) }
-)
+fun Row.extractUser(): User{
+   val user = User(
+       id = this.get("id").toString().toLong(),
+       username = this.get("username").toString(),
+       email = this.get("email").toString(),
+       password = this.get("password").toString(),
+       isEnabled = this.get("is_enabled").toString()== "1",
+       isLocked = this.get("is_locked").toString() == "1",
+       rolesList = this.get("roles").toString().split(",").map { Rolename.valueOf(it) }
+   )
+    println(">>>>>>>>>>>> extractedUser = $user")
+    return user
+}

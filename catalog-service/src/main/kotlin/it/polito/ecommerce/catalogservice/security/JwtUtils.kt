@@ -20,7 +20,7 @@ class JwtUtils constructor(
 ) {
     private val key = Keys.hmacShaKeyFor(jwtSecret.toByteArray())
 
-    fun generateJwtToken(authentication: Authentication): String {
+    fun generateJwtToken(authentication: Authentication, role: String): String {
         val userDetailsDTO = authentication.principal as? UserDetailsDTO ?: throw BadAuthenticationException()
         val issuedAt = Date.from(Instant.now())
         val expirationDate = Date.from(Instant.now().plusSeconds(jwtExpirationMs / 1000))
@@ -31,7 +31,7 @@ class JwtUtils constructor(
             .claim("email", userDetailsDTO.getEmail())
             .claim("id", userDetailsDTO.getId())
             .claim("username", userDetailsDTO.username)
-            .claim("roles", userDetailsDTO.authorities.joinToString(",") { it.authority })
+            .claim("role", role)
             .signWith(key, SignatureAlgorithm.HS256)
 
         return builder.compact()
@@ -61,7 +61,7 @@ class JwtUtils constructor(
             id = claims["id"].toString().toLong(),
             username = claims["username"].toString(),
             email = claims["email"].toString(),
-            roles = claims["roles"].toString().split(",").map { Rolename.valueOf(it) }.toSet(),
+            roles = setOf(Rolename.valueOf(claims["role"].toString())),
             isEnabled = true
         )
     }

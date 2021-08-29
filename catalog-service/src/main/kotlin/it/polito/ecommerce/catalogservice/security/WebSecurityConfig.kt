@@ -120,4 +120,11 @@ class WebSecurityConfig(
 //        return super.
 //       return super.authenticationManagerBean()
 //   }
+
+    @Bean
+    fun securityContextRepository(): ServerSecurityContextRepository {
+        val securityContextRepository = WebSessionServerSecurityContextRepository()
+        securityContextRepository.setSpringSecurityContextAttrName("securityContext")
+        return securityContextRepository
+    }
 }

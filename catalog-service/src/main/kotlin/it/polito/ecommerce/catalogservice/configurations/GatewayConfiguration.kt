@@ -2,6 +2,7 @@ package it.polito.ecommerce.catalogservice.configurations
 
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig
 import io.github.resilience4j.timelimiter.TimeLimiterConfig
+import it.polito.ecommerce.catalogservice.security.AuthenticationFilter
 import org.springframework.cloud.circuitbreaker.resilience4j.ReactiveResilience4JCircuitBreakerFactory
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JConfigBuilder
 import org.springframework.cloud.client.circuitbreaker.Customizer
@@ -11,27 +12,11 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.time.Duration
 
-@Configuration
-class GatewayConfiguration {
 
-    //TODO: capire perchè questo non funziona e quello di sotto si
-//    @Bean
-//    fun myRoutes(routeLocatorBuilder: RouteLocatorBuilder): RouteLocator? {
-//        return routeLocatorBuilder.routes()
-//            .route("retiveOrders") { p -> p
-//                    .path("/orders/**")
-//                .filters{f->
-//                    f.rewritePath("", "")
-//                    f.circuitBreaker{it-> it.setFallbackUri("forward:defaultFallback/")}
-//                }
-//                    .uri("lb://order-svc")
-//            }
-//            .route { p -> p
-//                    .path("/v1/country/coastline")
-//                    .uri("http://localhost:8081")
-//            }
-//            .build()
-//    }
+
+
+@Configuration
+class GatewayConfiguration (private val filter: AuthenticationFilter) {
 
 
     @Bean
@@ -59,6 +44,7 @@ class GatewayConfiguration {
                         //handle failure
                         it.setFallbackUri("forward:/api/v1/defaultFallback/")
                     }
+
                 }
                 //switch endpoint to a load balanced one
                 .uri("lb://wallet-svc")
