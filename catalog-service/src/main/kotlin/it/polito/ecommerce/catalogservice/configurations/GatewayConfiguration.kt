@@ -25,7 +25,7 @@ class GatewayConfiguration (private val filter: AuthenticationFilter) {
             .route("orders") { it -> it
                 //match incoming path
                 .path("/api/v1/orders/**")
-                .filters{f ->
+                .filters{ f ->
                     //manipulate outgoing path
                     f.circuitBreaker{
                         //handle failure
@@ -38,7 +38,7 @@ class GatewayConfiguration (private val filter: AuthenticationFilter) {
             .route("wallets") { it -> it
                 //match incoming path
                 .path("/api/v1/wallets/**")
-                .filters{f ->
+                .filters{ f ->
                     //manipulate outgoing path
                     f.circuitBreaker{
                         //handle failure
@@ -52,7 +52,7 @@ class GatewayConfiguration (private val filter: AuthenticationFilter) {
             .route("warehouses") { it -> it
                 //match incoming path
                 .path("/api/v1/warehouses/**")
-                .filters{f ->
+                .filters{ f ->
                     //manipulate outgoing path
                     f.circuitBreaker{
                         //handle failure
@@ -60,7 +60,7 @@ class GatewayConfiguration (private val filter: AuthenticationFilter) {
                     }
                 }
                 //switch endpoint to a load balanced one
-                .uri("lb://warehouses-svc")
+                .uri("lb://warehouse-svc")
             }
             .route("products") { it -> it
                 //match incoming path
@@ -73,7 +73,7 @@ class GatewayConfiguration (private val filter: AuthenticationFilter) {
                     }
                 }
                 //switch endpoint to a load balanced one
-                .uri("lb://warehouses-svc")
+                .uri("lb://warehouse-svc")
             }
             .build()
     }

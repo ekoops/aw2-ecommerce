@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
@@ -41,13 +42,6 @@ class WebSecurityConfig(
     private val jwtAuthenticationTokenFilter: JwtAuthenticationTokenFilter,
 ) {
 
-//    @Bean
-//    fun securityContextRepository(): ServerSecurityContextRepository? {
-//        val securityContextRepository = WebSessionServerSecurityContextRepository()
-//        securityContextRepository.setSpringSecurityContextAttrName("securityContext")
-//        return securityContextRepository
-//    }
-
     @Bean
     fun authenticationManager(): ReactiveAuthenticationManager? {
         val authenticationManager = UserDetailsRepositoryReactiveAuthenticationManager(userDetailsService)
@@ -71,25 +65,30 @@ class WebSecurityConfig(
     fun springSecurityFilterChain(
         http: ServerHttpSecurity,
         authManager: ReactiveAuthenticationManager?
-    ): SecurityWebFilterChain? {
-        return http
-            .cors()
-            .and()
-            .csrf().disable()
-//            .authorizeExchange().anyExchange().permitAll()
-            .authorizeExchange()
+    ): SecurityWebFilterChain {
+        return http.authorizeExchange()
             .pathMatchers("/auth/**").permitAll()
             .anyExchange().authenticated()
             .and()
+            .addFilterAt(jwtAuthenticationTokenFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+            .cors()
+            .and()
+            .csrf().disable()
             .exceptionHandling()
             //TODO: capire perche se si decommenta la seguente riga non funziona
             .authenticationEntryPoint(authenticationEntryPoint)
             .and()
             .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
-            .addFilterBefore(jwtAuthenticationTokenFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+//            .addFilterBefore(jwtAuthenticationTokenFilter, SecurityWebFiltersOrder.AUTHENTICATION)
             .build()
     }
 
+    @Bean
+    fun securityContextRepository(): ServerSecurityContextRepository {
+        val securityContextRepository = WebSessionServerSecurityContextRepository()
+        securityContextRepository.setSpringSecurityContextAttrName("securityContext")
+        return securityContextRepository
+    }
 
 //   override fun configure(http: HttpSecurity) {
 //       http
@@ -121,10 +120,5 @@ class WebSecurityConfig(
 //       return super.authenticationManagerBean()
 //   }
 
-    @Bean
-    fun securityContextRepository(): ServerSecurityContextRepository {
-        val securityContextRepository = WebSessionServerSecurityContextRepository()
-        securityContextRepository.setSpringSecurityContextAttrName("securityContext")
-        return securityContextRepository
-    }
+
 }

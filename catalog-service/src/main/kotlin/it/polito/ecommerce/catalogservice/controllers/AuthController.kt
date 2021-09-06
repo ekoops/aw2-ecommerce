@@ -101,22 +101,17 @@ class AuthController(
         )
         .map{ authentication ->
             if (authentication == null) {
-                println("<<<<<<<<<<<<<<<<<<<< 1")
                 throw BadAuthenticationException()
             }
             val securityContext = SecurityContextImpl(authentication)
             val userDetailsDTO = authentication.principal as? UserDetailsDTO ?: throw BadAuthenticationException()
-            println("<<<<<<<<<<<<<<<<<<<< 3")
             val isRoleLegitimate =
                 userDetailsDTO.authorities.map { it.authority }.contains(signInUserRequestDTO.role)
             if (!isRoleLegitimate) {
-                println("<<<<<<<<<<<<<<<<<<<< 4")
                 throw BadAuthenticationException()
             }
-            println("<<<<<<<<<<<<<<<<<<<< 5")
             securityContext.authentication = authentication
             val token = jwtUtils.generateJwtToken(authentication, signInUserRequestDTO.role)
-            println("<<<<<<<<<<<<<<<<<<<< 6")
             ResponseEntity.noContent()
                 .header(jwtHeader, "$jwtHeaderStart $token").build<Void>()
             }
