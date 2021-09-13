@@ -13,7 +13,8 @@ import java.time.Duration
 
 
 @Configuration
-class GatewayConfiguration() {
+class GatewayConfiguration () {
+
     @Bean
     fun routes(builder: RouteLocatorBuilder): RouteLocator {
         return builder.routes()
