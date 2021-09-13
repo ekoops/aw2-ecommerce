@@ -2,7 +2,6 @@ package it.polito.ecommerce.catalogservice.configurations
 
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig
 import io.github.resilience4j.timelimiter.TimeLimiterConfig
-import it.polito.ecommerce.catalogservice.security.AuthenticationFilter
 import org.springframework.cloud.circuitbreaker.resilience4j.ReactiveResilience4JCircuitBreakerFactory
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JConfigBuilder
 import org.springframework.cloud.client.circuitbreaker.Customizer
@@ -13,12 +12,8 @@ import org.springframework.context.annotation.Configuration
 import java.time.Duration
 
 
-
-
 @Configuration
-class GatewayConfiguration (private val filter: AuthenticationFilter) {
-
-
+class GatewayConfiguration() {
     @Bean
     fun routes(builder: RouteLocatorBuilder): RouteLocator {
         return builder.routes()

@@ -2,7 +2,6 @@ package it.aw2commerce.walletservice
 
 import it.aw2commerce.walletservice.dto.incoming.CreateWalletRequestDTO
 import it.aw2commerce.walletservice.dto.kafka.BudgetAvailabilityProducedDTO
-import it.aw2commerce.walletservice.dto.kafka.BudgetAvailabilityRequestDTO
 import it.aw2commerce.walletservice.dto.kafka.OrderApprovedByWalletDTO
 import it.aw2commerce.walletservice.dto.kafka.OrderDTO
 import org.apache.kafka.clients.admin.NewTopic
