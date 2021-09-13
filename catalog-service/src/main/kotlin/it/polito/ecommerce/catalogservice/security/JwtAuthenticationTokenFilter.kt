@@ -21,21 +21,37 @@ class JwtAuthenticationTokenFilter(
 
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
         val authorizationHeader= exchange.request.headers[jwtHeader]?.get(0)
+        println(">>>>>>>>>>>>>>>>>> AutHeader $authorizationHeader")
         if (authorizationHeader != null) {
+            println(">>>>>>>>>>>>>>>>>> AutHeader not null")
             val jwt = authorizationHeader.removePrefix("$jwtHeaderStart ")
+
             if (jwtUtils.validateJwtToken(jwt)) {
+                println(">>>>>>>>>>>>>>>>>> token $jwt validated")
                 val detailsFromJwtToken = jwtUtils.getDetailsFromJwtToken(jwt)
+                println(">>>>>>>>>>>>>>>>>> 1")
                 val authentication = UsernamePasswordAuthenticationToken(
                     detailsFromJwtToken,
                     null,
                     detailsFromJwtToken.authorities
                 )
+                println(">>>>>>>>>>>>>>>>>> 2")
+                ReactiveSecurityContextHolder.withAuthentication(authentication)
+
+                //la seguente riga è solo a scopo di debug
                 val securityContext = SecurityContextImpl(authentication)
-                securityContext.authentication = authentication
+                println(">>>>>>>>>>>>>>>>>> $securityContext")
+                println(">>>>>>>>>>>>>>>>>> AUTHENTICATION $authentication")
+
+//                securityContext.authentication = authentication
                 //TODO: la seguente riga a cosa serve?
-//                authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
+                // Risposta: credo serviva per salvare nel contesto l'authentication, cosa che adesso
+                // faccio con ReactiveSecurityContextHolder.withAuthentication(authentication)
+
+            //  authentication.details = WebAuthenticationDetailsSource().buildDetails(exchange.request)
             }
         }
+        println(">>>>>>>>>>>>>>>>>> 3")
         return chain.filter(exchange)
     }
 

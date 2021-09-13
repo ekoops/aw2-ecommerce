@@ -107,7 +107,9 @@ class AuthController(
             val userDetailsDTO = authentication.principal as? UserDetailsDTO ?: throw BadAuthenticationException()
             val isRoleLegitimate =
                 userDetailsDTO.authorities.map { it.authority }.contains(signInUserRequestDTO.role)
+            println(">>>>>> isRoleLeggitimate: $isRoleLegitimate")
             if (!isRoleLegitimate) {
+                println(">>>>> role is not legitimate")
                 throw BadAuthenticationException()
             }
             securityContext.authentication = authentication

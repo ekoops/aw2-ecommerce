@@ -29,11 +29,17 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 import org.springframework.security.core.userdetails.UsernameNotFoundException
+import org.springframework.http.HttpStatus
+
+import org.springframework.security.config.web.server.ServerHttpSecurity.http
+
+
+
 
 
 @Configuration
 @EnableWebFluxSecurity
-@EnableReactiveMethodSecurity(proxyTargetClass = true)
+//@EnableReactiveMethodSecurity(proxyTargetClass = true)
 //@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 class WebSecurityConfig(
     private val userDetailsService: UserDetailsServiceImpl,
@@ -66,21 +72,51 @@ class WebSecurityConfig(
         http: ServerHttpSecurity,
         authManager: ReactiveAuthenticationManager?
     ): SecurityWebFilterChain {
-        return http.authorizeExchange()
-            .pathMatchers("/auth/**").permitAll()
-            .anyExchange().authenticated()
-            .and()
-            .addFilterAt(jwtAuthenticationTokenFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+
+        return http
+            .exceptionHandling()
+            .authenticationEntryPoint { swe, e ->
+                Mono.fromRunnable {
+                    println(">>>>>>>>>>>>>>> UNOTHORIZED")
+                    swe.response.statusCode = HttpStatus.UNAUTHORIZED
+                    println(">>>>>>>>>>>>>> MESSAGE: ${e.message}")
+                    throw e
+                }
+            }.accessDeniedHandler { swe, e ->
+                Mono.fromRunnable {
+                    swe.response.statusCode = HttpStatus.FORBIDDEN
+                    throw e
+                }
+            }.and()
+            .addFilterBefore(jwtAuthenticationTokenFilter, SecurityWebFiltersOrder.AUTHENTICATION)
             .cors()
             .and()
             .csrf().disable()
-            .exceptionHandling()
-            //TODO: capire perche se si decommenta la seguente riga non funziona
-            .authenticationEntryPoint(authenticationEntryPoint)
-            .and()
+//            .formLogin().disable()
+//            .httpBasic().disable()
+//            .authenticationManager(authenticationManager())
             .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
-//            .addFilterBefore(jwtAuthenticationTokenFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-            .build()
+            .authorizeExchange()
+            .pathMatchers("/auth/**").permitAll()
+            .anyExchange().authenticated()
+            .and().build()
+
+
+//        return http.authorizeExchange()
+//            .pathMatchers("/auth/**").permitAll()
+//            .anyExchange().authenticated()
+//            .and()
+//            .addFilterAt(jwtAuthenticationTokenFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+//            .cors()
+//            .and()
+//            .csrf().disable()
+//            .exceptionHandling()
+//            //TODO: capire perche se si decommenta la seguente riga la richiesta resta in pending
+//            //.authenticationEntryPoint(authenticationEntryPoint)
+//            .and()
+//            .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
+////            .addFilterBefore(jwtAuthenticationTokenFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+//            .build()
     }
 
     @Bean
@@ -113,12 +149,5 @@ class WebSecurityConfig(
 //           .passwordEncoder(passwordEncoder)
 //   }
 //
-//
-//   @Bean
-//   override fun authenticationManagerBean(): ReactiveAuthenticationManager {
-//        return super.
-//       return super.authenticationManagerBean()
-//   }
-
 
 }
