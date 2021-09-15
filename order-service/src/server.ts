@@ -1,28 +1,27 @@
 import config from "./config/config";
-import initDbConnection from "./db/db";
+import initDbConnection from "./db/initDbConnection";
 import KafkaProxy from "./kafka/KafkaProxy";
 import { KafkaConfig } from "kafkajs";
 import getApp from "./app";
 import { OrderModel } from "./models/Order";
-import OrderRepository from "./repositories/order-repository";
-import OrderService from "./services/order-service";
-import OrderController from "./controllers/order-controller";
-import initConsumers from "./kafka/init-consumers";
+import OrderRepository from "./repositories/OrderRepository";
+import OrderController from "./controllers/OrderController";
+import initConsumers from "./kafka/initConsumers";
 import ProducerProxy from "./kafka/ProducerProxy";
-import OctRepository from "./repositories/oct-repository";
-import { OctModel } from "./models/Oct";
 import {
   CannotCreateAdminException,
+  CannotCreateConsumerException,
   CannotCreateProducerException,
   CannotCreateTopicException,
   CannotRetrieveTopicListException,
-} from "./exceptions/kafka/kafka-exceptions";
-import { DbConnectionFailedException } from "./exceptions/db/db-exceptions";
-import initTopics from "./kafka/init-topics";
+} from "./exceptions/kafka/KafkaException";
+import { DbConnectionFailedException } from "./exceptions/db/DbException";
+import initTopics from "./kafka/initTopics";
 import { retry } from "./utils/utils";
-import Logger from "./utils/logger";
+import Logger from "./utils/Logger";
+import OrderService from "./services/OrderService";
 
-const NAMESPACE = config.server.instance.id;
+const NAMESPACE = "SERVER";
 
 const run = async () => {
   const { host, port, clientId, initialRetryTime } = config.kafka;
@@ -43,16 +42,14 @@ const run = async () => {
   const producerProxy = new ProducerProxy(producer);
 
   const orderRepository = OrderRepository.getInstance(OrderModel);
-  const octRepository = OctRepository.getInstance(OctModel);
   const orderService = OrderService.getInstance(
     orderRepository,
-    octRepository,
     producerProxy
   );
   const orderController = OrderController.getInstance(orderService);
 
   await initTopics(admin);
-  initConsumers(kafkaProxy, orderService);
+  initConsumers(kafkaProxy);
 
   const { rootPath } = config.server.api;
   const webServerPort = config.server.port;
@@ -98,6 +95,14 @@ run().catch((ex) => {
     Logger.error(NAMESPACE, "cannot create the needed kafka topics");
     process.exit(5);
   }
+  if (ex instanceof CannotCreateConsumerException) {
+    Logger.error(
+      NAMESPACE,
+      "cannot establish a producer connection to kafka cluster"
+    );
+    process.exit(6);
+  }
+
   // TODO complete exception handling
   Logger.error(NAMESPACE, `generic error: ${JSON.stringify(ex)}`);
   process.exit(255);

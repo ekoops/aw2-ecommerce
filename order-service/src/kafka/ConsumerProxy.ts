@@ -1,12 +1,6 @@
 import { Consumer } from "./KafkaProxy";
-import RequestStore, {FailureHandler, FailurePayload} from "./RequestStore";
-import { KafkaException } from "../exceptions/kafka/kafka-exceptions";
-import { NoHandlersException } from "../exceptions/application-exceptions";
-import {
-  NoValueException,
-  ValueFormatNotValidException,
-  ValueParsingFailedException,
-} from "../exceptions/communication-exceptions";
+import RequestStore, { FailurePayload } from "./RequestStore";
+import {NoValueException, ValueParsingFailedException} from "../exceptions/kafka/communication/ConsumerException";
 
 export type ExceptionBuilder = (...args: any) => FailurePayload;
 
@@ -15,34 +9,30 @@ const requestStore = RequestStore.getInstance();
 export default class ConsumerProxy {
   constructor(private consumer: Consumer) {}
 
-  bindHandlers<SuccessResponseType>(
-    // onSuccessFallback: (payload: SuccessPayload) => any,
-    failureHandler: FailureHandler,
-    exceptionBuilder: ExceptionBuilder
-  ) {
-    return this.consumer.consume(
-      async (key: string, value: string | undefined) => {
-        if (key === "") return; // TODO right control?
+  bindHandlers<SuccessResponseType>(exceptionBuilder: ExceptionBuilder) {
+    const filterFn = requestStore.contains;
+    const consumerFn = async (key: string, value: string | undefined) => {
+      // if filterFn pass, then requestStore contains resolve and reject function,
+      // so it is safe to extract them
+      const [resolve, reject] = requestStore.get(key)!;
 
-        const handlers = requestStore.get(key);
-        if (handlers === undefined)
-          return failureHandler(new NoHandlersException(key));
-        const [resolve, reject] = handlers;
+      if (value === undefined || value === "")
+        return reject(new NoValueException(key));
 
-        if (value === undefined) return reject(new NoValueException(key));
-
-        let obj;
-        try {
-          obj = JSON.parse(value);
-        } catch (ex) {
-          return reject(new ValueParsingFailedException(key));
-        }
-        if ("failure" in obj) {
-          return reject(exceptionBuilder(key, obj.failure));
-        } else if ("ok" in obj) {
-          return resolve({ key, value: obj.ok as SuccessResponseType });
-        } else return reject(new ValueFormatNotValidException(key)); // TODO must be handled
+      let obj;
+      try {
+        obj = JSON.parse(value);
+      } catch (ex) {
+        return reject(new ValueParsingFailedException(key));
       }
-    );
+      if ("failure" in obj) {
+        return reject(exceptionBuilder(key, obj.failure));
+      } else if ("ok" in obj) {
+        return resolve({ key, value: obj.ok as SuccessResponseType });
+      }
+      return reject(new ValueParsingFailedException(key));
+    };
+
+    return this.consumer.consume(consumerFn, filterFn);
   }
 }

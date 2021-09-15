@@ -4,7 +4,7 @@ import {
   NoValueException,
   ValueParsingFailedException,
 } from "../exceptions/kafka/kafka-exceptions";
-import Logger from "../utils/logger";
+import Logger from "../utils/Logger";
 
 const NAMESPACE = "CONSUMER";
 

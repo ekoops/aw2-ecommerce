@@ -1,5 +1,5 @@
 import express from "express";
-import OrderController from "../controllers/order-controller";
+import OrderController from "../controllers/OrderController";
 import { validators, checkErrors } from "../security/validators";
 import {handleJwt} from "../security/jwt";
 

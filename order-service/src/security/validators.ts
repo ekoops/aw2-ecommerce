@@ -46,6 +46,9 @@ const validators: Validators = {
   getOrder: [validateId(param("id"))],
   postOrder: [
     // validateId(body("buyerId")),
+    body("deliveryAddress")
+      .isString()
+      .withMessage("A valid delivery address must be specified"),
     body("items")
       .isArray({ min: 1 })
       .withMessage("A valid items list must be specified"),

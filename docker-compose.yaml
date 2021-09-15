@@ -7,7 +7,7 @@ services:
       dockerfile: ../../Dockerfile # relative to the build context
       context: ./catalog-service/build/libs
     env_file:
-      - envs/catalog-svc.env.prod
+      - configs/catalog-svc.env.prod
     ports:
       - "8080:8080"
     networks:
@@ -28,7 +28,7 @@ services:
     container_name: catalog-db
 #    restart: always
     env_file:
-      - envs/catalog-db.env.prod
+      - configs/catalog-db.env.prod
     #    ports:
     #      - "3306:3306"
 #    volumes:
@@ -45,7 +45,7 @@ services:
       dockerfile: ../../Dockerfile # relative to the build context
       context: ./wallet-service/build/libs
     env_file:
-      - envs/wallet-svc.env.prod
+      - configs/wallet-svc.env.prod
 #    ports:
 #      - "4000:4000"
     networks:
@@ -63,7 +63,7 @@ services:
     container_name: wallet-db
     restart: always
     env_file:
-      - envs/wallet-db.env.prod
+      - configs/wallet-db.env.prod
     #    ports:
     #      - "3306:3306"
 #    volumes:
@@ -81,7 +81,7 @@ services:
       context: ./order-service/build
     #    restart: always
     env_file:
-      - envs/order-svc.env.prod
+      - configs/order-svc.env.prod
     ports:
       - "3000:3000"
     networks:
@@ -92,18 +92,35 @@ services:
       - kafka
   #      - discovery-svc
 
+  order-svc-cleaner:
+    image: aw2-ecommerce/order-svc-cleaner
+    container_name: order-svc-cleaner
+    build:
+      dockerfile: ../Dockerfile # relative to the build context
+      context: ./order-service-cleaner/build
+    #    restart: always
+    env_file:
+      - configs/order-svc-cleaner.env.prod
+    ports:
+      - "3000:3000"
+    networks:
+      - order-net
+    depends_on:
+      - order-db
+
   order-db:
     image: mongo
     container_name: order-db
     #    restart: always
     env_file:
-      - envs/order-db.env.prod
+      - configs/order-db.env.prod
     #    ports:
     #      - "27017:27017"
     #    volumes:
     #      - ./volumes/order-db:/data/db
     networks:
       - order-net
+      - kafka-net
     logging:
       driver: none
 
@@ -115,7 +132,9 @@ services:
       context: ./mail-service/build
     restart: always
     env_file:
-      - envs/mail-svc.env.prod
+      - configs/mail-svc.env.prod
+    ports:
+      - "8083:8083"
     networks:
       - communication-net
     depends_on:
@@ -142,7 +161,7 @@ services:
     #    ports:
     #      - "9092:9092"
     env_file:
-      - ./envs/kafka.env.prod
+      - configs/kafka.env.prod
     volumes:
       #      - ./volumes/kafka/secrets:/etc/kafka/secrets # not needed
       - ./volumes/kafka/data:/var/lib/kafka/data
@@ -154,20 +173,22 @@ services:
   #    logging:
   #      driver: none
 
-#  kafka-connect:
-#    image: debezium/connect
-#    container_name: kafka-connect
-#    #    ports:
-#    #      - "8083:8083"
-#    env_file:
-#      - ./envs/kafka-connect.env.prod
-##    volumes:
-##      -
-#    networks:
-#      - kafka-net
-#    depends_on:
-#      - kafka
-#      - zookeeper
+  kafka-connect:
+    image: debezium/connect
+    container_name: kafka-connect
+    ports:
+      - "8083:8083"
+    env_file:
+      - configs/kafka-connect.env.prod
+    volumes:
+      - ./volumes/kafka-connect/config:/kafka/config
+      - ./volumes/kafka-connect/data:/kafka/data
+      - ./volumes/kafka-connect/logs:/kafka/logs
+    networks:
+      - kafka-net
+    depends_on:
+      - kafka
+      - zookeeper
 
 
 

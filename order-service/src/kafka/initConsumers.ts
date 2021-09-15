@@ -1,37 +1,28 @@
 import KafkaProxy from "./KafkaProxy";
-import {
-  CannotCreateConsumerException,
-  HandlersBindingFailedException,
-} from "../exceptions/kafka/kafka-exceptions";
-import OrderService from "../services/order-service";
 import ConsumerProxy, { ExceptionBuilder } from "./ConsumerProxy";
-import { ApprovationDTO, OrderDTO } from "../dtos/DTOs";
-import { FailureHandler } from "./RequestStore";
+import { ApprovationDTO } from "../dtos/DTOs";
+import config from "../config/config";
+import {OrderDTO} from "../models/Order";
 import {
   ItemsNotAvailableException,
   NotEnoughBudgetException, WalletOrderCreationFailedException,
   WarehouseOrderCreationFailedException
-} from "../exceptions/application-exceptions";
+} from "../exceptions/kafka/communication/application/ApplicationException";
 
-const initConsumers = (kafkaProxy: KafkaProxy, orderService: OrderService) => {
-  const groupId = "order-svc-grp";
+const initConsumers = (kafkaProxy: KafkaProxy) => {
+  const {groupId} = config.kafka;
 
   const startConsumer = async <SuccessResponseType>({
     topic,
-    // onSuccessFallback,
-    failureHandler,
     exceptionBuilder,
   }: {
     topic: string;
-    // onSuccessFallback: (payload: SuccessPayload) => any;
-    failureHandler: FailureHandler;
     exceptionBuilder: ExceptionBuilder;
   }) => {
     const topics = [{ topic }];
     const consumer = await kafkaProxy.createConsumer(groupId, topics);
     const consumerProxy = new ConsumerProxy(consumer);
     return consumerProxy.bindHandlers<SuccessResponseType>(
-      failureHandler,
       exceptionBuilder
     );
   };
@@ -39,39 +30,27 @@ const initConsumers = (kafkaProxy: KafkaProxy, orderService: OrderService) => {
   const consumersHandles = [
     startConsumer<OrderDTO>({
       topic: "order-items-availability-produced",
-      // onSuccessFallback: orderService.requestBudgetAvailability,
-      failureHandler: orderService.handleRequestOrderCreationFailure,
       exceptionBuilder: ItemsNotAvailableException.fromJson,
     }),
 
     startConsumer<OrderDTO>({
       topic: "budget-availability-produced",
-      // onSuccessFallback: orderService.approveOrder,
-      failureHandler: orderService.handleRequestBudgetAvailabilityFailure,
       exceptionBuilder: NotEnoughBudgetException.fromJson,
     }),
 
-    // COUPLED CONSUMER
+    // COUPLED CONSUMERS
     startConsumer<ApprovationDTO>({
       topic: "order-approved-by-warehouse",
-      // onSuccessFallback: orderService.handleOct,
-      failureHandler: orderService.handleApproveOrderFailure,
       exceptionBuilder: WarehouseOrderCreationFailedException.fromJson,
     }),
-
     startConsumer<ApprovationDTO>({
       topic: "order-approved-by-wallet",
-      // onSuccessFallback: orderService.handleOct,
-      failureHandler: orderService.handleApproveOrderFailure,
       exceptionBuilder: WalletOrderCreationFailedException.fromJson,
     }),
   ];
 
-  // TODO
-  return Promise.all(consumersHandles).catch((ex) => {
-    if (ex instanceof CannotCreateConsumerException) throw ex;
-    else throw new HandlersBindingFailedException(ex.toString());
-  });
+  // only CannotCreateConsumerException can be throw
+  return Promise.all(consumersHandles)
 };
 
 export default initConsumers;

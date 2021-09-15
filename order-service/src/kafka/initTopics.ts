@@ -4,8 +4,8 @@ import {Admin} from "./KafkaProxy";
 const initTopics = async (admin: Admin): Promise<void> =>  {
     const actualTopicList = await admin.listTopics();
     const desiredTopicList = [
-        "order-creation-requested",
-        "order-items-availability-produced",
+        "items-availability-requested",
+        "items-availability-produced",
         "budget-availability-requested",
         "budget-availability-produced",
         "order-approved",
@@ -16,7 +16,7 @@ const initTopics = async (admin: Admin): Promise<void> =>  {
     ];
     const topicsToCreateList: ITopicConfig[] = desiredTopicList
         .filter(topicName => !actualTopicList.includes(topicName))
-        .map(topicName => ({topic: topicName, numPartitions: 1}));
+        .map(topicName => ({topic: topicName, numPartitions: 3}));
 
     if (topicsToCreateList.length !== 0) {
         return admin.createTopics(topicsToCreateList);

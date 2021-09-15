@@ -8,7 +8,7 @@ export const generateUUID = (isUuidForRequest: boolean = true): string => {
   let uuid: string;
   do {
     uuid = uuidv4();
-  } while (requestStore.get(uuid));
+  } while (requestStore.contains(uuid));
   return uuid;
 };
 
@@ -22,7 +22,7 @@ export const retry = async (attempts: number, interval: number, f: Function, ...
       attempts--;
       if (attempts === 0) throw ex;
     }
-    setTimeout(retry.bind(null, attempts, f(...args)), interval);
+    setTimeout(retry.bind(null, attempts, interval, f, ...args), interval);
   }
 };
 

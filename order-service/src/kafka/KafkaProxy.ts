@@ -2,21 +2,19 @@ import {
   Kafka,
   ProducerRecord,
   ConsumerSubscribeTopic,
-  EachMessagePayload,
   RecordMetadata,
   ITopicConfig,
   KafkaConfig,
-  KafkaMessage,
 } from "kafkajs";
 import {
   CannotCreateAdminException,
   CannotCreateConsumerException,
   CannotCreateProducerException,
   CannotCreateTopicException,
-  CannotProduceException,
   CannotRetrieveTopicListException,
-} from "../exceptions/kafka/kafka-exceptions";
-import Logger from "../utils/logger";
+} from "../exceptions/kafka/KafkaException";
+import Logger from "../utils/Logger";
+import {CannotProduceException} from "../exceptions/kafka/communication/ProducerException";
 
 export interface Admin {
   createTopics(topics: ITopicConfig[]): Promise<void>;
@@ -29,7 +27,8 @@ export interface Producer {
 
 export interface Consumer {
   consume(
-    callback: (key: string, value: string | undefined) => Promise<void>
+    callback: (key: string, value: string | undefined) => Promise<void>,
+    filter?: (key: string) => boolean
   ): Promise<void>;
 }
 
@@ -119,7 +118,8 @@ export default class KafkaProxy {
             return result;
           } catch (ex) {
             Logger.error(NAMESPACE, `failed to produce ${producerRecord}`);
-            throw new CannotProduceException(ex.toString());
+            // The transaction id cannot be handled at this level
+            throw new CannotProduceException("no_id");
           }
         },
       };
@@ -165,11 +165,13 @@ export default class KafkaProxy {
       );
       return {
         consume: (
-          callback: (key: string, value: string | undefined) => Promise<void>
+          callback: (key: string, value: string | undefined) => Promise<void>,
+          filter?: (key: string) => boolean
         ) => {
           return consumer.run({
             eachMessage: async (payload) => {
               const key = payload.message.key.toString();
+              if (filter !== undefined && !filter(key)) return;
               const value = payload.message.value?.toString();
               Logger.dev(NAMESPACE, `consumed: {key: ${key}, value: ${value}}`);
               await callback(key, value);

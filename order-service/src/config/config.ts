@@ -1,8 +1,8 @@
 import {generateUUID} from "../utils/utils";
 
-const environment = process.env.NODE_ENV || "unknown";
+const environment = process.env.NODE_ENV || "development";
 
-const server_instance_id = process.env.SERVER_INSTANCE_ID || `order-svc-${generateUUID(false)}`;
+const server_instance_id = process.env.SERVER_INSTANCE_ID || `ORDER-SVC-${generateUUID(false)}`;
 const server_port = process.env.SERVER_PORT || 3000;
 const server_api_root_path = process.env.SERVER_API_ROOT_PATH || "";
 
@@ -16,6 +16,7 @@ const db_port = process.env.DB_PORT || 27017;
 const kafka_host = process.env.KAFKA_HOST || "kafka";
 const kafka_port = process.env.KAFKA_PORT || 9092;
 const kafka_client_id = process.env.KAFKA_CLIENT_ID || server_instance_id;
+const kafka_group_id = kafka_client_id;
 const kafka_initial_retry_time = process.env.KAFKA_INITIAL_RETRY_TIME || 500;
 
 const eureka_instance_app = process.env.EUREKA_INSTANCE_APP || "order-svc";
@@ -53,6 +54,7 @@ const config = {
     host: kafka_host,
     port: +kafka_port,
     clientId: kafka_client_id,
+    groupId: kafka_group_id,
     initialRetryTime: +kafka_initial_retry_time
   },
   eureka: {

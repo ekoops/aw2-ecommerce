@@ -1,7 +1,7 @@
 import config from "../config/config";
 import mongoose, { ConnectOptions } from "mongoose";
-import { DbConnectionFailedException } from "../exceptions/db/db-exceptions";
-import Logger from "../utils/logger";
+import { DbConnectionFailedException } from "../exceptions/db/DbException";
+import Logger from "../utils/Logger";
 
 const NAMESPACE = "ORDER-DB";
 

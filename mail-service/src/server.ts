@@ -5,9 +5,9 @@ import KafkaProxy from "./kafka/KafkaProxy";
 import initConsumers from "./kafka/init-consumers";
 import MailService from "./services/MailService";
 import express from "express"
-import Logger from "./utils/logger";
+import Logger from "./utils/Logger";
 
-const NAMESPACE = "MAIL_SVC";
+const NAMESPACE = "SERVER";
 
 const run = async () => {
   const OAuthO2Options = await getOAuth2Options();

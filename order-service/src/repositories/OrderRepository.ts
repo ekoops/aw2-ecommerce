@@ -4,8 +4,8 @@ import {
   OrderCreationFailedException,
   OrderDeletionFailedException, OrderSavingFailedException,
   OrdersRetrievingFailedException,
-} from "../exceptions/repositories/repositories-exceptions";
-import Logger from "../utils/logger";
+} from "../exceptions/repositories/OrderRepositoryException";
+import Logger from "../utils/Logger";
 
 const NAMESPACE = "ORDER_REPOSITORY";
 

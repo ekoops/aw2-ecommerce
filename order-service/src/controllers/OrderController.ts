@@ -1,22 +1,17 @@
 import { NextFunction, Request, Response } from "express";
-import OrderService from "../services/order-service";
+import OrderService from "../services/OrderService";
 import { OrderStatus, toOrderStatus } from "../db/OrderStatus";
-import FailureWrapper from "../models/FailureWrapper";
 import {
   DeleteOrderRequestDTO,
   GetOrderRequestDTO, GetOrdersRequestDTO,
-  OrderDTO,
-  OrderItemDTO,
   ModifyOrderStatusRequestDTO,
-  User, AddOrderRequestDTO,
+  User, CreateOrderRequestDTO,
 } from "../dtos/DTOs";
-import {
-  NotAllowedException,
-  OrderAlreadyCancelledException,
-  OrderNotExistException,
-  UnauthorizedException,
-} from "../exceptions/exceptions";
-import Logger from "../utils/logger";
+import Logger from "../utils/Logger";
+import {NotAllowedException, UnauthorizedException} from "../exceptions/AuthException";
+import {OrderItemDTO} from "../models/OrderItem";
+import {OrderDTO} from "../models/Order";
+import {OrderAlreadyCancelledException, OrderNotExistException} from "../exceptions/services/OrderServiceException";
 
 const NAMESPACE = "ORDER_CONTROLLER";
 
@@ -70,11 +65,12 @@ export default class OrderController {
     );
     const orderDTO: OrderDTO = {
       buyerId: user.id,
+      deliveryAddress: user.deliveryAddress,
       items,
     };
 
     try {
-      const result = await this.orderService.requestOrderCreation(orderDTO as AddOrderRequestDTO);
+      const result = await this.orderService.createOrder(orderDTO as CreateOrderRequestDTO);
       res.status(201).json(result);
     }
     catch (ex) {

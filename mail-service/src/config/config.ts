@@ -6,7 +6,7 @@ const abortFn = (envVar: string) => {
 
 const environment = process.env.NODE_ENV || "unknown";
 
-const server_instance_id = process.env.SERVER_INSTANCE_ID || `mail-svc-${uuidv4()}`;
+const server_instance_id = process.env.SERVER_INSTANCE_ID || `MAIL-SVC-${uuidv4()}`;
 const server_port = process.env.SERVER_PORT || 3000;
 const server_api_root_path = process.env.SERVER_API_ROOT_PATH || "";
 

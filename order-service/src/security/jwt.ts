@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
-import Logger from "../utils/logger";
+import Logger from "../utils/Logger";
 import { toUserRole, User } from "../dtos/DTOs";
 import { UnauthorizedException } from "../exceptions/exceptions";
 
@@ -23,6 +23,7 @@ export const handleJwt: RequestHandler = (req, res, next) => {
   res.locals.user = {
     id: decodedJwt.id,
     role: userRole,
+    deliveryAddress: decodedJwt.deliveryAddress
   } as User;
   next();
 };

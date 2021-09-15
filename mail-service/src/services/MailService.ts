@@ -1,6 +1,6 @@
 import MailerProxy from "../MailerProxy";
 import { UserCreatedDTO } from "../dtos/UserCreatedDTO";
-import Logger from "../utils/logger";
+import Logger from "../utils/Logger";
 
 const NAMESPACE = "MAIL_SERVICE";
 

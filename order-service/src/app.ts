@@ -1,13 +1,9 @@
-import getOrderRoutes from "./routes/order-routes";
-import ErrorResponse from "./models/ErrorResponse";
+import getOrderRoutes from "./routes/orderRoutes";
+import ErrorResponse from "./ErrorResponse";
 import express, { ErrorRequestHandler, RequestHandler } from "express";
 import morgan from "morgan";
-import OrderController from "./controllers/order-controller";
+import OrderController from "./controllers/OrderController";
 import ProducerProxy from "./kafka/ProducerProxy";
-import { OrderDTO } from "./dtos/DTOs";
-import { RecordMetadata } from "kafkajs";
-import { OrderStatus } from "./db/OrderStatus";
-import Logger from "./utils/logger";
 
 const getApp = async (
   rootPath: string,
@@ -41,7 +37,6 @@ const getApp = async (
   const orderRoutes = getOrderRoutes(orderController);
 
   app.use(orderPath, orderRoutes);
-
 
 
   const notFoundHandler: RequestHandler = (req, res, next) => {
