@@ -1,40 +1,27 @@
 package it.polito.ecommerce.catalogservice.security
 
-import it.polito.ecommerce.catalogservice.controllers.UserController
 import it.polito.ecommerce.catalogservice.services.implementations.UserDetailsServiceImpl
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
-import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.core.Authentication
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.security.web.AuthenticationEntryPoint
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.ServerAuthenticationEntryPoint
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
 import org.springframework.security.web.server.context.ServerSecurityContextRepository
 import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository
+import org.springframework.security.web.server.savedrequest.NoOpServerRequestCache
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
 import org.springframework.web.server.ServerWebExchange
+import reactor.core.publisher.Hooks
 import reactor.core.publisher.Mono
-import org.springframework.security.core.userdetails.UsernameNotFoundException
-import org.springframework.http.HttpStatus
-
-import org.springframework.security.config.web.server.ServerHttpSecurity.http
-
-
-
 
 
 @Configuration
@@ -46,6 +33,7 @@ class WebSecurityConfig(
     private val passwordEncoder: PasswordEncoder,
     private val authenticationEntryPoint: ServerAuthenticationEntryPoint,
     private val jwtAuthenticationTokenFilter: JwtAuthenticationTokenFilter,
+    private val bearerConverter: ServerHttpBearerAuthenticationConverter
 ) {
 
     @Bean
@@ -72,12 +60,14 @@ class WebSecurityConfig(
         http: ServerHttpSecurity,
         authManager: ReactiveAuthenticationManager?
     ): SecurityWebFilterChain {
+        Hooks.onOperatorDebug();
 
         return http
+            .requestCache().requestCache(NoOpServerRequestCache.getInstance()).and()
             .exceptionHandling()
             .authenticationEntryPoint { swe, e ->
                 Mono.fromRunnable {
-                    println(">>>>>>>>>>>>>>> UNOTHORIZED")
+                    println(">>>>>>>>>>>>>>> UNAUTHORIZED")
                     swe.response.statusCode = HttpStatus.UNAUTHORIZED
                     println(">>>>>>>>>>>>>> MESSAGE: ${e.message}")
                     throw e
@@ -88,36 +78,47 @@ class WebSecurityConfig(
                     throw e
                 }
             }.and()
-            .addFilterBefore(jwtAuthenticationTokenFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+            .addFilterAt(
+                bearerAuthenticationFilter(),
+                SecurityWebFiltersOrder.AUTHENTICATION)
             .cors()
             .and()
             .csrf().disable()
-//            .formLogin().disable()
-//            .httpBasic().disable()
-//            .authenticationManager(authenticationManager())
+
             .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
             .authorizeExchange()
             .pathMatchers("/auth/**").permitAll()
             .anyExchange().authenticated()
             .and().build()
-
-
-//        return http.authorizeExchange()
-//            .pathMatchers("/auth/**").permitAll()
-//            .anyExchange().authenticated()
-//            .and()
-//            .addFilterAt(jwtAuthenticationTokenFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-//            .cors()
-//            .and()
-//            .csrf().disable()
-//            .exceptionHandling()
-//            //TODO: capire perche se si decommenta la seguente riga la richiesta resta in pending
-//            //.authenticationEntryPoint(authenticationEntryPoint)
-//            .and()
-//            .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
-////            .addFilterBefore(jwtAuthenticationTokenFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-//            .build()
     }
+
+    /**
+     * Spring security works by filter chaning.
+     * We need to add a JWT CUSTOM FILTER to the chain.
+     *
+     * what is AuthenticationWebFilter:
+     *
+     * A WebFilter that performs authentication of a particular request. An outline of the logic:
+     * A request comes in and if it does not match setRequiresAuthenticationMatcher(ServerWebExchangeMatcher),
+     * then this filter does nothing and the WebFilterChain is continued.
+     * If it does match then... An attempt to convert the ServerWebExchange into an Authentication is made.
+     * If the result is empty, then the filter does nothing more and the WebFilterChain is continued.
+     * If it does create an Authentication...
+     * The ReactiveAuthenticationManager specified in AuthenticationWebFilter(ReactiveAuthenticationManager) is used to perform authentication.
+     * If authentication is successful, ServerAuthenticationSuccessHandler is invoked and the authentication is set on ReactiveSecurityContextHolder,
+     * else ServerAuthenticationFailureHandler is invoked
+     *
+     */
+    private fun bearerAuthenticationFilter(): AuthenticationWebFilter? {
+        val bearerAuthenticationFilter: AuthenticationWebFilter
+        val authManager: ReactiveAuthenticationManager
+        authManager = BearerTokenReactiveAuthenticationManager()
+        bearerAuthenticationFilter = AuthenticationWebFilter(authManager)
+        bearerAuthenticationFilter.setServerAuthenticationConverter(bearerConverter)
+        bearerAuthenticationFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/**"))
+        return bearerAuthenticationFilter
+    }
+
 
     @Bean
     fun securityContextRepository(): ServerSecurityContextRepository {
@@ -126,28 +127,5 @@ class WebSecurityConfig(
         return securityContextRepository
     }
 
-//   override fun configure(http: HttpSecurity) {
-//       http
-//           .cors()
-//           .and()
-//           .csrf().disable()
-//           .authorizeRequests()
-//           .antMatchers("/auth/**").permitAll()
-//           .anyRequest().authenticated()
-//           .and()
-//           .exceptionHandling()
-//           .authenticationEntryPoint(authenticationEntryPoint)
-//           .and()
-//           .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//           .and()
-//           .addFilterBefore(jwtAuthenticationTokenFilter, UsernamePasswordAuthenticationFilter::class.java)
-//   }
-//
-//   override fun configure(auth: AuthenticationManagerBuilder) {
-//       auth
-//           .userDetailsService(userDetailsService)
-//           .passwordEncoder(passwordEncoder)
-//   }
-//
 
 }
