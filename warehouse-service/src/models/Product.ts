@@ -5,6 +5,7 @@ import mongoose from 'mongoose'
 export class Product {
 
     constructor(
+        public _id: string,
         public name: string,
         public pictureUrl: string,
         public category: Category,
@@ -16,6 +17,7 @@ export class Product {
 }
 
 export class ProductDto {
+    public _id: string | null = null;
     public name: string | null = null;
     public pictureUrl: string | null = null;
     public category: Category | null = null;
@@ -24,6 +26,7 @@ export class ProductDto {
     public creationDate: Date | null = null;
     public comments: Comment[];
     constructor(product: Product) {
+        this._id = product._id;
         this.name = product.name;
         this.pictureUrl = product.pictureUrl;
         this.category = product.category;

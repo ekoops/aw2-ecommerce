@@ -18,6 +18,14 @@ export class ProductService {
         const result = await productRepository.insertProducts(productsDto as Product[]);
         return result;
     }
+
+    async deleteProduct(filter: {[key: string]: string}) {
+        return productRepository.deleteProduct(filter);
+    }
+
+    async updateProduct(filter: {[key: string]: string}, newProduct: ProductDto) {
+        return productRepository.updateProduct(filter, newProduct as Product);
+    }
 }
 
 
