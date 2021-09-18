@@ -1,11 +1,14 @@
 import mongoose from 'mongoose';
-import { Product, ProductModel } from '../models/Product';
+import { Picture, PictureModel, Product, ProductModel } from '../models/Product';
 
 export type InsertionResult = (Product & mongoose.Document<any, any, Product>)[];
 export type DeletionResult = ({ok?: number | undefined; n?: number | undefined;} & { deletedCount?: number | undefined; })
 
 export class ProductRepository {
-    constructor(private ProductModel: mongoose.Model<Product>) { }
+    constructor(
+        private ProductModel: mongoose.Model<Product>,
+        private PictureModel: mongoose.Model<Picture>,
+        ) { }
 
     async findProducts(filter: {[key: string]: string}): Promise<Product[]> {
         console.log(filter);
@@ -18,6 +21,14 @@ export class ProductRepository {
         const result = await this.ProductModel.insertMany(products);
         console.log('Inserted ', result);
         return result;
+    }
+
+    async postPicture(picture: Picture): Promise<any> {
+        return this.PictureModel.insertMany([picture]);
+    }
+
+    async getPicture(filter: {_id: string}): Promise<any> {
+        return this.PictureModel.find(filter);
     }
 
     async deleteProduct(filter: {[key: string]: string}): Promise<DeletionResult> {
@@ -33,4 +44,4 @@ export class ProductRepository {
     }
 }
 
-export const productRepository = new ProductRepository(ProductModel);
+export const productRepository = new ProductRepository(ProductModel, PictureModel);

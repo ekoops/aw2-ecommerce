@@ -1,7 +1,6 @@
 import express from "express";
 import { ProductController, productController } from "../controllers/product-controller";
 import { validators, checkErrors } from "../validators";
-
 const router = express.Router();
 
 router.get(
@@ -42,6 +41,22 @@ router.post(
     validators.postProduct,
     checkErrors,
     productController.insertProduct
+)
+
+router.post(
+    '/:id/picture',
+    express.text({type: '*/*'}),
+    productController.postPicture
+)
+
+router.get(
+    '/:id/picture',
+    productController.getPicture
+)
+
+router.get(
+    '/:productId/warehouses',
+    productController.getWarehousesByProductId
 )
 
 export default router;

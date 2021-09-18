@@ -1,8 +1,10 @@
 import express from 'express'
 import mongoose from "mongoose";
 import AppError from '../models/AppError';
-import { ProductDto } from '../models/Product';
+import { Product, ProductDto } from '../models/Product';
 import { productService, ProductService } from '../services/product-service';
+import { warehouseService } from '../services/warehouse-service';
+import { WarehouseController, warehouseController } from './warehouse-controller';
 
 
 export class ProductController {
@@ -50,6 +52,42 @@ export class ProductController {
         delete product.averageRating;
         const result = await productService.insertProducts([product]);
         res.json(result);
+    }
+
+    async postPicture(req: express.Request, res: express.Response, next: express.NextFunction) {
+        const pic = req.body;
+        const productId = req.params["id"];
+ 
+        const result = await productService.postPicture({
+            _id: productId,
+            url: pic,
+        });
+        console.log(result);
+        res.write(pic);
+        res.end()
+    }
+
+    async getPicture(req: express.Request, res: express.Response, next: express.NextFunction) {
+        const productId = req.params["id"];
+        const result = (await productService.getPicture({_id: productId}))[0];
+
+        if (!result) {
+            next(new AppError(404, 'Product not found'));
+            return;
+        }
+
+        console.log(result);
+        res.write(result.url);
+        res.end();
+    }
+
+    async getWarehousesByProductId(req: express.Request, res: express.Response, next: express.NextFunction) {
+        const productId = req.params['productId'];
+        const result = await warehouseService.findWarehouses({
+            "products.product._id": mongoose.Types.ObjectId(productId)
+        });
+        const resultWithProducts = await WarehouseController.fillWarehouseProducts(result);
+        res.json(resultWithProducts);
     }
 
     async deleteProductById(req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -111,10 +149,10 @@ export class ProductController {
             });
             product.creationDate = new Date();
             product._id = productId;
-            product = {
+            product = ({
                 ...oldProduct,
                 ...product,
-            }
+            } as ProductDto);
             delete product.averageRating;
             result = (await productService.insertProducts([product]))[0];
         }

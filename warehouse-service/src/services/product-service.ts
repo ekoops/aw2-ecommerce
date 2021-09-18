@@ -1,4 +1,4 @@
-import { ProductDto, Product } from "../models/Product";
+import { ProductDto, Product, Picture } from "../models/Product";
 import { productRepository, ProductRepository } from "../repositories/product-repository";
 
 
@@ -7,7 +7,7 @@ export class ProductService {
         this.productRepository = productRepository
     }
 
-    async findProducts(filter: {[key: string]: string}): Promise<ProductDto[]>  {
+    async findProducts(filter: {[key: string]: any}): Promise<ProductDto[]>  {
         const products: Product[] = await productRepository.findProducts(filter);
         console.log('service: ', products)
         const productsDto = products.map(product => new ProductDto(product));
@@ -17,6 +17,14 @@ export class ProductService {
     async insertProducts(productsDto: ProductDto[])  {
         const result = await productRepository.insertProducts(productsDto as Product[]);
         return result;
+    }
+
+    async postPicture(picture: Picture) {
+        return productRepository.postPicture(picture);
+    }
+
+    async getPicture(filter: {_id: string}) {
+        return productRepository.getPicture(filter);
     }
 
     async deleteProduct(filter: {[key: string]: string}) {
