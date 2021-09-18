@@ -73,6 +73,38 @@ services:
     logging:
       driver: none
 
+  warehouse-svc:
+    image: aw2-ecommerce/warehouse-svc
+    container_name: warehouse-svc
+    build:
+      dockerfile: ../Dockerfile # relative to the build context
+      context: ./warehouse-service/build
+    #    restart: always
+    env_file:
+      - configs/warehouse-svc.env.prod
+    networks:
+      - warehouse-net
+      - communication-net
+    depends_on:
+      - warehouse-db
+      - kafka
+
+  warehouse-db:
+    image: mongo
+    container_name: warehouse-db
+    #    restart: always
+    env_file:
+      - configs/warehouse-db.env.prod
+    #    ports:
+    #      - "27017:27017"
+    #    volumes:
+    #      - ./volumes/warehouse-db:/data/db
+    networks:
+      - warehouse-net
+      - kafka-net
+    logging:
+      driver: none
+
   order-svc:
     image: aw2-ecommerce/order-svc
     container_name: order-svc
@@ -210,6 +242,8 @@ networks:
     name: catalog-net
   wallet-net:
     name: wallet-net
+  warehouse-net:
+    name: warehouse-net
   order-net:
     name: order-net
   kafka-net:
