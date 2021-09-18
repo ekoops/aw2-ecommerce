@@ -9,8 +9,8 @@ const app = express();
 app.use(morgan("dev"));
 app.use(express.json());
 
-app.use("/products", productRoutes);
-app.use("/warehouses", warehouseRoutes);
+app.use("/api/v1/products", productRoutes);
+app.use("/api/v1/warehouses", warehouseRoutes);
 
 const notFoundHandler: RequestHandler = (req, res, next) => {
     const notFoundError = new AppError(404, "Route not found");

@@ -16,9 +16,10 @@ services:
     depends_on:
       - catalog-db
       - kafka
-      - wallet-svc
+      - warehouse-svc
+  #    - wallet-svc
   #      - discovery-svc
-      - mail-svc
+  #    - mail-svc
   #      - order-svc
   #    logging:
   #      driver: none
@@ -124,21 +125,21 @@ services:
       - kafka
   #      - discovery-svc
 
-  order-svc-cleaner:
-    image: aw2-ecommerce/order-svc-cleaner
-    container_name: order-svc-cleaner
-    build:
-      dockerfile: ../Dockerfile # relative to the build context
-      context: ./order-service-cleaner/build
-    #    restart: always
-    env_file:
-      - configs/order-svc-cleaner.env.prod
-    ports:
-      - "3000:3000"
-    networks:
-      - order-net
-    depends_on:
-      - order-db
+  # order-svc-cleaner:
+  #   image: aw2-ecommerce/order-svc-cleaner
+  #   container_name: order-svc-cleaner
+  #   build:
+  #     dockerfile: ../Dockerfile # relative to the build context
+  #     context: ./order-service-cleaner/build
+  #   #    restart: always
+  #   env_file:
+  #     - configs/order-svc-cleaner.env.prod
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - order-net
+  #   depends_on:
+  #     - order-db
 
   order-db:
     image: mongo
@@ -205,24 +206,22 @@ services:
   #    logging:
   #      driver: none
 
-  kafka-connect:
-    image: debezium/connect
-    container_name: kafka-connect
-    ports:
-      - "8083:8083"
-    env_file:
-      - configs/kafka-connect.env.prod
-    volumes:
-      - ./volumes/kafka-connect/config:/kafka/config
-      - ./volumes/kafka-connect/data:/kafka/data
-      - ./volumes/kafka-connect/logs:/kafka/logs
-    networks:
-      - kafka-net
-    depends_on:
-      - kafka
-      - zookeeper
-
-
+  # kafka-connect:
+  #   image: debezium/connect
+  #   container_name: kafka-connect
+  #   ports:
+  #     - "8083:8083"
+  #   env_file:
+  #     - configs/kafka-connect.env.prod
+  #   volumes:
+  #     - ./volumes/kafka-connect/config:/kafka/config
+  #     - ./volumes/kafka-connect/data:/kafka/data
+  #     - ./volumes/kafka-connect/logs:/kafka/logs
+  #   networks:
+  #     - kafka-net
+  #   depends_on:
+  #     - kafka
+  #     - zookeeper
 
   discovery-svc:
     image: aw2-ecommerce/discovery-svc
