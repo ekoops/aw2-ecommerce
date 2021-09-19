@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestHeader
 import java.time.Instant
 import java.time.LocalDateTime
 
+//todo check ids of  @KafkaListener( id =
 
 @Component
 class RequestListener(
@@ -75,7 +76,7 @@ class RequestListener(
     }
 
     @KafkaListener(
-        id = "wallet-svc-grp",
+        id = "wallet-svc-grp2",
         topics = ["order-approved"],
         containerFactory = "orderApprovedContainerFactory"
     )
@@ -122,7 +123,7 @@ class RequestListener(
     }
 
     @KafkaListener(
-        id = "wallet-svc-grp",
+        id = "wallet-svc-grp3",
         topics = ["order-cancelled"],
         containerFactory = "orderCancelledContainerFactory"
     )
