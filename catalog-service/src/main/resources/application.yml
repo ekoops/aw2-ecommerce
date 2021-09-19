@@ -1,6 +1,10 @@
 server:
   host:  localhost
   port: 8080
+#  servlet:
+#    encoding:
+#      charset: UTF-8
+#      force-response: true
 eureka:
   instance:
     prefer-ip-address: true

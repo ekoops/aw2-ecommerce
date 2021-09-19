@@ -16,8 +16,8 @@ services:
     depends_on:
       - catalog-db
       - kafka
-      - warehouse-svc
-  #    - wallet-svc
+#      - warehouse-svc
+      - wallet-svc
   #      - discovery-svc
   #    - mail-svc
   #      - order-svc

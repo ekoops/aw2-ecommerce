@@ -23,7 +23,6 @@ class GatewayConfiguration () {
                 .path("/api/v1/orders/**")
                 .filters{ f ->
                     //manipulate outgoing path
-                    f.addRequestHeader("accept", "application/json")
                     f.circuitBreaker{
                         //handle failure
                         it.setFallbackUri("forward:/api/v1/defaultFallback/")
@@ -51,6 +50,8 @@ class GatewayConfiguration () {
                 .path("/api/v1/warehouses/**")
                 .filters{ f ->
                     //manipulate outgoing path
+                    f.addRequestHeader("accept", "application/octet-stream")
+                    f.addResponseHeader("Content-Type", "application/octet-stream")
                     f.circuitBreaker{
                         //handle failure
                         it.setFallbackUri("forward:/api/v1/defaultFallback/")
