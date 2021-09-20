@@ -3,6 +3,7 @@ package it.aw2commerce.walletservice.controllers
 import it.aw2commerce.walletservice.exceptions.*
 import it.aw2commerce.walletservice.exceptions.transaction.TransactionFailedException
 import it.aw2commerce.walletservice.exceptions.wallet.BasicApplicationException
+import it.aw2commerce.walletservice.exceptions.security.BadAuthenticationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.HttpMediaTypeNotSupportedException
@@ -13,6 +14,9 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import javax.validation.ConstraintViolationException
+
+
+//TODO remove unused excepitions
 
 @RestControllerAdvice
 class ControllersAdvisor {
@@ -94,14 +98,14 @@ class ControllersAdvisor {
 //        title = "Failed to authenticate",
 //        detail = "Failed to authenticate with the provided credentials"
 //    )
-//
-//    @ExceptionHandler(BadAuthenticationException::class)
-//    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-//    fun badCredentialsExceptionHandler(ex: BadAuthenticationException) = ErrorDetails(
-//        type = ErrorType.INTERNAL_ERROR,
-//        title = "An internal server error occurred",
-//        detail = "This is a generic internal server error response"
-//    )
+
+    @ExceptionHandler(BadAuthenticationException::class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    fun badCredentialsExceptionHandler(ex: BadAuthenticationException) = ErrorDetails(
+        type = ErrorType.INTERNAL_ERROR,
+        title = "An internal server error occurred",
+        detail = "This is a generic internal server error response"
+    )
 
 //    @ExceptionHandler(UsernameNotFoundException::class)
 //    @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -130,13 +134,13 @@ class ControllersAdvisor {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun basicApplicationExceptionHandler(ex: BasicApplicationException): ErrorDetails = ErrorDetails(ex)
 
-//    @ExceptionHandler(org.springframework.security.access.AccessDeniedException::class)
-//    @ResponseStatus(HttpStatus.FORBIDDEN)
-//    fun accessDeniedExceptionHandler(ex: org.springframework.security.access.AccessDeniedException): ErrorDetails = ErrorDetails(
-//        type = ErrorType.FORBIDDEN,
-//        title = "Forbidden request",
-//        detail = ex.message
-//    )
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException::class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    fun accessDeniedExceptionHandler(ex: org.springframework.security.access.AccessDeniedException): ErrorDetails = ErrorDetails(
+        type = ErrorType.FORBIDDEN,
+        title = "Forbidden request",
+        detail = ex.message
+    )
 
     // Generic exception handler
     @ExceptionHandler(Throwable::class)
