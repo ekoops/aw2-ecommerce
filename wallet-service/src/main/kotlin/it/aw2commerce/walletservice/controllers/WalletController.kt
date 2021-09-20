@@ -35,6 +35,7 @@ class WalletController(
     fun createWallet(
         @Valid @RequestBody walletDTO: CreateWalletRequestDTO,
     ): WalletDTO {
+        println("CALLED")
         return walletService.createWallet(walletDTO.customerId)
     }
 
