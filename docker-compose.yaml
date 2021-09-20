@@ -18,7 +18,7 @@ services:
       - kafka
 #      - warehouse-svc
       - wallet-svc
-  #      - discovery-svc
+      - discovery-svc
   #    - mail-svc
   #      - order-svc
   #    logging:
@@ -55,7 +55,7 @@ services:
     depends_on:
       - wallet-db
       - kafka
-  #      - discovery-svc
+      - discovery-svc
   #    logging:
   #      driver: none
 

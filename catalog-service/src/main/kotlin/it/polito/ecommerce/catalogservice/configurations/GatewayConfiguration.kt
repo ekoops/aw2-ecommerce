@@ -13,7 +13,7 @@ import java.time.Duration
 
 
 @Configuration
-class GatewayConfiguration () {
+class GatewayConfiguration {
 
     @Bean
     fun routes(builder: RouteLocatorBuilder): RouteLocator {
@@ -25,7 +25,7 @@ class GatewayConfiguration () {
                     //manipulate outgoing path
                     f.circuitBreaker{
                         //handle failure
-                        it.setFallbackUri("forward:/api/v1/defaultFallback/")
+                        it.setFallbackUri("forward:/api/v1/failureOrder")
                     }
                 }
                 //switch endpoint to a load balanced one
@@ -34,16 +34,15 @@ class GatewayConfiguration () {
             .route("wallets") { it -> it
                 //match incoming path
                 .path("/api/v1/wallets/**")
-                .filters{ f ->
-                    //manipulate outgoing path
-                    f.circuitBreaker{
-                        //handle failure
-                        it.setFallbackUri("forward:/api/v1/defaultFallback/")
-                    }
-
-                }
+//                .filters{ f ->
+//                    //manipulate outgoing path
+//                    f.circuitBreaker{
+//                        //handle failure
+//                        it.setFallbackUri("forward:/api/v1/failureWallet")
+//                    }
+//                }
                 //switch endpoint to a load balanced one
-                .uri("lb://wallet-svc")
+                .uri("lb://wallet-svc:4000")
             }
             .route("warehouses") { it -> it
                 //match incoming path
@@ -54,7 +53,7 @@ class GatewayConfiguration () {
                     f.addResponseHeader("Content-Type", "application/octet-stream")
                     f.circuitBreaker{
                         //handle failure
-                        it.setFallbackUri("forward:/api/v1/defaultFallback/")
+                        it.setFallbackUri("forward:/api/v1/failureWarehouse")
                     }
                 }
                 //switch endpoint to a load balanced one
@@ -67,7 +66,7 @@ class GatewayConfiguration () {
                     //manipulate outgoing path
                     f.circuitBreaker{
                         //handle failure
-                        it.setFallbackUri("forward:/api/v1/defaultFallback/")
+                        it.setFallbackUri("forward:/api/v1/failureWarehouse")
                     }
                 }
                 //switch endpoint to a load balanced one
@@ -76,20 +75,33 @@ class GatewayConfiguration () {
             .build()
     }
 
+//    @Bean
+//    fun defaultCustomizer(): Customizer<ReactiveResilience4JCircuitBreakerFactory> {
+//        return Customizer {
+//                factory -> factory.configureDefault {
+//                id -> Resilience4JConfigBuilder(id)
+//            .circuitBreakerConfig(CircuitBreakerConfig.ofDefaults())
+//            .timeLimiterConfig(
+//                TimeLimiterConfig
+//                            .custom()
+//                            .timeoutDuration(
+//                                //if after 22 seconds the application does not respond, it brakes
+//                                Duration.ofSeconds(22)
+//                            ).build()
+//            )
+//            .build()
+//        }
+//        }
+//    }
+
+    //handle service unavailability - circuit breaker definition
     @Bean
-    fun defaultCustomizer(): Customizer<ReactiveResilience4JCircuitBreakerFactory> {
-        return Customizer {
+    fun defaultCustomizer(): org.springframework.cloud.client.circuitbreaker.Customizer<ReactiveResilience4JCircuitBreakerFactory> {
+        return org.springframework.cloud.client.circuitbreaker.Customizer {
                 factory -> factory.configureDefault {
                 id -> Resilience4JConfigBuilder(id)
             .circuitBreakerConfig(CircuitBreakerConfig.ofDefaults())
-            .timeLimiterConfig(
-                TimeLimiterConfig
-                            .custom()
-                            .timeoutDuration(
-                                //if after 4 seconds the application does not respond, it brakes
-                                Duration.ofSeconds(4)
-                            ).build()
-            )
+            .timeLimiterConfig(TimeLimiterConfig.custom().timeoutDuration(Duration.ofSeconds(22)).build()) //requests that takes more than 15 seconds will open the circuit
             .build()
         }
         }

@@ -29,7 +29,7 @@ class WalletController(
         @PathVariable("walletId") walletId: Long
     ): WalletDTO = walletService.getWallet(walletId)
 
-    @PreAuthorize("#walletDTO.customerId == authentication.principal.id")
+//    @PreAuthorize("#walletDTO.customerId == authentication.principal.id")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createWallet(
