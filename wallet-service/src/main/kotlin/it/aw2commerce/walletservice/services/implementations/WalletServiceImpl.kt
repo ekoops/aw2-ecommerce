@@ -1,4 +1,4 @@
-package it.aw2commerce.walletservice.services.implementations;
+package it.aw2commerce.walletservice.services.implementations
 
 
 import it.aw2commerce.walletservice.domain.*
@@ -9,6 +9,7 @@ import it.aw2commerce.walletservice.dto.WalletDTO
 import it.aw2commerce.walletservice.dto.incoming.CreateTransactionRequestDTO
 import it.aw2commerce.walletservice.exceptions.transaction.TransactionFailedException
 import it.aw2commerce.walletservice.exceptions.transaction.TransactionNotFoundException
+import it.aw2commerce.walletservice.exceptions.wallet.CustomerAlreadyHasWalletException
 import it.aw2commerce.walletservice.exceptions.wallet.WalletNotFoundException
 import it.aw2commerce.walletservice.repositories.TransactionRepository
 import it.aw2commerce.walletservice.repositories.WalletRepository
@@ -40,6 +41,11 @@ class WalletServiceImpl(
      return walletRepository.getWalletByCustomerId(customerId) ?: throw WalletNotFoundException(id = customerId)
     }
 
+    private fun customerHasWallet(customerId: Long): Boolean {
+        return walletRepository.getWalletByCustomerId(customerId) != null
+    }
+
+
     override fun getCustomerIdFromWalletId(walletId: Long): Long? {
         try {
             return this.getWallet(walletId).customerId
@@ -57,6 +63,8 @@ class WalletServiceImpl(
 //            // Unprocessable entity 422
 //            throw CustomerNotFoundException(id = customerId)
 //        }
+
+        if (customerHasWallet(customerId)) throw CustomerAlreadyHasWalletException(customerId)
         val newWallet = Wallet(
             customerId = customerId,
             purchasingTransactions = emptySet(),
