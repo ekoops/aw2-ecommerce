@@ -8,5 +8,9 @@ eureka:
     fetch-registry: false
   server:
     enable-self-preservation: false
+    response-cache-update-interval-ms: 5000
 #    registry-sync-retry-wait-ms: 0
 
+spring:
+  application:
+    name: discovery-svc

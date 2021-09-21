@@ -21,6 +21,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-server")
+    // The eureka server needs this library to work; probably the creators forgot to add it
+    implementation("org.latencyutils:LatencyUtils:2.0.3")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
