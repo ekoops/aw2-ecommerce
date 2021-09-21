@@ -72,8 +72,6 @@ class WalletServiceImpl(
         purchasingWalletId: Long,
         createTransactionRequestDTO: CreateTransactionRequestDTO
     ): TransactionDTO {
-        // 404 if not present...
-        //TODO: actually admin must has a wallet
 
         val auth: Authentication = SecurityContextHolder.getContext().authentication
         val isAdmin = auth.authorities.first().authority.equals("ADMIN")

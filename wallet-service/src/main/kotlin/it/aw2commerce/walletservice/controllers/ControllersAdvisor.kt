@@ -1,5 +1,7 @@
 package it.aw2commerce.walletservice.controllers
 
+import io.jsonwebtoken.ClaimJwtException
+import io.jsonwebtoken.ExpiredJwtException
 import it.aw2commerce.walletservice.exceptions.*
 import it.aw2commerce.walletservice.exceptions.transaction.TransactionFailedException
 import it.aw2commerce.walletservice.exceptions.wallet.BasicApplicationException
@@ -20,6 +22,7 @@ import javax.validation.ConstraintViolationException
 
 @RestControllerAdvice
 class ControllersAdvisor {
+
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun typeMismatchException(ex: MethodArgumentTypeMismatchException): ErrorDetails {
@@ -64,6 +67,7 @@ class ControllersAdvisor {
         detail = "The method ${ex.method} not allowed"
     )
 
+
     @ExceptionHandler(MethodArgumentNotValidException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun methodArgumentNotValidExceptionHandler(ex: MethodArgumentNotValidException): FieldsValidationErrorDetails {
@@ -99,6 +103,15 @@ class ControllersAdvisor {
 //        detail = "Failed to authenticate with the provided credentials"
 //    )
 
+    //todo check
+    @ExceptionHandler(io.jsonwebtoken.ExpiredJwtException::class , ExpiredJwtException::class , ClaimJwtException::class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    fun expiredJwtException(ex: io.jsonwebtoken.ExpiredJwtException) : ErrorDetails = ErrorDetails(
+        type = ErrorType.UNAUTHORIZED,
+        title = "JWT",
+        detail = "JWT expired by ${ex.cause}"
+    )
+
     @ExceptionHandler(BadAuthenticationException::class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     fun badCredentialsExceptionHandler(ex: BadAuthenticationException) = ErrorDetails(
@@ -106,6 +119,10 @@ class ControllersAdvisor {
         title = "An internal server error occurred",
         detail = "This is a generic internal server error response"
     )
+
+
+
+
 
 //    @ExceptionHandler(UsernameNotFoundException::class)
 //    @ResponseStatus(HttpStatus.NOT_FOUND)

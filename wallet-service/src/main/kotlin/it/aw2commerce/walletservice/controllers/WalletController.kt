@@ -9,6 +9,7 @@ import it.aw2commerce.walletservice.exceptions.InvalidIntervalException
 import it.aw2commerce.walletservice.services.WalletService
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import java.time.Instant
 import java.time.LocalDateTime
@@ -35,12 +36,11 @@ class WalletController(
     fun createWallet(
         @Valid @RequestBody walletDTO: CreateWalletRequestDTO,
     ): WalletDTO {
-        println("CALLED")
         return walletService.createWallet(walletDTO.customerId)
     }
 
 
-    @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
+    @PreAuthorize("hasAuthority('ADMIN') or @walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
     @PostMapping("/{walletId}/transactions")
     @ResponseStatus(HttpStatus.CREATED)
     fun createTransaction(
