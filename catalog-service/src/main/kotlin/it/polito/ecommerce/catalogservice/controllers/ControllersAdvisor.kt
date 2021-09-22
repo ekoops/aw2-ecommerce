@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import org.springframework.web.server.ResponseStatusException
 import javax.validation.ConstraintViolationException
 
 @RestControllerAdvice
@@ -144,6 +145,14 @@ class ControllersAdvisor {
     fun accessDeniedExceptionHandler(ex: org.springframework.security.access.AccessDeniedException): ErrorDetails = ErrorDetails(
         type = ErrorType.FORBIDDEN,
         title = "Forbidden request",
+        detail = ex.message
+    )
+
+    @ExceptionHandler(ResponseStatusException::class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    fun serviceUnavailableExceptionHandler(ex: ResponseStatusException): ErrorDetails = ErrorDetails(
+        type = ErrorType.SERVICE_UNAVAILABLE,
+        title = "Service temporary unavailable",
         detail = ex.message
     )
 
