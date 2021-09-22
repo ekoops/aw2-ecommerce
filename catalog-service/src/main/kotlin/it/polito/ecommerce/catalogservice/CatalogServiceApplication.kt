@@ -9,11 +9,12 @@ import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JConfigB
 import org.springframework.cloud.client.circuitbreaker.Customizer
 import org.springframework.cloud.gateway.route.RouteLocator
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder
+import org.springframework.cloud.netflix.eureka.EnableEurekaClient
 //import org.springframework.cloud.netflix.eureka.EnableEurekaClient
 import org.springframework.context.annotation.Bean
 
 @SpringBootApplication
-//@EnableEurekaClient
+@EnableEurekaClient
 class CatalogServiceApplication
 
 fun main(args: Array<String>) {

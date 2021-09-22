@@ -1,6 +1,13 @@
 server:
   host:  localhost
   port: 8080
+  error:
+    include-message: always
+#  servlet:
+#    encoding:
+#      charset: UTF-8
+#      force-response: true
+
 eureka:
   instance:
     prefer-ip-address: true
@@ -21,40 +28,15 @@ spring:
     pool:
       enabled: true
       max-size: 10
-#  cloud:
-#    gateway:
-#      default-filters:
-#        - name: Retry
-#          args:
-#            retries: 3
-#            methods: GET
-#            series: SERVER_ERROR
-#            exceptions: java.io.IOException, java.util.concurrent.TimeoutException
-#            backoff:
-#              firstBackoff: 50ms
-#              maxBackOff: 500ms
-#              factor: 2
-#              basedOnPreviousValue: false
-  #      routes:
-#      - id: order-svc
-#        uri: lb://order-service
-#        predicates:
-#        - Path=/order-service/**
-#        filters:
-#        - RewritePath=/order-service,/order
-#        - Circ
-#      - id: wallet-svc
-#        uri: lb://wallet-service
-#        predicates:
-#        - Path=/wallet-service/**
-#        filters:
-#        - RewritePath=/wallet-service,/wallets
-#      - id: warehouse-svc
-#        uri: lb://warehouse-service
-#        predicates:
-#        - Path=/warehouse-service/**
-#        filters:
-#        - RewritePath=/warehouse-service,/warehouses
+  cloud:
+    discovery:
+      enabled: true
+    gateway:
+      discovery:
+        locator:
+          lower-case-service-id: true
+          enabled: true
+
   kafka:
     bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
     consumer:

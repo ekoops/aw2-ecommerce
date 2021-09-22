@@ -1,8 +1,11 @@
 package it.aw2commerce.walletservice.controllers
 
+import io.jsonwebtoken.ClaimJwtException
+import io.jsonwebtoken.ExpiredJwtException
 import it.aw2commerce.walletservice.exceptions.*
 import it.aw2commerce.walletservice.exceptions.transaction.TransactionFailedException
 import it.aw2commerce.walletservice.exceptions.wallet.BasicApplicationException
+import it.aw2commerce.walletservice.exceptions.security.BadAuthenticationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.HttpMediaTypeNotSupportedException
@@ -14,8 +17,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import javax.validation.ConstraintViolationException
 
+
+//TODO remove unused excepitions
+
 @RestControllerAdvice
 class ControllersAdvisor {
+
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun typeMismatchException(ex: MethodArgumentTypeMismatchException): ErrorDetails {
@@ -60,6 +67,7 @@ class ControllersAdvisor {
         detail = "The method ${ex.method} not allowed"
     )
 
+
     @ExceptionHandler(MethodArgumentNotValidException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun methodArgumentNotValidExceptionHandler(ex: MethodArgumentNotValidException): FieldsValidationErrorDetails {
@@ -94,14 +102,27 @@ class ControllersAdvisor {
 //        title = "Failed to authenticate",
 //        detail = "Failed to authenticate with the provided credentials"
 //    )
-//
-//    @ExceptionHandler(BadAuthenticationException::class)
-//    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-//    fun badCredentialsExceptionHandler(ex: BadAuthenticationException) = ErrorDetails(
-//        type = ErrorType.INTERNAL_ERROR,
-//        title = "An internal server error occurred",
-//        detail = "This is a generic internal server error response"
-//    )
+
+    //todo check
+    @ExceptionHandler(io.jsonwebtoken.ExpiredJwtException::class , ExpiredJwtException::class , ClaimJwtException::class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    fun expiredJwtException(ex: io.jsonwebtoken.ExpiredJwtException) : ErrorDetails = ErrorDetails(
+        type = ErrorType.UNAUTHORIZED,
+        title = "JWT",
+        detail = "JWT expired by ${ex.cause}"
+    )
+
+    @ExceptionHandler(BadAuthenticationException::class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    fun badCredentialsExceptionHandler(ex: BadAuthenticationException) = ErrorDetails(
+        type = ErrorType.INTERNAL_ERROR,
+        title = "An internal server error occurred",
+        detail = "This is a generic internal server error response"
+    )
+
+
+
+
 
 //    @ExceptionHandler(UsernameNotFoundException::class)
 //    @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -130,13 +151,13 @@ class ControllersAdvisor {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun basicApplicationExceptionHandler(ex: BasicApplicationException): ErrorDetails = ErrorDetails(ex)
 
-//    @ExceptionHandler(org.springframework.security.access.AccessDeniedException::class)
-//    @ResponseStatus(HttpStatus.FORBIDDEN)
-//    fun accessDeniedExceptionHandler(ex: org.springframework.security.access.AccessDeniedException): ErrorDetails = ErrorDetails(
-//        type = ErrorType.FORBIDDEN,
-//        title = "Forbidden request",
-//        detail = ex.message
-//    )
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException::class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    fun accessDeniedExceptionHandler(ex: org.springframework.security.access.AccessDeniedException): ErrorDetails = ErrorDetails(
+        type = ErrorType.FORBIDDEN,
+        title = "Forbidden request",
+        detail = ex.message
+    )
 
     // Generic exception handler
     @ExceptionHandler(Throwable::class)
