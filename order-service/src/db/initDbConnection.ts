@@ -5,12 +5,23 @@ import Logger from "../utils/Logger";
 
 const NAMESPACE = "ORDER-DB";
 
-const uri = `mongodb://${config.db.host}:${config.db.port}/${config.db.name}`;
+const initDbConnection = async () => {
+  // building uri from config parameters...
+  let uri = "mongodb://";
 
-let mongooseOptions: ConnectOptions = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-};
+  if (config.db.rsIsEnabled) {
+    for (let i = 1; i<=config.db.rsReplFact; i++) {
+      uri += `${config.db.host}-${config.db.rsName}-${i}:${config.db.port}/${config.db.name}`
+      if (i < config.db.rsReplFact) uri += ",";
+    }
+  }
+  else uri += `${config.db.host}:${config.db.port}/${config.db.name}`;
+
+  // building options...
+  let mongooseOptions: ConnectOptions = {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  };
 
 // if (config.environment === "production") {
   mongooseOptions = {
@@ -21,7 +32,6 @@ let mongooseOptions: ConnectOptions = {
   };
 // }
 
-const initDbConnection = async () => {
   const credentials = `${config.db.authSource}:${config.db.user}:${config.db.pass}`;
   const message = `trying to connect to ${uri} with credentials: ${credentials}`;
   Logger.dev(NAMESPACE, message);

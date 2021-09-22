@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  zookeeper:
+    image: zookeeper
+    container_name: zookeeper
+    #    ports:
+    #      - "2181:2181"
+    volumes:
+      - zookeeper-data:/data
+      - zookeeper-datalog:/datalog
+      - zookeeper-logs:/logs
+    networks:
+      - kafka-net
+    logging:
+      driver: none
+
+  kafka:
+    image: confluentinc/cp-kafka
+    container_name: kafka
+    #    ports:
+    #      - "9092:9092"
+    env_file:
+      - configs/kafka.env.prod
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - kafka-net
+      - communication-net
+    depends_on:
+      - zookeeper
+  #    logging:
+  #      driver: none
+
+  # kafka-connect:
+  #   image: debezium/connect
+  #   container_name: kafka-connect
+  #   ports:
+  #     - "8083:8083"
+  #   env_file:
+  #     - configs/kafka-connect.env.prod
+  #   volumes:
+  #     - ./volumes/kafka-connect/config:/kafka/config
+  #     - ./volumes/kafka-connect/data:/kafka/data
+  #     - ./volumes/kafka-connect/logs:/kafka/logs
+  #   networks:
+  #     - kafka-net
+  #   depends_on:
+  #     - kafka
+  #     - zookeeper

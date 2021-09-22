@@ -1,0 +1,15 @@
+version: "3.9"
+
+networks:
+  catalog-net:
+    name: catalog-net
+  wallet-net:
+    name: wallet-net
+  warehouse-net:
+    name: warehouse-net
+  order-net:
+    name: order-net
+  kafka-net:
+    name: kafka-net
+  communication-net:
+    name: communication-net

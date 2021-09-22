@@ -4,4 +4,4 @@
 envs
 volumes
 .DS_store
-configs
+docker-compose/configs
