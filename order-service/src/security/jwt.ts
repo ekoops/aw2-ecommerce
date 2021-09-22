@@ -2,7 +2,7 @@ import { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import Logger from "../utils/Logger";
 import { toUserRole, User } from "../dtos/DTOs";
-import { UnauthorizedException } from "../exceptions/exceptions";
+import {UnauthorizedException} from "../exceptions/AuthException";
 
 const NAMESPACE = "JWT";
 

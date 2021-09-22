@@ -1,10 +1,12 @@
 {
-  "name": "aw2-ecommerce-order-service-cleaner",
+  "name": "order-service-cleaner",
   "version": "1.0.0",
   "description": "The order service cleaner module of the aw2-ecommerce project",
   "main": "src/main.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon -r dotenv/config src/main.ts dotenv_config_path=./dev.env",
+    "build": "tsc && cp package*.json build",
+    "docker": "docker build -f Dockerfile -t aw2-ecommerce/order-svc-cleaner:latest build/"
   },
   "repository": {
     "type": "git",

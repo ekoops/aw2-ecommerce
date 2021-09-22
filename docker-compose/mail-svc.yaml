@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  mail-svc:
+    image: aw2-ecommerce/mail-svc
+    container_name: mail-svc
+    build:
+      dockerfile: ../Dockerfile # relative to the build context
+      context: ../mail-service/build
+    restart: always
+    env_file:
+      - configs/mail-svc.env.prod
+    ports:
+      - "8083:8083"
+    networks:
+      - communication-net
+    depends_on:
+      - kafka
+  #      - discovery-svc

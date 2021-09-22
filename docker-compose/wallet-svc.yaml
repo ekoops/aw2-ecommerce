@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  wallet-svc:
+    image: aw2-ecommerce/wallet-svc
+    container_name: wallet-svc
+    build:
+      dockerfile: ../../Dockerfile # relative to the build context
+      context: ../wallet-service/build/libs
+    env_file:
+      - configs/wallet-svc.env.prod
+    #    ports:
+    #      - "4000:4000"
+    networks:
+      - wallet-net
+      - communication-net
+    depends_on:
+      - wallet-db
+      - kafka
+    #      - discovery-svc
+    #    logging:
+    #      driver: none
+
+  wallet-db:
+    image: mariadb
+    container_name: wallet-db
+    restart: always
+    env_file:
+      - configs/wallet-db.env.prod
+    #    ports:
+    #      - "3306:3306"
+#    volumes:
+#      - wallet-db-data:/var/lib/mysql
+    networks:
+      - wallet-net
+    logging:
+      driver: none

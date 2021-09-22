@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  discovery-svc:
+    image: aw2-ecommerce/discovery-svc
+    container_name: discovery-svc
+    build:
+      dockerfile: ../../Dockerfile # relative to the build context
+      context: ../discovery-service/build/libs
+    ports:
+      - "8761:8761"
+    networks:
+      - communication-net
+  #    logging:
+  #      driver: none

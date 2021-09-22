@@ -12,6 +12,9 @@ const db_pass = process.env.DB_PASS || "pass";
 const db_auth_source = process.env.DB_AUTH_SOURCE || "auth_source";
 const db_host = process.env.DB_HOST || "localhost";
 const db_port = process.env.DB_PORT || 27017;
+const db_rs_enabled = process.env.DB_RS_ENABLED || false;
+const db_rs_name = process.env.DB_RS_NAME || "";
+const db_rs_repl_fact = process.env.DB_RS_REPL_FACT || 0;
 
 const kafka_host = process.env.KAFKA_HOST || "kafka";
 const kafka_port = process.env.KAFKA_PORT || 9092;
@@ -49,6 +52,9 @@ const config = {
     authSource: db_auth_source,
     host: db_host,
     port: +db_port,
+    rsIsEnabled: !!db_rs_enabled,
+    rsName: db_rs_name,
+    rsReplFact: +db_rs_repl_fact
   },
   kafka: {
     host: kafka_host,

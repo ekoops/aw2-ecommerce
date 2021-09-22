@@ -1,0 +1,29 @@
+version: "3.9"
+
+volumes:
+  catalog-db-data:
+    name: catalog-db-data
+
+  zookeeper-data:
+    name: zookeeper-data
+  zookeeper-datalog:
+    name: zookeeper-datalog
+  zookeeper-logs:
+    name: zookeeper-logs
+
+  kafka-data:
+    name: kafka-data
+
+  order-db-keys:
+  order-db-rs0-1-data:
+    name: order-db-rs0-1-data
+  order-db-rs0-2-data:
+    name: order-db-rs0-2-data
+  order-db-rs0-3-data:
+    name: order-db-rs0-3-data
+
+  wallet-db-data:
+    name: wallet-db-data
+
+  warehouse-db-data:
+    name: warehouse-db-data

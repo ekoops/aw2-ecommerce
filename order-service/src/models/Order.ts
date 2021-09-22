@@ -70,4 +70,4 @@ const orderSchema = new mongoose.Schema<Order>(
   { timestamps: true }
 );
 
-export const OrderModel = mongoose.model<Order>("Order", orderSchema);
+export const OrderModel = mongoose.model<Order>("Order", orderSchema, "orders");
