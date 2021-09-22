@@ -7,7 +7,7 @@ import {
 } from "../db/OrderStatus";
 import FailureWrapper from "./FailureWrapper";
 import ProducerProxy from "../kafka/ProducerProxy";
-import { force, generateUUID } from "../utils/utils";
+import { generateUUID } from "../utils/utils";
 import RequestStore, {
   FailurePayload,
   SuccessPayload,
@@ -28,7 +28,6 @@ import {
   NotAllowedException,
   UnauthorizedException,
 } from "../exceptions/AuthException";
-import { CannotProduceException } from "../exceptions/kafka/communication/ProducerException";
 import {
   OrderAlreadyCancelledException,
   OrderNotExistException,
@@ -196,7 +195,7 @@ export default class OrderService {
   approveOrder = async (
     message: SuccessPayload
   ): Promise<OrderDTO | FailureWrapper> => {
-    const { key: transactionId, value: orderDTO } = message;
+    const { value: orderDTO } = message;
 
     // preparing order object
     const transientOrder: Order | null = OrderUtility.buildOrder(orderDTO);
@@ -207,8 +206,9 @@ export default class OrderService {
     try {
       persistedOrder = await this.orderRepository.createOrder(transientOrder);
     } catch (ex) {
+
       // The exception can only be of type OrderCreationFailedException
-      Logger.dev(NAMESPACE, `approveOrder(err: ${ex.constructor.name})`);
+      Logger.dev(NAMESPACE, `approveOrder(err: ${(ex as FailurePayload).constructor.name})`);
       return new FailureWrapper("Order creation failed");
     }
 
@@ -254,7 +254,7 @@ export default class OrderService {
     } catch (ex) {
       Logger.dev(
         NAMESPACE,
-        `createOrder(response error: ${ex.constructor.name})`
+        `createOrder(response error: ${(ex as FailurePayload).constructor.name})`
       );
       return new FailureWrapper("Order creation failed");
     }

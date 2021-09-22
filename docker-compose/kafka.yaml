@@ -12,8 +12,6 @@ services:
       - zookeeper-logs:/logs
     networks:
       - kafka-net
-    logging:
-      driver: none
 
   kafka:
     image: confluentinc/cp-kafka
@@ -29,22 +27,20 @@ services:
       - communication-net
     depends_on:
       - zookeeper
-  #    logging:
-  #      driver: none
 
-  # kafka-connect:
-  #   image: debezium/connect
-  #   container_name: kafka-connect
-  #   ports:
-  #     - "8083:8083"
-  #   env_file:
-  #     - configs/kafka-connect.env.prod
-  #   volumes:
-  #     - ./volumes/kafka-connect/config:/kafka/config
-  #     - ./volumes/kafka-connect/data:/kafka/data
-  #     - ./volumes/kafka-connect/logs:/kafka/logs
-  #   networks:
-  #     - kafka-net
-  #   depends_on:
-  #     - kafka
-  #     - zookeeper
+  kafka-connect:
+    image: debezium/connect
+    container_name: kafka-connect
+    ports:
+     - "8083:8083"
+    env_file:
+     - configs/kafka-connect.env.prod
+    networks:
+     - kafka-net
+     - order-net
+    depends_on:
+     - kafka
+     - zookeeper
+#     - order-db-rs0-1
+#     - order-db-rs0-2
+#     - order-db-rs0-3
