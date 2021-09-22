@@ -5,7 +5,7 @@ services:
     image: aw2-ecommerce/catalog-svc
     container_name: catalog-svc
     build:
-      dockerfile: ../catalog-service/Dockerfile # relative to the build context
+      dockerfile: ../../Dockerfile # relative to the build context
       context: ../catalog-service/build/libs
     env_file:
       - configs/catalog-svc.env.prod

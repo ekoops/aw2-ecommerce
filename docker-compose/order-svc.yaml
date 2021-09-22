@@ -5,7 +5,7 @@ services:
     image: aw2-ecommerce/order-svc
     container_name: order-svc
     build:
-      dockerfile: ../order-service/Dockerfile # relative to the build context
+      dockerfile: ../Dockerfile # relative to the build context
       context: ../order-service/build
     #    restart: always
     env_file:
@@ -36,11 +36,17 @@ services:
   #   depends_on:
   #     - order-db
 
+  order-db-keys:
+    image: depop/openssl-bats
+    volumes:
+      - order-db-keys:/mongo-conf
+    command: 'bash -c "openssl rand -base64 741 > /mongo-conf/order-db-keyfile; chmod 600 /mongo-conf/order-db-keyfile; chown 999 /mongo-conf/order-db-keyfile"'
+
   order-db-initer:
     image: aw2-ecommerce/order-db-initer
     container_name: order-db-initer
     build:
-      dockerfile: ../Dockerfile # relative to the build context
+#      dockerfile: ../Dockerfile # relative to the build context
       context: ../order-db-initer
     #    restart: always
     env_file:
@@ -62,15 +68,13 @@ services:
     #      - "27017:27017"
     volumes:
       - order-db-rs0-1-data:/data/db
-    command: --replSet rs0 --oplogSize 1024
+      - order-db-keys:/opt/keyfile
+    command: --keyFile /opt/keyfile/order-db-keyfile --replSet rs0 --oplogSize 1024
     networks:
       - order-net
       - kafka-net
     depends_on:
-      - order-db-rs0-2
-      - order-db-rs0-3
-    logging:
-      driver: none
+      - order-db-keys
 
   order-db-rs0-2:
     image: "mongo:5.0.2"
@@ -82,12 +86,13 @@ services:
     #      - "27018:27017"
     volumes:
       - order-db-rs0-2-data:/data/db
-    command: --replSet rs0 --oplogSize 128
+      - order-db-keys:/opt/keyfile
+    command: --keyFile /opt/keyfile/order-db-keyfile --replSet rs0 --oplogSize 128
     networks:
       - order-net
       - kafka-net
-    logging:
-      driver: none
+    depends_on:
+      - order-db-keys
 
   order-db-rs0-3:
     image: "mongo:5.0.2"
@@ -99,9 +104,10 @@ services:
     #      - "27019:27017"
     volumes:
       - order-db-rs0-3-data:/data/db
-    command: --replSet rs0 --oplogSize 128
+      - order-db-keys:/opt/keyfile
+    command: --keyFile /opt/keyfile/order-db-keyfile --replSet rs0 --oplogSize 128
     networks:
       - order-net
       - kafka-net
-    logging:
-      driver: none
+    depends_on:
+      - order-db-keys

@@ -11,9 +11,10 @@ const initDbConnection = async () => {
 
   if (config.db.rsIsEnabled) {
     for (let i = 1; i<=config.db.rsReplFact; i++) {
-      uri += `${config.db.host}-${config.db.rsName}-${i}:${config.db.port}/${config.db.name}`
+      uri += `${config.db.host}-${config.db.rsName}-${i}:${config.db.port}`
       if (i < config.db.rsReplFact) uri += ",";
     }
+    uri += `/${config.db.name}`
   }
   else uri += `${config.db.host}:${config.db.port}/${config.db.name}`;
 

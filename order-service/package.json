@@ -1,5 +1,5 @@
 {
-  "name": "aw2-ecommerce-order-service",
+  "name": "order-service",
   "version": "1.0.0",
   "description": "The order service module of the aw2-ecommerce project",
   "main": "src/server.ts",

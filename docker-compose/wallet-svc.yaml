@@ -5,7 +5,7 @@ services:
     image: aw2-ecommerce/wallet-svc
     container_name: wallet-svc
     build:
-      dockerfile: ../wallet-service/Dockerfile # relative to the build context
+      dockerfile: ../../Dockerfile # relative to the build context
       context: ../wallet-service/build/libs
     env_file:
       - configs/wallet-svc.env.prod

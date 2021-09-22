@@ -5,7 +5,7 @@ services:
     image: aw2-ecommerce/mail-svc
     container_name: mail-svc
     build:
-      dockerfile: ../mail-service/Dockerfile # relative to the build context
+      dockerfile: ../Dockerfile # relative to the build context
       context: ../mail-service/build
     restart: always
     env_file:
