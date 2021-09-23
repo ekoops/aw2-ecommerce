@@ -27,8 +27,8 @@ create table if not exists `catalog-db`.`customer`(
     on update restrict
     );
 
-INSERT INTO `catalog-db`.`user`(id, username, email, password, is_enabled, is_locked, roles)
-    VALUES (1, "peppe1", "peppe1@yopmail.com", "{bcrypt}$2a$10$4UkJEJ3UQCZEeSUt/zoMC.j3YyxkPFS5j8mheomTIL0W8Q7vx/ta2", 1, 0, "CUSTOMER");
+INSERT IGNORE INTO `catalog-db`.`user`(username, email, password, is_enabled, is_locked, roles)
+    VALUES ("peppe1", "peppe1@yopmail.com", "{bcrypt}$2a$10$4UkJEJ3UQCZEeSUt/zoMC.j3YyxkPFS5j8mheomTIL0W8Q7vx/ta2", 1, 0, "CUSTOMER");
 
-INSERT INTO `catalog-db`.`user`(id, username, email, password, is_enabled, is_locked, roles)
-    VALUES (2, "peppe2", "peppe2@yopmail.com", "{bcrypt}$2a$10$4UkJEJ3UQCZEeSUt/zoMC.j3YyxkPFS5j8mheomTIL0W8Q7vx/ta2", 1, 0, "ADMIN");
+INSERT IGNORE INTO `catalog-db`.`user`(username, email, password, is_enabled, is_locked, roles)
+    VALUES ("peppe2", "peppe2@yopmail.com", "{bcrypt}$2a$10$4UkJEJ3UQCZEeSUt/zoMC.j3YyxkPFS5j8mheomTIL0W8Q7vx/ta2", 1, 0, "ADMIN");
