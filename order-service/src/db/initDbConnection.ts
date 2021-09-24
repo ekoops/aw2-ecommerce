@@ -47,6 +47,7 @@ const initDbConnection = async () => {
     );
   } catch (ex) {
     // handling initial connection fail
+    // @ts-ignore
     Logger.error(NAMESPACE, `failed to initiate the connection: ${ex.message}`);
     throw new DbConnectionFailedException();
   }

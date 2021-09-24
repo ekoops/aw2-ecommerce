@@ -5,7 +5,9 @@ create table if not exists `catalog-db`.`user`(
     password VARCHAR (255) not null,
     is_enabled TINYINT(1) not null,
     is_locked TINYINT(1) not null,
-    roles VARCHAR (255) not null
+    roles VARCHAR (255) not null,
+    constraint username_unique unique (username),
+    constraint email_unique unique (email)
 );
 
 create table if not exists `catalog-db`.`email_verification_token`(
@@ -27,8 +29,15 @@ create table if not exists `catalog-db`.`customer`(
     on update restrict
     );
 
-INSERT IGNORE INTO `catalog-db`.`user`(username, email, password, is_enabled, is_locked, roles)
-    VALUES ("peppe1", "peppe1@yopmail.com", "{bcrypt}$2a$10$4UkJEJ3UQCZEeSUt/zoMC.j3YyxkPFS5j8mheomTIL0W8Q7vx/ta2", 1, 0, "CUSTOMER");
+INSERT IGNORE INTO `catalog-db`.`user`(id, username, email, password, is_enabled, is_locked, roles)
+    VALUES (1, "user1", "user1@yopmail.com", "{bcrypt}$2a$10$4UkJEJ3UQCZEeSUt/zoMC.j3YyxkPFS5j8mheomTIL0W8Q7vx/ta2", 1, 0, "ADMIN,CUSTOMER");
+INSERT IGNORE INTO `catalog-db`.`customer`(id, name, surname, delivery_address)
+    VALUES(1, "user1_name", "user1_surname", "user1_delivery_address");
 
-INSERT IGNORE INTO `catalog-db`.`user`(username, email, password, is_enabled, is_locked, roles)
-    VALUES ("peppe2", "peppe2@yopmail.com", "{bcrypt}$2a$10$4UkJEJ3UQCZEeSUt/zoMC.j3YyxkPFS5j8mheomTIL0W8Q7vx/ta2", 1, 0, "ADMIN");
+INSERT IGNORE INTO `catalog-db`.`user`(id, username, email, password, is_enabled, is_locked, roles)
+    VALUES (2, "user2", "user2@yopmail.com", "{bcrypt}$2a$10$4UkJEJ3UQCZEeSUt/zoMC.j3YyxkPFS5j8mheomTIL0W8Q7vx/ta2", 1, 0, "ADMIN");
+
+INSERT IGNORE INTO `catalog-db`.`user`(id, username, email, password, is_enabled, is_locked, roles)
+    VALUES (3, "user3", "user3@yopmail.com", "{bcrypt}$2a$10$4UkJEJ3UQCZEeSUt/zoMC.j3YyxkPFS5j8mheomTIL0W8Q7vx/ta2", 1, 0, "CUSTOMER");
+INSERT IGNORE INTO `catalog-db`.`customer`(id, name, surname, delivery_address)
+    VALUES(3, "user3_name", "user3_surname", "user3_delivery_address");

@@ -12,4 +12,4 @@ docker-compose \
  -f $d/volumes.yaml \
  -f $d/wallet-svc.yaml \
  -f $d/warehouse-svc.yaml \
- down
+ down "$@"

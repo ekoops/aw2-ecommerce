@@ -12,6 +12,9 @@ import {NotAllowedException, UnauthorizedException} from "../exceptions/AuthExce
 import {OrderItemDTO} from "../models/OrderItem";
 import {OrderDTO} from "../models/Order";
 import {OrderAlreadyCancelledException, OrderNotExistException} from "../exceptions/services/OrderServiceException";
+import OrderNotFoundResponse from "../responses/OrderNotFoundResponse";
+import UnauthorizedResponse from "../responses/UnauthorizedResponse";
+import OrderCancellationNotAllowedResponse from "../responses/OrderCancellationNotAllowedResponse";
 
 const NAMESPACE = "ORDER_CONTROLLER";
 
@@ -26,9 +29,14 @@ export default class OrderController {
 
   getOrders = async (req: Request, res: Response, next: NextFunction) => {
     const user: User = res.locals.user;
-    Logger.dev(NAMESPACE, `request for service: getOrders(user: ${user}`);
-    const orders = await this.orderService.getOrders(user as GetOrdersRequestDTO);
-    res.status(200).json(orders);
+    Logger.dev(NAMESPACE, `request for service: getOrders(user: ${JSON.stringify(user)}...`);
+    try {
+      const orders = await this.orderService.getOrders(user as GetOrdersRequestDTO);
+      res.status(200).json(orders);
+    }
+    catch (ex) {
+      next(ex);
+    }
   };
 
   getOrder = async (req: Request, res: Response, next: NextFunction) => {
@@ -41,7 +49,7 @@ export default class OrderController {
     try {
       Logger.dev(
           NAMESPACE,
-          `request for service: getOrder(getOrderRequestDTO: ${getOrderRequestDTO}`
+          `request for service: getOrder(getOrderRequestDTO: ${JSON.stringify(getOrderRequestDTO)}...`
       );
       const order = await this.orderService.getOrder(getOrderRequestDTO);
       if (order === null) res.status(404).json();
@@ -51,7 +59,7 @@ export default class OrderController {
         res.status(401).end();
       } else if (ex instanceof OrderNotExistException) {
         res.status(404).end();
-      } else throw ex;
+      } else next(ex);
     }
   };
 
@@ -77,7 +85,7 @@ export default class OrderController {
       if (ex instanceof UnauthorizedException) {
 
       }
-      else throw ex;
+      else next(ex);
     }
   };
 
@@ -98,7 +106,7 @@ export default class OrderController {
     try {
       Logger.dev(
         NAMESPACE,
-        `request for service: modifyOrderStatus(modifyOrderStatusRequestDTO: ${modifyOrderStatusRequestDTO}`
+        `request for service: modifyOrderStatus(modifyOrderStatusRequestDTO: ${JSON.stringify(modifyOrderStatusRequestDTO)}...`
       );
       const updatedOrder = await this.orderService.modifyOrderStatus(
         modifyOrderStatusRequestDTO
@@ -111,7 +119,7 @@ export default class OrderController {
         res.status(404).end();
       } else if (ex instanceof NotAllowedException) {
         res.status(403).end();
-      } else throw ex;
+      } else next(ex);
     }
   };
 
@@ -125,20 +133,20 @@ export default class OrderController {
     try {
       Logger.dev(
         NAMESPACE,
-        `request for service: deleteOrder(deleteRequestDTO: ${deleteOrderRequestDTO}`
+        `request for service: deleteOrder(deleteRequestDTO: ${JSON.stringify(deleteOrderRequestDTO)}...`
       );
       await this.orderService.deleteOrder(deleteOrderRequestDTO);
       res.status(204).end();
     } catch (ex) {
       if (ex instanceof OrderNotExistException) {
-        res.status(404).end();
+        res.status(404).json(new OrderNotFoundResponse(orderId));
       } else if (ex instanceof UnauthorizedException) {
-        res.status(401).end();
+        res.status(401).json(new UnauthorizedResponse());
       } else if (ex instanceof OrderAlreadyCancelledException) {
         res.status(204).end();
       } else if (ex instanceof NotAllowedException) {
-        res.status(403).end();
-      } else throw ex;
+        res.status(403).end(new OrderCancellationNotAllowedResponse(orderId));
+      } else next(ex);
     }
   };
 }

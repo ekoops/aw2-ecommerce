@@ -15,11 +15,10 @@ import it.polito.ecommerce.catalogservice.exceptions.user.customer.InconsistentC
 import it.polito.ecommerce.catalogservice.exceptions.user.emailverificationtoken.EmailVerificationTokenExpiredException
 import it.polito.ecommerce.catalogservice.kafka.dispatch
 import it.polito.ecommerce.catalogservice.repositories.CoroutineUserRepository
-import it.polito.ecommerce.catalogservice.repositories.CustomerRepository
+import it.polito.ecommerce.catalogservice.repositories.CoroutineCustomerRepository
 import it.polito.ecommerce.catalogservice.repositories.UserRepository
 import it.polito.ecommerce.catalogservice.services.NotificationService
 import org.apache.kafka.common.KafkaException
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.mail.MailException
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
@@ -37,7 +36,7 @@ import java.time.LocalDateTime
 class UserDetailsServiceImpl(
     private val userRepository: UserRepository,
     private val coroutineUserRepository: CoroutineUserRepository,
-    private val customerRepository: CustomerRepository,
+    private val coroutineCustomerRepository: CoroutineCustomerRepository,
     private val notificationService: NotificationService,
     private val passwordEncoder: PasswordEncoder,
     private val kafkaTemplate: KafkaTemplate<String, UserCreatedDTO>
@@ -89,7 +88,7 @@ class UserDetailsServiceImpl(
                 deliveryAddress = userDTO.deliveryAddress,
                 user = createdUser
             )
-            createdCustomer = customerRepository.save(customer)
+            createdCustomer = coroutineCustomerRepository.save(customer)
         } catch (ex: Exception) {
             println(ex.message)
             coroutineUserRepository.delete(createdUser)

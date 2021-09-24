@@ -20,6 +20,7 @@ import initTopics from "./kafka/initTopics";
 import { retry } from "./utils/utils";
 import Logger from "./utils/Logger";
 import OrderService from "./services/OrderService";
+import EurekaClient from "./discovery/eureka";
 
 const NAMESPACE = "SERVER";
 
@@ -42,10 +43,7 @@ const run = async () => {
   const producerProxy = new ProducerProxy(producer);
 
   const orderRepository = OrderRepository.getInstance(OrderModel);
-  const orderService = OrderService.getInstance(
-    orderRepository,
-    producerProxy
-  );
+  const orderService = OrderService.getInstance(orderRepository, producerProxy);
   const orderController = OrderController.getInstance(orderService);
 
   await initTopics(admin);
@@ -57,14 +55,16 @@ const run = async () => {
   const app = await getApp(rootPath, orderController, producerProxy);
   app.listen(webServerPort, async () => {
     Logger.log(NAMESPACE, `Server is listening on port ${webServerPort}`);
-    // try {
-    //   await initEurekaClient();
-    //   Logger.dev(NAMESPACE, "connected successfully");
-    // }
-    // catch (ex) {
-    //   Logger.error(NAMESPACE, "cannot establish a connection to the discovery service");
-    //   process.exit(6);
-    // }
+    EurekaClient.start((err: Error) => {
+      if (err) {
+        Logger.error(
+          NAMESPACE,
+          `cannot establish a connection to the discovery service: ${err.message}`
+        );
+        process.exit(7);
+      }
+      Logger.dev(NAMESPACE, `connected successfully to the discovery service`);
+    });
   });
 };
 

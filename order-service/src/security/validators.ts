@@ -1,34 +1,36 @@
 import {
-  param,
   body,
-  ValidationChain,
-  validationResult,
+  param,
   Result,
+  ValidationChain,
   ValidationError,
+  validationResult,
 } from "express-validator";
 import mongoose from "mongoose";
-import { NextFunction, Request, RequestHandler, Response } from "express";
-import { OrderStatus, toOrderStatus } from "../db/OrderStatus";
+import { NextFunction, Request, Response } from "express";
+import { toOrderStatus } from "../db/OrderStatus";
+import {
+  FieldErrorReasons,
+  FieldsValidationErrorResponse,
+} from "../responses/ErrorResponse";
 
 interface Validators {
   [key: string]: ValidationChain[];
 }
 
 const formatError = (errors: Result<ValidationError>) => {
-  return {
-    code: 400,
-    name: "INVALID_FIELDS",
-    messages: errors
-      .array()
-      .map((err) => ({ field: err.param, message: err.msg })),
-  };
+  // for each field, create a FieldErrorReasons object containing all the reasons
+  const invalidFields: FieldErrorReasons[] = errors
+    .array()
+    .map((err) => new FieldErrorReasons(err.param, err.msg));
+  // wrap the FieldErrorReasons array into a suitable ErrorResponse instance
+  return new FieldsValidationErrorResponse(invalidFields);
 };
 
 const checkErrors = (req: Request, res: Response, next: NextFunction) => {
   const validationErrors = validationResult(req);
   if (!validationErrors.isEmpty()) {
     const error = formatError(validationErrors);
-    console.log(JSON.stringify(error.messages, null, " "));
     return next(error);
   } else return next();
 };
@@ -45,7 +47,6 @@ const validators: Validators = {
   getOrders: [],
   getOrder: [validateId(param("id"))],
   postOrder: [
-    // validateId(body("buyerId")),
     body("deliveryAddress")
       .isString()
       .withMessage("A valid delivery address must be specified"),

@@ -26,7 +26,7 @@ export const toUserRole = (key: string): UserRole | undefined => {
 }
 
 export interface User {
-    id: string;
+    id: number;
     role: UserRole;
     deliveryAddress: string;
 }

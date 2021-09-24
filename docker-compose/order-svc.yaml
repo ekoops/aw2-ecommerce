@@ -10,37 +10,39 @@ services:
     #    restart: always
     env_file:
       - configs/order-svc.env.prod
-    ports:
-      - "3000:3000"
+#    ports:
+#      - "3000:3000"
     networks:
       - order-net
       - communication-net
     depends_on:
       - kafka
       - kafka-connect
+#      - order-db-initer
       - order-db-rs0-1
       - order-db-rs0-2
       - order-db-rs0-3
-  #      - discovery-svc
+      - discovery-svc
 
-  # order-svc-cleaner:
-  #   image: aw2-ecommerce/order-svc-cleaner
-  #   container_name: order-svc-cleaner
-  #   build:
-  #     dockerfile: ../Dockerfile # relative to the build context
-  #     context: ./order-service-cleaner/build
-  #   #    restart: always
-  #   env_file:
-  #     - configs/order-svc-cleaner.env.prod
-  #   ports:
-  #     - "3000:3000"
-  #   networks:
-  #     - order-net
-  #   depends_on:
-  #     - order-db
+  order-svc-cleaner:
+    image: aw2-ecommerce/order-svc-cleaner
+    container_name: order-svc-cleaner
+    build:
+     dockerfile: ../Dockerfile # relative to the build context
+     context: ../order-service-cleaner/build
+    #    restart: always
+    env_file:
+      - configs/order-svc-cleaner.env.prod
+    networks:
+      - order-net
+    depends_on:
+      - order-db-rs0-1
+      - order-db-rs0-2
+      - order-db-rs0-3
 
   order-db-keys:
     image: depop/openssl-bats
+    container_name: order-db-keys
     volumes:
       - order-db-keys:/mongo-conf
     command: 'bash -c "openssl rand -base64 741 > /mongo-conf/order-db-keyfile; chmod 600 /mongo-conf/order-db-keyfile; chown 999 /mongo-conf/order-db-keyfile"'

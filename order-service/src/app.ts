@@ -1,9 +1,10 @@
 import getOrderRoutes from "./routes/orderRoutes";
-import ErrorResponse from "./ErrorResponse";
 import express, { ErrorRequestHandler, RequestHandler } from "express";
 import morgan from "morgan";
 import OrderController from "./controllers/OrderController";
 import ProducerProxy from "./kafka/ProducerProxy";
+import { ErrorResponse } from "./responses/ErrorResponse";
+import ErrorType from "./responses/ErrorType";
 
 const getApp = async (
   rootPath: string,
@@ -21,12 +22,12 @@ const getApp = async (
   app.post(producePath, async (req, res, next) => {
     const { topic, key, message } = req.body;
     producerProxy.producer
-        .produce({
-          topic,
-          messages: [{ key: key, value: JSON.stringify(message) }],
-        })
-        .then((recordMetadata) => res.status(200).json(recordMetadata))
-        .catch((err) => res.status(200).json(err));
+      .produce({
+        topic,
+        messages: [{ key: key, value: JSON.stringify(message) }],
+      })
+      .then((recordMetadata) => res.status(200).json(recordMetadata))
+      .catch((err) => res.status(200).json(err));
   });
 
   app.get(statusPath, (req, res) => {
@@ -38,18 +39,25 @@ const getApp = async (
 
   app.use(orderPath, orderRoutes);
 
-
+  const notFoundError = new ErrorResponse(
+      ErrorType.ROUTE_NOT_FOUND,
+      "route not found",
+  );
   const notFoundHandler: RequestHandler = (req, res, next) => {
-    const notFoundError = new ErrorResponse(404, "route not found");
-    next(notFoundError);
+    res.status(404).json(notFoundError);
   };
 
-  const internalServerError = new ErrorResponse(500, "internal server error");
+  const internalServerError = new ErrorResponse(
+    ErrorType.INTERNAL_ERROR,
+    "an internal server error occurred",
+    "this is a generic internal server error response"
+  );
   const exceptionHandler: ErrorRequestHandler = (err, req, res, next) => {
     if (!(err instanceof ErrorResponse)) {
-      err = internalServerError;
+      res.status(500).json(internalServerError);
     }
-    res.status(err.code).json(err);
+
+    res.status(400).json(err);
   };
 
   app.use(notFoundHandler, exceptionHandler);
