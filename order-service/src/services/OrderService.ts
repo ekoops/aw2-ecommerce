@@ -1,10 +1,6 @@
 import OrderRepository from "../repositories/OrderRepository";
-import { Order, OrderDTO } from "../models/Order";
-import {
-  OrderStatus,
-  toOrderStatus,
-  toOrderStatusName,
-} from "../db/OrderStatus";
+import { Order, OrderDTO } from "../domain/Order";
+import { OrderStatus } from "../domain/OrderStatus";
 import FailureWrapper from "./FailureWrapper";
 import ProducerProxy from "../kafka/ProducerProxy";
 import { generateUUID } from "../utils/utils";
@@ -12,17 +8,7 @@ import RequestStore, {
   FailurePayload,
   SuccessPayload,
 } from "../kafka/RequestStore";
-import {
-  CreateOrderRequestDTO,
-  ApprovationDTO,
-  Approver,
-  DeleteOrderRequestDTO,
-  GetOrderRequestDTO,
-  GetOrdersRequestDTO,
-  ModifyOrderStatusRequestDTO,
-  toApprover,
-  UserRole,
-} from "../dtos/DTOs";
+import { ApprovationDTO, Approver, toApprover } from "../dtos/ApproverDTO";
 import Logger from "../utils/Logger";
 import {
   NotAllowedException,
@@ -34,6 +20,13 @@ import {
 } from "../exceptions/services/OrderServiceException";
 import OrderUtility from "../utils/OrderUtility";
 import { CommunicationException } from "../exceptions/kafka/communication/CommunicationException";
+import GetOrdersRequestDTO from "../dtos/GetOrdersRequestDTO";
+import { UserRole } from "../domain/User";
+import GetOrderRequestDTO from "../dtos/GetOrderRequestDTO";
+import CreateOrderRequestDTO from "../dtos/CreateOrderRequestDTO";
+import ModifyOrderStatusRequestDTO from "../dtos/ModifyOrderStatusRequestDTO";
+import CancelOrderRequestDTO from "../dtos/CancelOrderRequestDTO";
+import OrderStatusUtility from "../utils/OrderStatusUtility";
 
 const NAMESPACE = "ORDER_SERVICE";
 
@@ -57,51 +50,58 @@ export default class OrderService {
     );
   }
 
+  /*
+   * This service method returns all user's orders if the user is a CUSTOMER,
+   * otherwise, if the user is an ADMIN, it returns all stored orders
+   */
   getOrders = async (
     getOrdersRequestDTO: GetOrdersRequestDTO
   ): Promise<OrderDTO[]> => {
+    Logger.dev(
+      NAMESPACE,
+      "request for service: getOrders(user: _)...",
+      getOrdersRequestDTO
+    );
+
     const { role: userRole, id: userId } = getOrdersRequestDTO;
 
-    const buyerId = userRole === UserRole.CUSTOMER ? userId : undefined;
-    const orders = await this.orderRepository.findOrders(buyerId); // can throw
+    const orders = await (userRole === UserRole.CUSTOMER
+      ? this.orderRepository.findUserOrders(userId)
+      : this.orderRepository.findOrders());
     const ordersDTO = orders.map(OrderUtility.toOrderDTO);
-    Logger.dev(NAMESPACE, `getOrders(): ${JSON.stringify(ordersDTO)}`);
+    Logger.dev(NAMESPACE, "getOrders(): _", ordersDTO);
 
     return ordersDTO;
   };
 
+  /*
+   * If the user is an ADMIN, this service method returns the order with the
+   * specified id (or null if it not exist). If the user is a CUSTOMER, this service
+   * method returns the order with the specified id only if the user is the owner.
+   */
   getOrder = async (
     getOrderRequestDTO: GetOrderRequestDTO
-  ): Promise<OrderDTO> => {
+  ): Promise<OrderDTO | null> => {
+    Logger.dev(
+        NAMESPACE,
+        "request for service: getOrder(getOrderRequestDTO: _...",
+        getOrderRequestDTO
+    );
+
     const {
       orderId,
       user: { role: userRole, id: userId },
     } = getOrderRequestDTO;
-    const order = await this.orderRepository.findOrderById(orderId); // can throw
-    if (order === null) {
-      Logger.dev(
-        NAMESPACE,
-        `getOrder(getOrderRequestDTO: ${JSON.stringify(
-          getOrderRequestDTO
-        )}): null`
-      );
-      throw new OrderNotExistException();
-    }
-    if (userRole === UserRole.CUSTOMER && order.buyerId !== userId) {
-      Logger.dev(
-        NAMESPACE,
-        `getOrder(getOrderRequestDTO: ${JSON.stringify(
-          getOrderRequestDTO
-        )}): unauthorized`
-      );
-      throw new UnauthorizedException();
-    }
-    const orderDTO = OrderUtility.toOrderDTO(order);
+
+    const order = await (userRole === UserRole.CUSTOMER
+      ? this.orderRepository.findUserOrderById(userId, orderId)
+      : this.orderRepository.findOrderById(orderId));
+    const orderDTO = order !== null ? OrderUtility.toOrderDTO(order) : null;
     Logger.dev(
       NAMESPACE,
-      `getOrder(getOrderRequestDTO: ${JSON.stringify(getOrderRequestDTO)}): ${JSON.stringify(
-        orderDTO
-      )}`
+      "getOrder(getOrderRequestDTO: _): _",
+      getOrderRequestDTO,
+      orderDTO
     );
     return orderDTO;
   };
@@ -161,7 +161,9 @@ export default class OrderService {
     if (updated) {
       try {
         if (order.walletHasApproved && order.warehouseHasApproved) {
-          order.status = toOrderStatusName(OrderStatus.ISSUED);
+          order.status = OrderStatusUtility.toOrderStatusName(
+            OrderStatus.ISSUED
+          );
           const issuedOrder = await this.orderRepository.save(order);
           return OrderUtility.toOrderDTO(issuedOrder);
         }
@@ -285,12 +287,15 @@ export default class OrderService {
     if (order === null) {
       Logger.dev(
         NAMESPACE,
-        `modifyOrderStatus(patchOrderRequestDTO: ${modifyOrderStatusRequestDTO}): null`
+        "modifyOrderStatus(patchOrderRequestDTO: _): null",
+        modifyOrderStatusRequestDTO
       );
       throw new OrderNotExistException();
     }
 
-    const actualStatus: OrderStatus = toOrderStatus(order.status!)!;
+    const actualStatus: OrderStatus = OrderStatusUtility.toOrderStatus(
+      order.status!
+    )!;
     if (
       (actualStatus === OrderStatus.ISSUED &&
         (newStatus === OrderStatus.DELIVERING ||
@@ -299,7 +304,7 @@ export default class OrderService {
         (newStatus === OrderStatus.DELIVERED ||
           newStatus === OrderStatus.FAILED))
     ) {
-      order.status = toOrderStatusName(newStatus);
+      order.status = OrderStatusUtility.toOrderStatusName(newStatus);
       const updatedOrder = await this.orderRepository.save(order);
       const updatedOrderDTO = OrderUtility.toOrderDTO(updatedOrder);
       return this.producerProxy.producer
@@ -318,42 +323,42 @@ export default class OrderService {
     } else {
       Logger.dev(
         NAMESPACE,
-        `modifyOrderStatus(patchOrderRequestDTO: ${modifyOrderStatusRequestDTO}): not allowed`
+        `modifyOrderStatus(patchOrderRequestDTO: _): not allowed`,
+        modifyOrderStatusRequestDTO
       );
       throw new NotAllowedException();
     }
   };
 
-  deleteOrder = async (
-    deleteOrderRequestDTO: DeleteOrderRequestDTO
+  cancelOrder = async (
+    cancelOrderRequestDTO: CancelOrderRequestDTO
   ): Promise<void> => {
+    Logger.dev(
+        NAMESPACE,
+        "request for service: cancelOrder(cancelRequestDTO: _...",
+        cancelOrderRequestDTO
+    );
+
     const {
       orderId,
       user: { role: userRole, id: userId },
-    } = deleteOrderRequestDTO;
+    } = cancelOrderRequestDTO;
 
-    const order = await this.orderRepository.findOrderById(orderId);
+    const order = await (userRole === UserRole.CUSTOMER
+        ? this.orderRepository.findUserOrderById(userId, orderId)
+        : this.orderRepository.findOrderById(orderId));
     if (order === null) {
       Logger.dev(
         NAMESPACE,
-        `deleteOrder(deleteRequestDTO: ${JSON.stringify(
-          deleteOrderRequestDTO
-        )}): no order`
+        "cancelOrder(cancelOrderRequestDTO: _): no order",
+        cancelOrderRequestDTO
       );
       throw new OrderNotExistException();
     }
 
-    const orderStatus: OrderStatus = toOrderStatus(order.status!)!;
-
-    if (userRole === UserRole.CUSTOMER && order.buyerId !== userId) {
-      Logger.dev(
-        NAMESPACE,
-        `deleteOrder(deleteRequestDTO: ${JSON.stringify(
-          deleteOrderRequestDTO
-        )}): unauthorized`
-      );
-      throw new UnauthorizedException();
-    }
+    const orderStatus: OrderStatus = OrderStatusUtility.toOrderStatus(
+      order.status
+    )!;
 
     if (orderStatus === OrderStatus.CANCELLED)
       throw new OrderAlreadyCancelledException();
@@ -361,20 +366,19 @@ export default class OrderService {
     if (orderStatus !== OrderStatus.ISSUED) {
       Logger.dev(
         NAMESPACE,
-        `deleteOrder(deleteRequestDTO: ${JSON.stringify(
-          deleteOrderRequestDTO
-        )}): not allowed`
+        "cancelOrder(cancelOrderRequestDTO: _): not allowed",
+        cancelOrderRequestDTO
       );
       throw new NotAllowedException();
     }
 
-    order.status = toOrderStatusName(OrderStatus.CANCELLED);
+    order.status = OrderStatusUtility.toOrderStatusName(OrderStatus.CANCELLED);
     const cancelledOrder = await this.orderRepository.save(order);
     Logger.dev(
       NAMESPACE,
-      `deleteOrder(deleteRequestDTO: ${JSON.stringify(
-        deleteOrderRequestDTO
-      )}): ${JSON.stringify(cancelledOrder)}`
+      "cancelOrder(cancelOrderRequestDTO: _): _",
+      cancelOrderRequestDTO,
+      cancelledOrder
     );
 
     try {

@@ -24,6 +24,7 @@ export default class ProducerProxy {
           requestStore.remove(key);
           // The exception can be only of type CannotProduceException,
           // so it is necessary to add the transactionId
+          // @ts-ignore
           ex.transactionId = key;
           reject(ex);
         }

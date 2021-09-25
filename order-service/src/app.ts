@@ -40,8 +40,8 @@ const getApp = async (
   app.use(orderPath, orderRoutes);
 
   const notFoundError = new ErrorResponse(
-      ErrorType.ROUTE_NOT_FOUND,
-      "route not found",
+    ErrorType.ROUTE_NOT_FOUND,
+    "route not found"
   );
   const notFoundHandler: RequestHandler = (req, res, next) => {
     res.status(404).json(notFoundError);
@@ -53,11 +53,7 @@ const getApp = async (
     "this is a generic internal server error response"
   );
   const exceptionHandler: ErrorRequestHandler = (err, req, res, next) => {
-    if (!(err instanceof ErrorResponse)) {
-      res.status(500).json(internalServerError);
-    }
-
-    res.status(400).json(err);
+    res.status(500).json(internalServerError);
   };
 
   app.use(notFoundHandler, exceptionHandler);

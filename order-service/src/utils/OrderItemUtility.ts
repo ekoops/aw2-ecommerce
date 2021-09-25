@@ -1,4 +1,4 @@
-import {OrderItem, OrderItemDTO} from "../models/OrderItem";
+import {OrderItem, OrderItemDTO} from "../domain/OrderItem";
 import SourceUtility from "./SourceUtility";
 
 export const toOrderItemDTO = (orderItem: OrderItem): OrderItemDTO => {

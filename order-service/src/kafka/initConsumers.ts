@@ -1,8 +1,8 @@
 import KafkaProxy from "./KafkaProxy";
 import ConsumerProxy, { ExceptionBuilder } from "./ConsumerProxy";
-import { ApprovationDTO } from "../dtos/DTOs";
+import { ApprovationDTO } from "../dtos/ApproverDTO";
 import config from "../config/config";
-import {OrderDTO} from "../models/Order";
+import {OrderDTO} from "../domain/Order";
 import {
   ItemsNotAvailableException,
   NotEnoughBudgetException, WalletOrderCreationFailedException,

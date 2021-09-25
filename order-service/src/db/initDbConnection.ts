@@ -34,8 +34,7 @@ const initDbConnection = async () => {
 // }
 
   const credentials = `${config.db.authSource}:${config.db.user}:${config.db.pass}`;
-  const message = `trying to connect to ${uri} with credentials: ${credentials}`;
-  Logger.dev(NAMESPACE, message);
+  Logger.dev(NAMESPACE, "trying to connect to _ with credentials: _", uri, credentials);
   try {
     await mongoose.connect(uri, mongooseOptions);
     Logger.dev(NAMESPACE, "connected successfully to db")
@@ -43,12 +42,12 @@ const initDbConnection = async () => {
     mongoose.set("runValidators", true);
     // handling error after initial connection
     mongoose.connection.on("error", (err) =>
-      Logger.error(NAMESPACE, `connection to db lost: ${err}`)
+      Logger.error(NAMESPACE, "connection to db lost: _", err)
     );
   } catch (ex) {
     // handling initial connection fail
     // @ts-ignore
-    Logger.error(NAMESPACE, `failed to initiate the connection: ${ex.message}`);
+    Logger.error(NAMESPACE, "failed to initiate the connection: _", ex.message);
     throw new DbConnectionFailedException();
   }
 };

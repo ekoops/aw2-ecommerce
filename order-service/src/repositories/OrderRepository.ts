@@ -1,4 +1,4 @@
-import { Order } from "../models/Order";
+import { Order } from "../domain/Order";
 import mongoose from "mongoose";
 import {
   OrderCreationFailedException,
@@ -18,26 +18,44 @@ class OrderRepository {
     return this._instance || (this._instance = new this(OrderModel));
   }
 
-  findOrderById = async (id: string): Promise<Order | null> => {
+  findOrders = async (): Promise<Order[]> => {
     try {
-      const order = await this.OrderModel.findById(id);
-      Logger.dev(NAMESPACE, `findOrderById(id: ${id}): ${JSON.stringify(order)}`);
-      return order;
+      const orders: Order[] = await this.OrderModel.find();
+      Logger.dev(NAMESPACE, "findAllOrders(): _", orders);
+      return orders;
     } catch (ex) {
-      Logger.error(NAMESPACE, `findOrderById(id: ${id}): ${JSON.stringify(ex)}`);
+      Logger.error(NAMESPACE, "findAllOrders(): _", ex);
+      throw new OrdersRetrievingFailedException();
+    }
+  };
+  findUserOrders = async (userId?: number): Promise<Order[]> => {
+    try {
+      const orders: Order[] = await this.OrderModel.find({ userId })
+      return orders;
+    } catch (ex) {
+      Logger.error(NAMESPACE, "findUserOrders(): _", ex);
       throw new OrdersRetrievingFailedException();
     }
   };
 
-  findOrders = async (buyerId?: number): Promise<Order[]> => {
+
+  findOrderById = async (id: string): Promise<Order | null> => {
     try {
-      const orders: Order[] = await (buyerId
-        ? this.OrderModel.find({ buyerId })
-        : this.OrderModel.find());
-      Logger.dev(NAMESPACE, `findAllOrders(): ${JSON.stringify(orders)}`);
-      return orders;
+      const order = await this.OrderModel.findById(id);
+      Logger.dev(NAMESPACE, "findOrderById(id: _): _", id, order);
+      return order;
     } catch (ex) {
-      Logger.error(NAMESPACE, `findAllOrders(): ${JSON.stringify(ex)}`);
+      Logger.error(NAMESPACE, "findOrderById(id: _): _", id, ex);
+      throw new OrdersRetrievingFailedException();
+    }
+  };
+  findUserOrderById = async (userId: number, orderId: string): Promise<Order | null> => {
+    try {
+      const order = await this.OrderModel.findOne({_id: orderId, buyerId: userId});
+      Logger.dev(NAMESPACE, "findUserOrderById(userId: _, orderId: _): _", userId, orderId, order);
+      return order;
+    } catch (ex) {
+      Logger.error(NAMESPACE, "findUserOrderById(userId: _, userId: _): _", userId, orderId, ex);
       throw new OrdersRetrievingFailedException();
     }
   };
@@ -46,10 +64,10 @@ class OrderRepository {
     const orderModel = new this.OrderModel(order);
     try {
       const concreteOrder = await orderModel.save();
-      Logger.dev(NAMESPACE, `createOrder(order: ${JSON.stringify(order)}): ${concreteOrder}`);
+      Logger.dev(NAMESPACE, "createOrder(order: _): _", order, concreteOrder);
       return concreteOrder;
     } catch (ex) {
-      Logger.error(NAMESPACE, `createOrder(order: ${JSON.stringify(order)}): ${JSON.stringify(ex)}`);
+      Logger.error(NAMESPACE, "createOrder(order: _): _", order, ex);
       throw new OrderCreationFailedException();
     }
   };
@@ -58,22 +76,21 @@ class OrderRepository {
     try {
       // @ts-ignore
       const updatedOrder = await order.save();
-      Logger.dev(NAMESPACE, `save(order: ${JSON.stringify(order)}): ${JSON.stringify(updatedOrder)}`);
+      Logger.dev(NAMESPACE, "save(order: _): _", order, updatedOrder);
       return updatedOrder;
     } catch (ex) {
-      Logger.error(NAMESPACE, `save(order: ${JSON.stringify(order)}): ${JSON.stringify(ex)}`);
+      Logger.error(NAMESPACE, "save(order: _): _", order, ex);
       throw new OrderSavingFailedException();
     }
   };
 
-  // NOT USED
   deleteOrderById = async (id: string): Promise<Order | null> => {
     try {
       const deletedOrder = await this.OrderModel.findOneAndDelete({_id: id})
-      Logger.dev(NAMESPACE, `deleteOrderById(id: ${id}): ${JSON.stringify(deletedOrder)}`);
+      Logger.dev(NAMESPACE, "deleteOrderById(id: _): _", id, deletedOrder);
       return deletedOrder;
     } catch (ex) {
-      Logger.error(NAMESPACE, `deleteOrderById(id: ${id}): ${JSON.stringify(ex)}`);
+      Logger.error(NAMESPACE, "deleteOrderById(id: _): _", id, ex);
       throw new OrderDeletionFailedException();
     }
   };
