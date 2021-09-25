@@ -163,7 +163,7 @@ fun User.toUserDTO(): UserDTO {
 
 
 fun Row.extractUser(): User{
-   val user = User(
+   return User(
        id = this.get("id").toString().toLong(),
        username = this.get("username").toString(),
        email = this.get("email").toString(),
@@ -172,6 +172,5 @@ fun Row.extractUser(): User{
        isLocked = this.get("is_locked").toString() == "1",
        rolesList = this.get("roles").toString().split(",").map { Rolename.valueOf(it) }
    )
-    println(">>>>>>>>>>>> extractedUser = $user")
-    return user
+//    println(">>>>>>>>>>>> extractedUser = $user")
 }

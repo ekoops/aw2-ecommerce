@@ -24,8 +24,6 @@ data class Customer(
 
     val user: User
 
-    //TODO: Questa relazione può essere eliminata?
-    //var wallets: Set<Wallet> = emptySet()
 )
 
 fun Customer.toCreatedUserCustomerInfoDTO() = UserCreatedCustomerInfoDTO(
