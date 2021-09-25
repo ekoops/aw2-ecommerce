@@ -12,7 +12,7 @@ import {
 
 export interface Order {
   _id?: string;
-  buyerId: string;
+  buyerId: number;
   deliveryAddress: string;
   status?: OrderStatusType;
   items: OrderItem[];
@@ -24,7 +24,7 @@ export interface Order {
 
 export interface OrderDTO {
   id?: string;
-  buyerId: string;
+  buyerId: number;
   deliveryAddress: string;
   status?: OrderStatusType;
   items: OrderItemDTO[];
@@ -34,7 +34,7 @@ export interface OrderDTO {
 const orderSchema = new mongoose.Schema<Order>(
   {
     buyerId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Number,
       required: [true, "The buyer id is required"],
     },
     deliveryAddress: {

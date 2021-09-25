@@ -15,6 +15,7 @@ const deleteForgottenPendingOrders = async () => {
         Logger.dev(NAMESPACE, `deleted forgotten pending orders: ${result.deletedCount}`);
     }
     catch (ex) {
+        // @ts-ignore
         Logger.error(NAMESPACE, `failed to delete pending orders: ${ex.toString()}`);
         // TODO: probably nothing to do...
     }

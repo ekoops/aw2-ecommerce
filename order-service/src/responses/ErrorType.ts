@@ -1,0 +1,10 @@
+export enum ErrorType {
+    ROUTE_NOT_FOUND,
+    INVALID_FIELDS,
+    INTERNAL_ERROR,
+    ORDER_NOT_FOUND,
+    UNAUTHORIZED,
+    ORDER_CANCELLATION_FAILED
+}
+
+export default ErrorType

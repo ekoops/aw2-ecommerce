@@ -15,6 +15,7 @@ volumes:
     name: kafka-data
 
   order-db-keys:
+    name: order-db-keys
   order-db-rs0-1-data:
     name: order-db-rs0-1-data
   order-db-rs0-2-data:

@@ -19,7 +19,7 @@ else
   cd "$CUR_DIR/discovery-service" && ./gradlew bootJar || exit 3
   cd "$CUR_DIR/mail-service" && npm run build || exit 4
   cd "$CUR_DIR/order-service" && npm run build || exit 5
-#  cd "$CUR_DIR/order-service-cleaner" && npm run build || exit 6
+  cd "$CUR_DIR/order-service-cleaner" && npm run build || exit 6
   cd "$CUR_DIR/wallet-service" && ./gradlew bootJar || exit 7
   cd "$CUR_DIR/warehouse-service" && npm run build || exit 8
 fi

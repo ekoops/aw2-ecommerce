@@ -65,7 +65,7 @@ export default class OrderService {
     const buyerId = userRole === UserRole.CUSTOMER ? userId : undefined;
     const orders = await this.orderRepository.findOrders(buyerId); // can throw
     const ordersDTO = orders.map(OrderUtility.toOrderDTO);
-    Logger.dev(NAMESPACE, `getOrders(): ${ordersDTO}`);
+    Logger.dev(NAMESPACE, `getOrders(): ${JSON.stringify(ordersDTO)}`);
 
     return ordersDTO;
   };
@@ -81,21 +81,27 @@ export default class OrderService {
     if (order === null) {
       Logger.dev(
         NAMESPACE,
-        `getOrder(getOrderRequestDTO: ${getOrderRequestDTO}): null`
+        `getOrder(getOrderRequestDTO: ${JSON.stringify(
+          getOrderRequestDTO
+        )}): null`
       );
       throw new OrderNotExistException();
     }
     if (userRole === UserRole.CUSTOMER && order.buyerId !== userId) {
       Logger.dev(
         NAMESPACE,
-        `getOrder(getOrderRequestDTO: ${getOrderRequestDTO}): unauthorized`
+        `getOrder(getOrderRequestDTO: ${JSON.stringify(
+          getOrderRequestDTO
+        )}): unauthorized`
       );
       throw new UnauthorizedException();
     }
     const orderDTO = OrderUtility.toOrderDTO(order);
     Logger.dev(
       NAMESPACE,
-      `getOrder(getOrderRequestDTO: ${getOrderRequestDTO}): ${orderDTO}`
+      `getOrder(getOrderRequestDTO: ${JSON.stringify(getOrderRequestDTO)}): ${JSON.stringify(
+        orderDTO
+      )}`
     );
     return orderDTO;
   };
@@ -206,9 +212,11 @@ export default class OrderService {
     try {
       persistedOrder = await this.orderRepository.createOrder(transientOrder);
     } catch (ex) {
-
       // The exception can only be of type OrderCreationFailedException
-      Logger.dev(NAMESPACE, `approveOrder(err: ${(ex as FailurePayload).constructor.name})`);
+      Logger.dev(
+        NAMESPACE,
+        `approveOrder(err: ${(ex as FailurePayload).constructor.name})`
+      );
       return new FailureWrapper("Order creation failed");
     }
 
@@ -254,7 +262,9 @@ export default class OrderService {
     } catch (ex) {
       Logger.dev(
         NAMESPACE,
-        `createOrder(response error: ${(ex as FailurePayload).constructor.name})`
+        `createOrder(response error: ${
+          (ex as FailurePayload).constructor.name
+        })`
       );
       return new FailureWrapper("Order creation failed");
     }
@@ -326,7 +336,9 @@ export default class OrderService {
     if (order === null) {
       Logger.dev(
         NAMESPACE,
-        `deleteOrder(deleteRequestDTO: ${deleteOrderRequestDTO}): no order`
+        `deleteOrder(deleteRequestDTO: ${JSON.stringify(
+          deleteOrderRequestDTO
+        )}): no order`
       );
       throw new OrderNotExistException();
     }
@@ -336,7 +348,9 @@ export default class OrderService {
     if (userRole === UserRole.CUSTOMER && order.buyerId !== userId) {
       Logger.dev(
         NAMESPACE,
-        `deleteOrder(deleteRequestDTO: ${deleteOrderRequestDTO}): unauthorized`
+        `deleteOrder(deleteRequestDTO: ${JSON.stringify(
+          deleteOrderRequestDTO
+        )}): unauthorized`
       );
       throw new UnauthorizedException();
     }
@@ -347,7 +361,9 @@ export default class OrderService {
     if (orderStatus !== OrderStatus.ISSUED) {
       Logger.dev(
         NAMESPACE,
-        `deleteOrder(deleteRequestDTO: ${deleteOrderRequestDTO}): not allowed`
+        `deleteOrder(deleteRequestDTO: ${JSON.stringify(
+          deleteOrderRequestDTO
+        )}): not allowed`
       );
       throw new NotAllowedException();
     }
@@ -356,7 +372,9 @@ export default class OrderService {
     const cancelledOrder = await this.orderRepository.save(order);
     Logger.dev(
       NAMESPACE,
-      `deleteOrder(deleteRequestDTO: ${deleteOrderRequestDTO}): ${cancelledOrder}`
+      `deleteOrder(deleteRequestDTO: ${JSON.stringify(
+        deleteOrderRequestDTO
+      )}): ${JSON.stringify(cancelledOrder)}`
     );
 
     try {

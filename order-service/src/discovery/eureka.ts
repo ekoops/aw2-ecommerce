@@ -47,10 +47,8 @@ const EurekaClient = new Eureka({
         heartbeatInterval,
         registryFetchInterval,
         // useDns: true
+        maxRetries: 10
     },
 });
 
-
-const initEurekaClient = promisify(EurekaClient.start);
-
-export default initEurekaClient;
+export default EurekaClient;

@@ -21,23 +21,23 @@ class OrderRepository {
   findOrderById = async (id: string): Promise<Order | null> => {
     try {
       const order = await this.OrderModel.findById(id);
-      Logger.dev(NAMESPACE, `findOrderById(id: ${id}): ${order}`);
+      Logger.dev(NAMESPACE, `findOrderById(id: ${id}): ${JSON.stringify(order)}`);
       return order;
     } catch (ex) {
-      Logger.error(NAMESPACE, `findOrderById(id: ${id}): ${ex}`);
+      Logger.error(NAMESPACE, `findOrderById(id: ${id}): ${JSON.stringify(ex)}`);
       throw new OrdersRetrievingFailedException();
     }
   };
 
-  findOrders = async (buyerId?: string): Promise<Order[]> => {
+  findOrders = async (buyerId?: number): Promise<Order[]> => {
     try {
       const orders: Order[] = await (buyerId
         ? this.OrderModel.find({ buyerId })
         : this.OrderModel.find());
-      Logger.dev(NAMESPACE, `findAllOrders(): ${orders}`);
+      Logger.dev(NAMESPACE, `findAllOrders(): ${JSON.stringify(orders)}`);
       return orders;
     } catch (ex) {
-      Logger.error(NAMESPACE, `findAllOrders(): ${ex}`);
+      Logger.error(NAMESPACE, `findAllOrders(): ${JSON.stringify(ex)}`);
       throw new OrdersRetrievingFailedException();
     }
   };
@@ -46,10 +46,10 @@ class OrderRepository {
     const orderModel = new this.OrderModel(order);
     try {
       const concreteOrder = await orderModel.save();
-      Logger.dev(NAMESPACE, `createOrder(order: ${order}): ${concreteOrder}`);
+      Logger.dev(NAMESPACE, `createOrder(order: ${JSON.stringify(order)}): ${concreteOrder}`);
       return concreteOrder;
     } catch (ex) {
-      Logger.error(NAMESPACE, `createOrder(order: ${order}): ${ex}`);
+      Logger.error(NAMESPACE, `createOrder(order: ${JSON.stringify(order)}): ${JSON.stringify(ex)}`);
       throw new OrderCreationFailedException();
     }
   };
@@ -58,10 +58,10 @@ class OrderRepository {
     try {
       // @ts-ignore
       const updatedOrder = await order.save();
-      Logger.dev(NAMESPACE, `save(order: ${order}): ${updatedOrder}`);
+      Logger.dev(NAMESPACE, `save(order: ${JSON.stringify(order)}): ${JSON.stringify(updatedOrder)}`);
       return updatedOrder;
     } catch (ex) {
-      Logger.error(NAMESPACE, `save(order: ${order}): ${ex}`);
+      Logger.error(NAMESPACE, `save(order: ${JSON.stringify(order)}): ${JSON.stringify(ex)}`);
       throw new OrderSavingFailedException();
     }
   };
@@ -70,10 +70,10 @@ class OrderRepository {
   deleteOrderById = async (id: string): Promise<Order | null> => {
     try {
       const deletedOrder = await this.OrderModel.findOneAndDelete({_id: id})
-      Logger.dev(NAMESPACE, `deleteOrderById(id: ${id}): ${deletedOrder}`);
+      Logger.dev(NAMESPACE, `deleteOrderById(id: ${id}): ${JSON.stringify(deletedOrder)}`);
       return deletedOrder;
     } catch (ex) {
-      Logger.error(NAMESPACE, `deleteOrderById(id: ${id}): ${ex}`);
+      Logger.error(NAMESPACE, `deleteOrderById(id: ${id}): ${JSON.stringify(ex)}`);
       throw new OrderDeletionFailedException();
     }
   };

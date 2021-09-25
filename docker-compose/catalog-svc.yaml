@@ -4,9 +4,11 @@ services:
   catalog-svc:
     image: aw2-ecommerce/catalog-svc
     container_name: catalog-svc
+
     build:
       dockerfile: ../../Dockerfile # relative to the build context
       context: ../catalog-service/build/libs
+#    restart: always
     env_file:
       - configs/catalog-svc.env.prod
     ports:
@@ -17,13 +19,11 @@ services:
     depends_on:
       - catalog-db
       - kafka
-      - warehouse-svc
-  #    - wallet-svc
-  #      - discovery-svc
-  #    - mail-svc
-  #      - order-svc
-  #    logging:
-  #      driver: none
+#      - mail-svc
+      - order-svc
+#      - warehouse-svc
+#      - wallet-svc
+      - discovery-svc
 
   catalog-db:
     image: mariadb
@@ -31,11 +31,9 @@ services:
 #    restart: always
     env_file:
       - configs/catalog-db.env.prod
-    #    ports:
-    #      - "3306:3306"
+#    ports:
+#      - "3306:3306"
     volumes:
       - catalog-db-data:/var/lib/mysql
     networks:
       - catalog-net
-#    logging:
-#      driver: none
