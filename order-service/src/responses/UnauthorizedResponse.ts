@@ -1,4 +1,4 @@
-import { ErrorResponse } from "./ErrorResponse";
+import ErrorResponse from "./ErrorResponse";
 import ErrorType from "./ErrorType";
 
 export default class UnauthorizedResponse extends ErrorResponse {

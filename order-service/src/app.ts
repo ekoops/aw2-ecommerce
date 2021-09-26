@@ -3,8 +3,8 @@ import express, { ErrorRequestHandler, RequestHandler } from "express";
 import morgan from "morgan";
 import OrderController from "./controllers/OrderController";
 import ProducerProxy from "./kafka/ProducerProxy";
-import { ErrorResponse } from "./responses/ErrorResponse";
 import ErrorType from "./responses/ErrorType";
+import ErrorResponse from "./responses/ErrorResponse";
 
 const getApp = async (
   rootPath: string,

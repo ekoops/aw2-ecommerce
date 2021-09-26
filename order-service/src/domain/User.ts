@@ -3,7 +3,6 @@ export enum UserRole {
     ADMIN
 }
 
-
 export default interface User {
     id: number;
     role: UserRole;

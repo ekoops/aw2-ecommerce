@@ -16,7 +16,7 @@ import {
 } from "../exceptions/AuthException";
 import {
   OrderAlreadyCancelledException,
-  OrderNotExistException,
+  OrderNotFoundException,
 } from "../exceptions/services/OrderServiceException";
 import OrderUtility from "../utils/OrderUtility";
 import { CommunicationException } from "../exceptions/kafka/communication/CommunicationException";
@@ -83,9 +83,9 @@ export default class OrderService {
     getOrderRequestDTO: GetOrderRequestDTO
   ): Promise<OrderDTO | null> => {
     Logger.dev(
-        NAMESPACE,
-        "request for service: getOrder(getOrderRequestDTO: _...",
-        getOrderRequestDTO
+      NAMESPACE,
+      "request for service: getOrder(getOrderRequestDTO: _...",
+      getOrderRequestDTO
     );
 
     const {
@@ -272,9 +272,29 @@ export default class OrderService {
     }
   };
 
+  private isStatusChangeAllowed = (
+    oldStatus: OrderStatus,
+    newStatus: OrderStatus
+  ): boolean => {
+    return (
+      (oldStatus === OrderStatus.ISSUED &&
+        (newStatus === OrderStatus.DELIVERING ||
+          newStatus === OrderStatus.FAILED)) ||
+      (oldStatus === OrderStatus.DELIVERING &&
+        (newStatus === OrderStatus.DELIVERED ||
+          newStatus === OrderStatus.FAILED))
+    );
+  };
+
   modifyOrderStatus = async (
     modifyOrderStatusRequestDTO: ModifyOrderStatusRequestDTO
   ): Promise<OrderDTO> => {
+    Logger.dev(
+      NAMESPACE,
+      "request for service: modifyOrderStatus(modifyOrderStatusRequestDTO: _...",
+      modifyOrderStatusRequestDTO
+    );
+
     const {
       orderId,
       user: { role: userRole },
@@ -287,39 +307,25 @@ export default class OrderService {
     if (order === null) {
       Logger.dev(
         NAMESPACE,
-        "modifyOrderStatus(patchOrderRequestDTO: _): null",
+        "modifyOrderStatus(modifyOrderStatusRequestDTO: _): null",
         modifyOrderStatusRequestDTO
       );
-      throw new OrderNotExistException();
+      throw new OrderNotFoundException();
     }
 
-    const actualStatus: OrderStatus = OrderStatusUtility.toOrderStatus(
-      order.status!
-    )!;
-    if (
-      (actualStatus === OrderStatus.ISSUED &&
-        (newStatus === OrderStatus.DELIVERING ||
-          newStatus === OrderStatus.FAILED)) ||
-      (actualStatus === OrderStatus.DELIVERING &&
-        (newStatus === OrderStatus.DELIVERED ||
-          newStatus === OrderStatus.FAILED))
-    ) {
+    const actualStatus = OrderStatusUtility.toOrderStatus(order.status)!;
+
+    if (this.isStatusChangeAllowed(actualStatus, newStatus)) {
       order.status = OrderStatusUtility.toOrderStatusName(newStatus);
-      const updatedOrder = await this.orderRepository.save(order);
+      const updatedOrder = await this.orderRepository.save(order); // can throw
       const updatedOrderDTO = OrderUtility.toOrderDTO(updatedOrder);
-      return this.producerProxy.producer
-        .produce({
-          topic:
-            newStatus === OrderStatus.FAILED
-              ? "order-cancelled"
-              : "order-updated",
-          messages: [{ key: orderId, value: JSON.stringify(updatedOrder) }],
-        })
-        .then(() => updatedOrderDTO)
-        .catch(() => {
-          // TODO and now?
-          return updatedOrderDTO;
-        });
+      Logger.dev(
+        NAMESPACE,
+        "modifyOrderStatus(modifyOrderStatusRequestDTO: _): _",
+        modifyOrderStatusRequestDTO,
+        updatedOrderDTO
+      );
+      return updatedOrderDTO;
     } else {
       Logger.dev(
         NAMESPACE,
@@ -334,9 +340,9 @@ export default class OrderService {
     cancelOrderRequestDTO: CancelOrderRequestDTO
   ): Promise<void> => {
     Logger.dev(
-        NAMESPACE,
-        "request for service: cancelOrder(cancelRequestDTO: _...",
-        cancelOrderRequestDTO
+      NAMESPACE,
+      "request for service: cancelOrder(cancelRequestDTO: _...",
+      cancelOrderRequestDTO
     );
 
     const {
@@ -345,20 +351,18 @@ export default class OrderService {
     } = cancelOrderRequestDTO;
 
     const order = await (userRole === UserRole.CUSTOMER
-        ? this.orderRepository.findUserOrderById(userId, orderId)
-        : this.orderRepository.findOrderById(orderId));
+      ? this.orderRepository.findUserOrderById(userId, orderId)
+      : this.orderRepository.findOrderById(orderId));
     if (order === null) {
       Logger.dev(
         NAMESPACE,
         "cancelOrder(cancelOrderRequestDTO: _): no order",
         cancelOrderRequestDTO
       );
-      throw new OrderNotExistException();
+      throw new OrderNotFoundException();
     }
 
-    const orderStatus: OrderStatus = OrderStatusUtility.toOrderStatus(
-      order.status
-    )!;
+    const orderStatus = OrderStatusUtility.toOrderStatus(order.status)!;
 
     if (orderStatus === OrderStatus.CANCELLED)
       throw new OrderAlreadyCancelledException();
@@ -380,15 +384,7 @@ export default class OrderService {
       cancelOrderRequestDTO,
       cancelledOrder
     );
-
-    try {
-      await this.producerProxy.producer.produce({
-        topic: "order-cancelled",
-        messages: [{ key: orderId, value: JSON.stringify(cancelledOrder) }], // TODO: right way?}
-      });
-    } catch (ex) {
-      // the only exception that can be thrown is of type CannotProduceException;
-      // TODO: and now?
-    }
+    // The order cancellation has to be notified on the proper kafka topic:
+    // this task is achieved thanks to debezium support
   };
 }

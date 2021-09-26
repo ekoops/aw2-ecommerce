@@ -1,20 +1,14 @@
-import { NextFunction, Request, Response } from "express";
+import {NextFunction, Request, Response} from "express";
 import OrderService from "../services/OrderService";
-import { OrderStatus } from "../domain/OrderStatus";
+import {OrderStatus} from "../domain/OrderStatus";
 import Logger from "../utils/Logger";
-import {
-  NotAllowedException,
-  UnauthorizedException,
-} from "../exceptions/AuthException";
-import { OrderItemDTO } from "../domain/OrderItem";
-import { OrderDTO } from "../domain/Order";
-import {
-  OrderAlreadyCancelledException,
-  OrderNotExistException,
-} from "../exceptions/services/OrderServiceException";
+import {NotAllowedException, UnauthorizedException,} from "../exceptions/AuthException";
+import {OrderItemDTO} from "../domain/OrderItem";
+import {OrderDTO} from "../domain/Order";
+import {OrderAlreadyCancelledException, OrderNotFoundException,} from "../exceptions/services/OrderServiceException";
 import OrderNotFoundResponse from "../responses/OrderNotFoundResponse";
 import OrderCancellationNotAllowedResponse from "../responses/OrderCancellationNotAllowedResponse";
-import User from "../domain/User";
+import User, {UserRole} from "../domain/User";
 import GetOrdersRequestDTO from "../dtos/GetOrdersRequestDTO";
 import GetOrderRequestDTO from "../dtos/GetOrderRequestDTO";
 import CreateOrderRequestDTO from "../dtos/CreateOrderRequestDTO";
@@ -22,6 +16,8 @@ import ModifyOrderStatusRequestDTO from "../dtos/ModifyOrderStatusRequestDTO";
 import CancelOrderRequestDTO from "../dtos/CancelOrderRequestDTO";
 import OrderStatusUtility from "../utils/OrderStatusUtility";
 import UnauthorizedResponse from "../responses/UnauthorizedResponse";
+import OrderStatusChangeNotAllowedResponse from "../responses/OrderStatusChangeNotAllowedResponse";
+import OrderCreationNotAllowedResponse from "../responses/OrderCreationNotAllowedResponse";
 
 const NAMESPACE = "ORDER_CONTROLLER";
 
@@ -37,10 +33,10 @@ export default class OrderController {
   getOrders = async (req: Request, res: Response, next: NextFunction) => {
     const user: User = res.locals.user;
     try {
-      const orders = await this.orderService.getOrders(
+      const ordersDTO = await this.orderService.getOrders(
         user as GetOrdersRequestDTO
       );
-      res.status(200).json(orders);
+      res.status(200).json(ordersDTO);
     } catch (ex) {
       // an exception can be thrown only during db communication, so by invoking next(ex)
       // a 500 internal server error is returned
@@ -57,9 +53,9 @@ export default class OrderController {
     };
 
     try {
-      const order = await this.orderService.getOrder(getOrderRequestDTO);
-      if (order === null) res.status(404).json(new OrderNotFoundResponse(orderId));
-      else res.status(200).json(order);
+      const orderDTO = await this.orderService.getOrder(getOrderRequestDTO);
+      if (orderDTO === null) res.status(404).json(new OrderNotFoundResponse(orderId));
+      else res.status(200).json(orderDTO);
     } catch (ex) {
       // an exception can be thrown only during db communication, so by invoking next(ex)
       // a 500 internal server error is returned
@@ -69,11 +65,12 @@ export default class OrderController {
 
   postOrder = async (req: Request, res: Response, next: NextFunction) => {
     const user: User = res.locals.user;
-    if (user.deliveryAddress === undefined) {
-      return res.status(401).json(new UnauthorizedResponse());
+
+    if (user.role !== UserRole.CUSTOMER) {
+      return res.status(403).json(new OrderCreationNotAllowedResponse());
     }
 
-    const items: OrderItemDTO[] = req.body.items.map(
+    const itemsDTO: OrderItemDTO[] = req.body.items.map(
       (item: any): OrderItemDTO => ({
         productId: item.productId,
         amount: item.amount,
@@ -81,18 +78,17 @@ export default class OrderController {
     );
     const orderDTO: OrderDTO = {
       buyerId: user.id,
-      deliveryAddress: user.deliveryAddress,
-      items,
+      deliveryAddress: user.deliveryAddress!, // if CUSTOMER, deliveryAddress is always present
+      items: itemsDTO,
     };
 
     try {
-      const result = await this.orderService.createOrder(
+      const createdOrderDTO = await this.orderService.createOrder(
         orderDTO as CreateOrderRequestDTO
       );
-      res.status(201).json(result);
+      res.status(201).json(createdOrderDTO);
     } catch (ex) {
-      if (ex instanceof UnauthorizedException) {
-      } else next(ex);
+      next(ex);
     }
   };
 
@@ -113,23 +109,22 @@ export default class OrderController {
       newStatus,
     };
     try {
-      Logger.dev(
-        NAMESPACE,
-        "request for service: modifyOrderStatus(modifyOrderStatusRequestDTO: _...",
+      const updatedOrderDTO = await this.orderService.modifyOrderStatus(
         modifyOrderStatusRequestDTO
       );
-      const updatedOrder = await this.orderService.modifyOrderStatus(
-        modifyOrderStatusRequestDTO
-      );
-      res.status(200).json(updatedOrder);
+      res.status(200).json(updatedOrderDTO);
     } catch (ex) {
       if (ex instanceof UnauthorizedException) {
-        res.status(401).end();
-      } else if (ex instanceof OrderNotExistException) {
-        res.status(404).end();
+        res.status(401).json(new UnauthorizedResponse());
+      } else if (ex instanceof OrderNotFoundException) {
+        res.status(404).json(new OrderNotFoundResponse(orderId));
       } else if (ex instanceof NotAllowedException) {
-        res.status(403).end();
-      } else next(ex);
+        res.status(403).end(new OrderStatusChangeNotAllowedResponse(orderId, newStatus));
+      } else {
+        // a different type of exception from the previous ones can be throw only during
+        // db communication, so by invoking next(ex), a 500 internal server error is returned
+        next(ex);
+      }
     }
   };
 
@@ -144,7 +139,7 @@ export default class OrderController {
       await this.orderService.cancelOrder(cancelOrderRequestDTO);
       res.status(204).end();
     } catch (ex) {
-      if (ex instanceof OrderNotExistException) {
+      if (ex instanceof OrderNotFoundException) {
         res.status(404).json(new OrderNotFoundResponse(orderId));
       } else if (ex instanceof OrderAlreadyCancelledException) {
         res.status(204).end();

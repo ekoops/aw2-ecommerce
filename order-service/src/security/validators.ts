@@ -8,11 +8,8 @@ import {
 } from "express-validator";
 import mongoose from "mongoose";
 import { NextFunction, Request, Response } from "express";
-import {
-  FieldErrorReasons,
-  FieldsValidationErrorResponse,
-} from "../responses/ErrorResponse";
 import OrderStatusUtility from "../utils/OrderStatusUtility";
+import FieldsValidationErrorResponse, {FieldErrorReasons} from "../responses/FieldsValidationErrorResponse";
 
 interface Validators {
   [key: string]: ValidationChain[];
