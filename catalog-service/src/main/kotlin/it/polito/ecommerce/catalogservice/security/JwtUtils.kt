@@ -25,7 +25,7 @@ class JwtUtils constructor(
         val issuedAt = Date.from(Instant.now())
         val expirationDate = Date.from(Instant.now().plusSeconds(jwtExpirationMs / 1000))
         val builder: JwtBuilder
-        if (role.contains("CUSTOMER")){
+        if (role == "CUSTOMER"){
             //TODO: controllare se la seguente riga funziona
             val associatedCustomer = customerRepository.findById(userDetailsDTO.getId()).block()
             builder = Jwts.builder()
