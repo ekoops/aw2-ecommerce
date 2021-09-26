@@ -1,22 +1,20 @@
 package it.polito.ecommerce.catalogservice.configurations
 
+import it.polito.ecommerce.catalogservice.domain.Rolename
+import it.polito.ecommerce.catalogservice.domain.User
 import it.polito.ecommerce.catalogservice.repositories.UserRepository
 import org.springframework.boot.CommandLineRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.crypto.password.PasswordEncoder
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 
 @Configuration
 class DbInitConfiguration(
      private val userRepository: UserRepository,
-     private val customerRepository: CustomerRepository,
      private val passwordEncoder: PasswordEncoder) {
 
     @Bean
     fun commandLineRunner() = CommandLineRunner {
-        println("@@@@@ DbInitConfiguration Started!! v3 @@@@@")
 
         val user1 = User(
             username = "user1",
@@ -24,7 +22,10 @@ class DbInitConfiguration(
             password = passwordEncoder.encode("password"),
             isEnabled = true,
             isLocked = false,
-            rolesList = listOf(Rolename.ADMIN, Rolename.CUSTOMER)
+            rolesList = listOf(Rolename.ADMIN, Rolename.CUSTOMER),
+            name = "user1_name",
+            surname = "user1_surname",
+            deliveryAddress = "user1_deliveryAddress"
         )
 
         val user2 = User(
@@ -33,7 +34,10 @@ class DbInitConfiguration(
             password = passwordEncoder.encode("password"),
             isEnabled = true,
             isLocked = false,
-            rolesList = listOf(Rolename.ADMIN)
+            rolesList = listOf(Rolename.ADMIN),
+            name = "user2_name",
+            surname = "user2_surname",
+            deliveryAddress = null
         )
 
         val user3 = User(
@@ -42,21 +46,15 @@ class DbInitConfiguration(
             password = passwordEncoder.encode("password"),
             isEnabled = true,
             isLocked = false,
-            rolesList = listOf(Rolename.CUSTOMER)
+            rolesList = listOf(Rolename.CUSTOMER),
+            name = "user3_name",
+            surname = "user3_surname",
+            deliveryAddress = "user3_deliveryAddress"
         )
 
         userRepository
             .findByUsername("user1")
             .switchIfEmpty(userRepository.save(user1))
-            .flatMap {
-                val customer = Customer(
-                    name = "user1_name",
-                    surname = "user1_surname",
-                    deliveryAddress = "user1_deliveryAddress",
-                    user = it
-                )
-                return@flatMap customerRepository.save(customer)
-            }
             .subscribe(
                 {
                     println("@@@! Received item: ${it.id}")
@@ -87,15 +85,6 @@ class DbInitConfiguration(
         userRepository
             .findByUsername("user3")
             .switchIfEmpty(userRepository.save(user3))
-            .flatMap {
-                val customer = Customer(
-                    name = "user3_name",
-                    surname = "user3_surname",
-                    deliveryAddress = "user3_deliveryAddress",
-                    user = it
-                )
-                return@flatMap customerRepository.save(customer)
-            }
             .subscribe(
                 {
                     println("@@@! Received item: ${it.id}")
