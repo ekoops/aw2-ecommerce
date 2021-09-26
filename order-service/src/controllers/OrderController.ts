@@ -18,6 +18,8 @@ import OrderStatusUtility from "../utils/OrderStatusUtility";
 import UnauthorizedResponse from "../responses/UnauthorizedResponse";
 import OrderStatusChangeNotAllowedResponse from "../responses/OrderStatusChangeNotAllowedResponse";
 import OrderCreationNotAllowedResponse from "../responses/OrderCreationNotAllowedResponse";
+import OrderCreationFailed from "../services/OrderCreationFailed";
+import InternalServerErrorResponse from "../responses/InternalServerErrorResponse";
 
 const NAMESPACE = "ORDER_CONTROLLER";
 
@@ -83,10 +85,13 @@ export default class OrderController {
     };
 
     try {
-      const createdOrderDTO = await this.orderService.createOrder(
+      const result = await this.orderService.createOrder(
         orderDTO as CreateOrderRequestDTO
       );
-      res.status(201).json(createdOrderDTO);
+      if (result instanceof OrderCreationFailed) {
+        res.status(500).json(new InternalServerErrorResponse());
+      }
+      else res.status(201).json(result);
     } catch (ex) {
       next(ex);
     }

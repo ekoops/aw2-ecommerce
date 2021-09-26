@@ -1,6 +1,6 @@
 import KafkaProxy from "./KafkaProxy";
 import ConsumerProxy, { ExceptionBuilder } from "./ConsumerProxy";
-import { ApprovationDTO } from "../dtos/ApproverDTO";
+import { ApprovationDTO } from "../dtos/ApprovationDTO";
 import config from "../config/config";
 import {OrderDTO} from "../domain/Order";
 import {
