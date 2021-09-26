@@ -16,7 +16,6 @@ const toOrderDTO = (order: Order): OrderDTO => {
 };
 
 const buildOrder = (orderDTO: OrderDTO): Order | null => {
-  // the missing parameters are defaulted in mongoose schema definitions
   const arePricesMissing = orderDTO.items.some(
     (item) => item.perItemPrice === undefined
   );
@@ -38,7 +37,7 @@ const buildOrder = (orderDTO: OrderDTO): Order | null => {
   };
 };
 
-// assign sources to order items
+// assign sources to order items and return a boolean indicating if they have been assigned correctly
 const assignSources = (order: Order, orderDTO: OrderDTO): boolean => {
   const itemsDTO = orderDTO.items;
   let isValidAssignment = true;
