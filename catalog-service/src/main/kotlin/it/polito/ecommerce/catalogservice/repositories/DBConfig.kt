@@ -44,8 +44,6 @@ class DBConfig(
         return mutableListOf(
             UserReader(),
             UserWriter(),
-            CustomerWriter(),
-            CustomerReader(),
             EmailVerificationTokenWriter(),
             EmailVerificationTokenReader()
         )

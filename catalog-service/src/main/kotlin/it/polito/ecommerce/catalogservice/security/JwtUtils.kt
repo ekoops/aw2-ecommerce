@@ -8,7 +8,6 @@ import io.jsonwebtoken.security.Keys
 import it.polito.ecommerce.catalogservice.domain.Rolename
 import it.polito.ecommerce.catalogservice.dto.UserDetailsDTO
 import it.polito.ecommerce.catalogservice.exceptions.security.BadAuthenticationException
-import it.polito.ecommerce.catalogservice.repositories.CustomerRepository
 import org.springframework.security.core.Authentication
 import java.time.Instant
 
@@ -16,7 +15,6 @@ import java.time.Instant
 class JwtUtils constructor(
     @Value("\${application.jwt.jwtSecret}") private val jwtSecret: String,
     @Value("\${application.jwt.jwtExpirationMs}") private val jwtExpirationMs: Long,
-    private val customerRepository : CustomerRepository
 ) {
     private val key = Keys.hmacShaKeyFor(jwtSecret.toByteArray())
 
@@ -24,32 +22,20 @@ class JwtUtils constructor(
         val userDetailsDTO = authentication.principal as? UserDetailsDTO ?: throw BadAuthenticationException()
         val issuedAt = Date.from(Instant.now())
         val expirationDate = Date.from(Instant.now().plusSeconds(jwtExpirationMs / 1000))
-        val builder: JwtBuilder
-        if (role == "CUSTOMER"){
-            //TODO: controllare se la seguente riga funziona
-            val associatedCustomer = customerRepository.findById(userDetailsDTO.getId()).block()
-            builder = Jwts.builder()
-                .setIssuer("aw2-ecommerce")
-                .setIssuedAt(issuedAt)
-                .setExpiration(expirationDate)
-                .claim("email", userDetailsDTO.getEmail())
-                .claim("id", userDetailsDTO.getId())
-                .claim("username", userDetailsDTO.username)
-                .claim("role", role)
-                .claim("deliveryAddress", associatedCustomer!!.deliveryAddress)
-                .signWith(key, SignatureAlgorithm.HS256)
-        }
-        else{
-            builder = Jwts.builder()
-                .setIssuer("aw2-ecommerce")
-                .setIssuedAt(issuedAt)
-                .setExpiration(expirationDate)
-                .claim("email", userDetailsDTO.getEmail())
-                .claim("id", userDetailsDTO.getId())
-                .claim("username", userDetailsDTO.username)
-                .claim("role", role)
-                .signWith(key, SignatureAlgorithm.HS256)
-        }
+
+        val builder = Jwts.builder()
+            .setIssuer("aw2-ecommerce")
+            .setIssuedAt(issuedAt)
+            .setExpiration(expirationDate)
+            .claim("email", userDetailsDTO.getEmail())
+            .claim("id", userDetailsDTO.getId())
+            .claim("username", userDetailsDTO.username)
+            .claim("role", role)
+            .claim("name", userDetailsDTO.getName())
+            .claim("surname", userDetailsDTO.getSurname())
+            .claim("deliveryAddress", userDetailsDTO.getDeliveryAddress())
+            .signWith(key, SignatureAlgorithm.HS256)
+
         return builder.compact()
     }
 
@@ -78,7 +64,11 @@ class JwtUtils constructor(
             username = claims["username"].toString(),
             email = claims["email"].toString(),
             roles = setOf(Rolename.valueOf(claims["role"].toString())),
-            isEnabled = true
+            isEnabled = true,
+            name = claims["name"].toString(),
+            surname = claims["surname"].toString(),
+            deliveryAddress = claims["deliveryAddress"].toString()
+
         )
     }
 }

@@ -1,11 +1,5 @@
 package it.polito.ecommerce.catalogservice.configurations
 
-import it.polito.ecommerce.catalogservice.domain.Customer
-import it.polito.ecommerce.catalogservice.domain.Rolename
-import it.polito.ecommerce.catalogservice.domain.User
-import it.polito.ecommerce.catalogservice.repositories.CoroutineCustomerRepository
-import it.polito.ecommerce.catalogservice.repositories.CoroutineUserRepository
-import it.polito.ecommerce.catalogservice.repositories.CustomerRepository
 import it.polito.ecommerce.catalogservice.repositories.UserRepository
 import org.springframework.boot.CommandLineRunner
 import org.springframework.context.annotation.Bean

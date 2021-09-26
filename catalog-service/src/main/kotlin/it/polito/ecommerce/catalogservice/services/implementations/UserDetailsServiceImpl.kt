@@ -15,7 +15,6 @@ import it.polito.ecommerce.catalogservice.exceptions.user.customer.InconsistentC
 import it.polito.ecommerce.catalogservice.exceptions.user.emailverificationtoken.EmailVerificationTokenExpiredException
 import it.polito.ecommerce.catalogservice.kafka.dispatch
 import it.polito.ecommerce.catalogservice.repositories.CoroutineUserRepository
-import it.polito.ecommerce.catalogservice.repositories.CoroutineCustomerRepository
 import it.polito.ecommerce.catalogservice.repositories.UserRepository
 import it.polito.ecommerce.catalogservice.services.NotificationService
 import org.apache.kafka.common.KafkaException
@@ -36,7 +35,6 @@ import java.time.LocalDateTime
 class UserDetailsServiceImpl(
     private val userRepository: UserRepository,
     private val coroutineUserRepository: CoroutineUserRepository,
-    private val coroutineCustomerRepository: CoroutineCustomerRepository,
     private val notificationService: NotificationService,
     private val passwordEncoder: PasswordEncoder,
     private val kafkaTemplate: KafkaTemplate<String, UserCreatedDTO>
@@ -66,33 +64,22 @@ class UserDetailsServiceImpl(
             email = email
         )
         // If user is not present, I create it
+        val (name, surname, deliveryAddress) = userDTO
         val createdUser: User
         try {
             val user = User(
                 username = username,
                 email = email,
                 password = passwordEncoder.encode(userDTO.password),
-                rolesList = listOf(Rolename.CUSTOMER)
+                rolesList = listOf(Rolename.CUSTOMER),
+                name = name,
+                surname = surname,
+                deliveryAddress = deliveryAddress
             )
             createdUser = coroutineUserRepository.save(user)
         } catch (ex: Exception) {
             println(ex.message)
             throw InconsistentUserException("Error in saving the user")
-        }
-        val createdCustomer: Customer
-        try {
-            //Creating customer associated to the created user
-            val customer = Customer(
-                name = userDTO.name,
-                surname = userDTO.surname,
-                deliveryAddress = userDTO.deliveryAddress,
-                user = createdUser
-            )
-            createdCustomer = coroutineCustomerRepository.save(customer)
-        } catch (ex: Exception) {
-            println(ex.message)
-            coroutineUserRepository.delete(createdUser)
-            throw InconsistentCustomerException("Error in saving the customer")
         }
 
         // Creating email verification token
@@ -105,7 +92,9 @@ class UserDetailsServiceImpl(
                 username = createdUser.username,
                 email = createdUser.email,
                 roles = createdUser.getRolenames(),
-                customerInfo = createdCustomer.toCreatedUserCustomerInfoDTO(),
+                name = createdUser.name,
+                surname = createdUser.surname,
+                deliveryAddress = createdUser.deliveryAddress!!,
                 emailVerificationTokenInfo = emailVerificationTokenDTO.toCreatedUserEmailVerificationTokenInfoDTO()
             )
 

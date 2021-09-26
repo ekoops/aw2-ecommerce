@@ -12,7 +12,10 @@ data class UserDetailsDTO(
     private val email: String,
     private val roles: Set<Rolename>,
     private val isEnabled: Boolean,
-    private val isLocked: Boolean = false
+    private val isLocked: Boolean = false,
+    private val name: String,
+    private val surname: String,
+    private val deliveryAddress: String? = null
 
 ) : UserDetails {
     fun getId(): Long = id
@@ -40,4 +43,10 @@ data class UserDetailsDTO(
     override fun isCredentialsNonExpired(): Boolean {
         return true
     }
+
+    fun getName(): String = name
+
+    fun getSurname(): String = surname
+
+    fun getDeliveryAddress(): String? = deliveryAddress
 }

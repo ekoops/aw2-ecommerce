@@ -27,7 +27,7 @@ class ServerHttpBearerAuthenticationConverter(
     fun apply(serverWebExchange: ServerWebExchange?): Mono<Authentication> {
         return Mono.justOrEmpty(serverWebExchange)
             .flatMap {
-                val authorizationHeader= it.request.headers[jwtHeader]?.get(0)
+                val authorizationHeader= it!!.request.headers[jwtHeader]?.get(0)
                 if (authorizationHeader != null) {
                     val jwt = authorizationHeader.removePrefix("$jwtHeaderStart ")
                     if (jwtUtils.validateJwtToken(jwt)) {

@@ -25,7 +25,7 @@ class GatewayConfiguration {
                     //manipulate outgoing path
                     f.circuitBreaker{
                         //handle failure
-                        it.setFallbackUri("forward:/api/v1/failureOrder")
+                        it.setFallbackUri("forward:/api/v1/failure")
                     }
                 }
                 //switch endpoint to a load balanced one
@@ -38,7 +38,7 @@ class GatewayConfiguration {
                     //manipulate outgoing path
                     f.circuitBreaker{
                         //handle failure
-                        it.setFallbackUri("forward:/api/v1/failureWallet")
+                        it.setFallbackUri("forward:/api/v1/failure")
                     }
                 }
                 //switch endpoint to a load balanced one
@@ -53,7 +53,7 @@ class GatewayConfiguration {
                     f.addResponseHeader("Content-Type", "application/octet-stream")
                     f.circuitBreaker{
                         //handle failure
-                        it.setFallbackUri("forward:/api/v1/failureWarehouse")
+                        it.setFallbackUri("forward:/api/v1/failure")
                     }
                 }
                 //switch endpoint to a load balanced one
@@ -66,7 +66,7 @@ class GatewayConfiguration {
                     //manipulate outgoing path
                     f.circuitBreaker{
                         //handle failure
-                        it.setFallbackUri("forward:/api/v1/failureWarehouse")
+                        it.setFallbackUri("forward:/api/v1/failure")
                     }
                 }
                 //switch endpoint to a load balanced one

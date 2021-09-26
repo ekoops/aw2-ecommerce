@@ -5,15 +5,12 @@ import it.polito.ecommerce.catalogservice.exceptions.internal.CreateUserInternal
 import it.polito.ecommerce.catalogservice.exceptions.internal.VerifyUserInternalException
 import it.polito.ecommerce.catalogservice.exceptions.security.BadAuthenticationException
 import it.polito.ecommerce.catalogservice.exceptions.user.ActionNotPermittedException
-import it.polito.ecommerce.catalogservice.exceptions.user.customer.CustomerNotFoundException
 import org.springframework.http.HttpStatus
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.DisabledException
 import org.springframework.security.authentication.LockedException
 import org.springframework.security.core.userdetails.UsernameNotFoundException
-import org.springframework.web.HttpMediaTypeNotSupportedException
-import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -36,15 +33,6 @@ class ControllersAdvisor {
     }
 
 
-    //TODO: Capire perchè le due classi commentate danno problemi. Derivano da javax.servlet.ServletException
-//    @ExceptionHandler(HttpMediaTypeNotSupportedException::class)
-//    @ResponseStatus(HttpStatus.BAD_REQUEST)
-//    fun httpMediaTypeExceptionHandler(ex: HttpMediaTypeNotSupportedException): ErrorDetails = ErrorDetails(
-//        type = ErrorType.UNSUPPORTED_MEDIA_TYPE,
-//        title = "The request body cannot be parsed",
-//        detail = "The provided media type is not supported"
-//    )
-
     @ExceptionHandler(HttpMessageNotReadableException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun httpMessageNotReadableExceptionHandler(ex: HttpMessageNotReadableException): ErrorDetails = ErrorDetails(
@@ -62,13 +50,7 @@ class ControllersAdvisor {
             detail = "The provided fields should follows the right endpoint specification"
         )
     }
-//    @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
-//    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-//    fun methodNotAllowedExceptionHandler(ex: HttpRequestMethodNotSupportedException): ErrorDetails = ErrorDetails(
-//        type = ErrorType.METHOD_NOT_ALLOWED,
-//        title = "The request method is not allowed",
-//        detail = "The method ${ex.method} not allowed"
-//    )
+
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -124,9 +106,6 @@ class ControllersAdvisor {
     }
 
     // Custom Exception handlers
-    @ExceptionHandler(CustomerNotFoundException::class)
-    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-    fun unprocessableEntityHandler(ex: BasicApplicationException): ErrorDetails = ErrorDetails(ex)
 
     @ExceptionHandler(EntityNotFoundException::class)
     @ResponseStatus(HttpStatus.NOT_FOUND)

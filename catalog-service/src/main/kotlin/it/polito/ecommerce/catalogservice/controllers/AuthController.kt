@@ -12,22 +12,14 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.Authentication
-import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
-import reactor.netty.http.server.HttpServerResponse
 import javax.validation.Valid
 import org.springframework.security.core.context.SecurityContextImpl
-import org.springframework.security.web.context.SecurityContextRepository
 import org.springframework.security.web.server.context.ServerSecurityContextRepository
-
 import org.springframework.web.bind.annotation.RequestBody
-
 import org.springframework.web.bind.annotation.PostMapping
-import java.util.function.Function
 
 
 @RestController
@@ -45,48 +37,6 @@ class AuthController(
     suspend fun register(
         @Valid @RequestBody createUserRequestDTO: CreateUserRequestDTO
     ): UserDTO = userDetailsService.createUser(createUserRequestDTO)
-
-//    @PostMapping("/signin")
-////    @ResponseStatus(HttpStatus.NO_CONTENT)
-//    fun signin(
-//        @Valid @RequestBody signInUserRequestDTO: SignInUserRequestDTO,
-//        exchange: ServerWebExchange
-//    ): Mono<ResponseEntity<Void>>  {
-//        println("user: $signInUserRequestDTO")
-//        return authenticationManager.authenticate(
-//            UsernamePasswordAuthenticationToken(
-//                signInUserRequestDTO.username,
-//                signInUserRequestDTO.password
-//            )
-//        ).flatMap { authentication ->
-//            ReactiveSecurityContextHolder.getContext().map { securityContext ->
-//                if (authentication == null) {
-//                    println("<<<<<<<<<<<<<<<<<<<< 1")
-//                    throw BadAuthenticationException()
-//                }
-//                println("<<<<<<<<<<<<<<<<<<<< 2")
-//                val userDetailsDTO = authentication.principal as? UserDetailsDTO ?: throw BadAuthenticationException()
-//                println("<<<<<<<<<<<<<<<<<<<< 3")
-//                val isRoleLegitimate =
-//                    userDetailsDTO.authorities.map { it.authority }.contains(signInUserRequestDTO.role)
-//                if (!isRoleLegitimate) {
-//                    println("<<<<<<<<<<<<<<<<<<<< 4")
-//                    throw BadAuthenticationException()
-//                }
-//                println("<<<<<<<<<<<<<<<<<<<< 5")
-//                securityContext.authentication = authentication
-//                val token = jwtUtils.generateJwtToken(authentication, signInUserRequestDTO.role)
-//                println("<<<<<<<<<<<<<<<<<<<< 6")
-////            response.addHeader(jwtHeader, "$jwtHeaderStart $token")
-////            ResponseEntity.noContent().header(jwtHeader, "$jwtHeaderStart $token").build<Mono<Void>>()
-////            exchange.response.headers.set(jwtHeader, "$jwtHeaderStart $token")
-//                ResponseEntity.noContent()
-//                    .header(jwtHeader, "$jwtHeaderStart $token").build()
-//
-//            }
-//
-//        }
-//    }
 
     @PostMapping("/signin")
     fun signin(

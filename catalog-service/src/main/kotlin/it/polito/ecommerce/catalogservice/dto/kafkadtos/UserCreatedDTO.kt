@@ -8,14 +8,10 @@ data class UserCreatedDTO(
     val username: String,
     val email: String,
     val roles: Set<Rolename>,
-    val customerInfo: UserCreatedCustomerInfoDTO,
-    val emailVerificationTokenInfo: UserCreatedEmailVerificationTokenInfoDTO
-)
-
-data class UserCreatedCustomerInfoDTO(
     val name: String,
     val surname: String,
     val deliveryAddress: String,
+    val emailVerificationTokenInfo: UserCreatedEmailVerificationTokenInfoDTO
 )
 
 data class UserCreatedEmailVerificationTokenInfoDTO(

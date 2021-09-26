@@ -31,11 +31,21 @@ data class User(
 
     val isLocked: Boolean = false,
 
-//    val customer: Customer,
-
-//    val emailVerificationToken: EmailVerificationToken,
     @Transient
-    private val rolesList: List<Rolename>
+    private val rolesList: List<Rolename>,
+
+    @field:NotNull(message = "A name must be specified")
+    @field:NotEmpty(message = "The name field must be not empty")
+    val name: String,
+
+    @field:NotNull(message = "A name must be specified")
+    @field:NotEmpty(message = "The name field must be not empty")
+    val surname: String,
+
+    @field:NotNull(message = "A name must be specified")
+    @field:NotEmpty(message = "The name field must be not empty")
+    val deliveryAddress: String? = null
+
 ) {
 
     @field:NotEmpty(message = "The roles field must be not empty")
@@ -57,6 +67,9 @@ data class User(
             isEnabled = isEnabled,
             isLocked = isLocked,
             rolesList = newRoleList,
+            name = name,
+            surname = surname,
+            deliveryAddress = deliveryAddress
         )
     }
 
@@ -72,7 +85,10 @@ data class User(
                 email = email,
                 isEnabled = isEnabled,
                 isLocked = isLocked,
-                rolesList = rolesList
+                rolesList = rolesList,
+                name = name,
+                surname = surname,
+                deliveryAddress = deliveryAddress
             )
         }
         return null
@@ -87,7 +103,10 @@ data class User(
             email = email,
             isEnabled = true,
             isLocked = isLocked,
-            rolesList = rolesList
+            rolesList = rolesList,
+            name = name,
+            surname = surname,
+            deliveryAddress = deliveryAddress
         )
     }
 
@@ -100,7 +119,10 @@ data class User(
             email = email,
             isEnabled = false,
             isLocked = isLocked,
-            rolesList = rolesList
+            rolesList = rolesList,
+            name = name,
+            surname = surname,
+            deliveryAddress = deliveryAddress
         )
     }
 
@@ -116,7 +138,10 @@ data class User(
             email = email,
             isEnabled = isEnabled,
             isLocked = true,
-            rolesList = rolesList
+            rolesList = rolesList,
+            name = name,
+            surname = surname,
+            deliveryAddress = deliveryAddress
         )
     }
 
@@ -129,7 +154,10 @@ data class User(
             email = email,
             isEnabled = isEnabled,
             isLocked = false,
-            rolesList = rolesList
+            rolesList = rolesList,
+            name = name,
+            surname = surname,
+            deliveryAddress = deliveryAddress
         )
     }
 
@@ -146,7 +174,10 @@ fun User.toUserDetailsDTO(): UserDetailsDTO {
         email = this.email,
         roles = this.getRolenames(),
         isEnabled = this.isEnabled,
-        isLocked = this.isLocked
+        isLocked = this.isLocked,
+        name = this.name,
+        surname = this.surname,
+        deliveryAddress = this.deliveryAddress
     )
 }
 
@@ -157,7 +188,10 @@ fun User.toUserDTO(): UserDTO {
     return UserDTO(
         id = id,
         username = this.username,
-        email = this.email
+        email = this.email,
+        name = this.name,
+        surname = this.surname,
+        deliveryAddress = this.deliveryAddress
     )
 }
 
@@ -170,7 +204,10 @@ fun Row.extractUser(): User{
        password = this.get("password").toString(),
        isEnabled = this.get("is_enabled").toString()== "1",
        isLocked = this.get("is_locked").toString() == "1",
-       rolesList = this.get("roles").toString().split(",").map { Rolename.valueOf(it) }
+       rolesList = this.get("roles").toString().split(",").map { Rolename.valueOf(it) },
+       name = this.get("name").toString(),
+       surname = this.get("surname").toString(),
+       deliveryAddress = this.get("deliveryAddress")?.toString()
    )
 //    println(">>>>>>>>>>>> extractedUser = $user")
 }

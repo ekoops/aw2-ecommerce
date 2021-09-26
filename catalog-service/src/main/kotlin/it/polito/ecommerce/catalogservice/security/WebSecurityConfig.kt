@@ -32,7 +32,6 @@ class WebSecurityConfig(
     private val userDetailsService: UserDetailsServiceImpl,
     private val passwordEncoder: PasswordEncoder,
     private val authenticationEntryPoint: ServerAuthenticationEntryPoint,
-    private val jwtAuthenticationTokenFilter: JwtAuthenticationTokenFilter,
     private val bearerConverter: ServerHttpBearerAuthenticationConverter
 ) {
 

@@ -20,13 +20,13 @@ data class CreateUserRequestDTO(
     val password: String,
     val confirmPassword: String,
 
-    @field:NotNull(message = "The customer email must be specified")
-    @field:NotEmpty(message = "The customer name cannot be empty")
+    @field:NotNull(message = "The user name must be specified")
+    @field:NotEmpty(message = "The user name cannot be empty")
     val name: String,
-    @field:NotNull(message = "The customer surname must be specified")
-    @field:NotEmpty(message = "The customer surname cannot be empty")
+    @field:NotNull(message = "The user surname must be specified")
+    @field:NotEmpty(message = "The user surname cannot be empty")
     val surname: String,
-    @field:NotNull(message = "The customer delivery must be specified")
-    @field:NotEmpty(message = "The customer delivery address cannot be empty")
+    @field:NotNull(message = "The user delivery address must be specified")
+    @field:NotEmpty(message = "The user delivery address cannot be empty")
     val deliveryAddress: String
 )
