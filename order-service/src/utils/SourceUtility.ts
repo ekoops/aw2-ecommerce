@@ -1,4 +1,4 @@
-import {Source, SourceDTO} from "../models/Source";
+import {Source, SourceDTO} from "../domain/Source";
 
 const toSourceDTO = (source: Source): SourceDTO => source as SourceDTO;
 

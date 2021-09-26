@@ -6,18 +6,18 @@ import {
 } from "./OrderItem";
 import {
   OrderStatus,
-  OrderStatusType,
-  toOrderStatusName,
-} from "../db/OrderStatus";
+  OrderStatusName,
+} from "./OrderStatus";
+import OrderStatusUtility from "../utils/OrderStatusUtility";
 
 export interface Order {
   _id?: string;
   buyerId: number;
   deliveryAddress: string;
-  status?: OrderStatusType;
+  status: OrderStatusName;
   items: OrderItem[];
-  warehouseHasApproved?: boolean;
-  walletHasApproved?: boolean;
+  warehouseHasApproved: boolean;
+  walletHasApproved: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -26,7 +26,7 @@ export interface OrderDTO {
   id?: string;
   buyerId: number;
   deliveryAddress: string;
-  status?: OrderStatusType;
+  status?: OrderStatusName;
   items: OrderItemDTO[];
   createdAt?: Date;
 }
@@ -51,7 +51,7 @@ const orderSchema = new mongoose.Schema<Order>(
         "FAILED",
         "CANCELED",
       ],
-      default: toOrderStatusName(OrderStatus.PENDING),
+      default: OrderStatusUtility.toOrderStatusName(OrderStatus.PENDING),
       message: "{VALUE} is not supported",
     },
     items: {

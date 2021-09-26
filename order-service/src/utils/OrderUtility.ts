@@ -1,6 +1,8 @@
-import { OrderItem, OrderItemDTO } from "../models/OrderItem";
-import { Order, OrderDTO } from "../models/Order";
+import { OrderItem, OrderItemDTO } from "../domain/OrderItem";
+import { Order, OrderDTO } from "../domain/Order";
 import OrderItemUtility from "./OrderItemUtility";
+import OrderStatusUtility from "./OrderStatusUtility";
+import {OrderStatus} from "../domain/OrderStatus";
 
 const toOrderDTO = (order: Order): OrderDTO => {
   return {
@@ -22,7 +24,9 @@ const buildOrder = (orderDTO: OrderDTO): Order | null => {
   return {
     buyerId: orderDTO.buyerId,
     deliveryAddress: orderDTO.deliveryAddress,
-    status: orderDTO.status,
+    status: OrderStatusUtility.toOrderStatusName(OrderStatus.PENDING),
+    warehouseHasApproved: false,
+    walletHasApproved: false,
     items: orderDTO.items.map(
       (item: OrderItemDTO): OrderItem => ({
         productId: item.productId,

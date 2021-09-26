@@ -14,7 +14,7 @@ import {
   CannotRetrieveTopicListException,
 } from "../exceptions/kafka/KafkaException";
 import Logger from "../utils/Logger";
-import {CannotProduceException} from "../exceptions/kafka/communication/ProducerException";
+import { CannotProduceException } from "../exceptions/kafka/communication/ProducerException";
 
 export interface Admin {
   createTopics(topics: ITopicConfig[]): Promise<void>;
@@ -58,7 +58,7 @@ export default class KafkaProxy {
           try {
             haveBeenCreated = await admin.createTopics({ topics });
           } catch (ex) {
-            Logger.error(NAMESPACE, `cannot create topics: ${ex.toString()}`);
+            Logger.error(NAMESPACE, "cannot create topics: _", ex);
             throw new CannotCreateTopicException();
           }
 
@@ -66,22 +66,21 @@ export default class KafkaProxy {
           if (!haveBeenCreated) {
             Logger.error(
               NAMESPACE,
-              `failed to create the following topics ${topicNames}`
+              "failed to create the following topics _",
+              topicNames
             );
             throw new CannotCreateTopicException();
           }
-          Logger.dev(NAMESPACE, `topics created: ${topicNames}`);
+          Logger.dev(NAMESPACE, "topics created: _", topicNames);
         },
         listTopics: async (): Promise<string[]> => {
           try {
             const topics = await admin.listTopics();
-            Logger.dev(NAMESPACE, `retrieved topics: ${topics}`);
+            Logger.dev(NAMESPACE, "retrieved topics: _", topics);
             return topics;
           } catch (ex) {
-            Logger.error(
-              NAMESPACE,
-              `failed to retrieve topics list: ${ex.toString()}`
-            );
+            Logger.error(NAMESPACE, "failed to retrieve topics list: _", ex);
+            // @ts-ignore
             throw new CannotRetrieveTopicListException(ex.toString());
           }
         },
@@ -89,11 +88,12 @@ export default class KafkaProxy {
     } catch (ex) {
       Logger.error(
         NAMESPACE,
-        `failed to established a cluster admin connection: ${ex.toString()}`
+        "failed to established a cluster admin connection: _",
+        ex
       );
+      // @ts-ignore
       throw new CannotCreateAdminException(ex.toString());
     }
-    // await admin.disconnect();
   }
 
   async createProducer(): Promise<Producer> {
@@ -111,13 +111,10 @@ export default class KafkaProxy {
         ): Promise<RecordMetadata[]> => {
           try {
             const result = await producer.send(producerRecord);
-            Logger.dev(
-              NAMESPACE,
-              `produced: ${JSON.stringify(producerRecord)}`
-            );
+            Logger.dev(NAMESPACE, "produced: _", producerRecord);
             return result;
           } catch (ex) {
-            Logger.error(NAMESPACE, `failed to produce ${producerRecord}`);
+            Logger.error(NAMESPACE, "failed to produce _", producerRecord);
             // The transaction id cannot be handled at this level
             throw new CannotProduceException("no_id");
           }
@@ -126,8 +123,10 @@ export default class KafkaProxy {
     } catch (ex) {
       Logger.error(
         NAMESPACE,
-        `failed to established a cluster producer connection: ${ex.toString()}`
+        "failed to established a cluster producer connection: _",
+        ex
       );
+      // @ts-ignore
       throw new CannotCreateProducerException(ex.toString());
     }
   }
@@ -147,21 +146,22 @@ export default class KafkaProxy {
     try {
       Logger.dev(
         NAMESPACE,
-        `creating consumer... trying to subscript to the topics ${JSON.stringify(
-          topics
-        )}`
+        "creating consumer... trying to subscript to the topics _",
+        topics
       );
       await Promise.all(subscriptionsPromises);
 
       Logger.dev(
         NAMESPACE,
-        `topics subscription done... trying to established a cluster consumer connection on group ${groupId}`
+        "topics subscription done... trying to established a cluster consumer connection on group _",
+        groupId
       );
       await consumer.connect();
 
       Logger.dev(
         NAMESPACE,
-        `cluster consumer connection established on group ${groupId}`
+        "cluster consumer connection established on group _",
+        groupId
       );
       return {
         consume: (
@@ -173,7 +173,7 @@ export default class KafkaProxy {
               const key = payload.message.key.toString();
               if (filter !== undefined && !filter(key)) return;
               const value = payload.message.value?.toString();
-              Logger.dev(NAMESPACE, `consumed: {key: ${key}, value: ${value}}`);
+              Logger.dev(NAMESPACE, "consumed: {key: _, value: _", key, value);
               await callback(key, value);
             },
           });
@@ -182,8 +182,10 @@ export default class KafkaProxy {
     } catch (ex) {
       Logger.error(
         NAMESPACE,
-        `failed to established a cluster consumer connection: ${ex.toString()}`
+        "failed to established a cluster consumer connection: _",
+        ex
       );
+      // @ts-ignore
       throw new CannotCreateConsumerException(ex.toString());
     }
   }

@@ -3,7 +3,7 @@ import initDbConnection from "./db/initDbConnection";
 import KafkaProxy from "./kafka/KafkaProxy";
 import { KafkaConfig } from "kafkajs";
 import getApp from "./app";
-import { OrderModel } from "./models/Order";
+import { OrderModel } from "./domain/Order";
 import OrderRepository from "./repositories/OrderRepository";
 import OrderController from "./controllers/OrderController";
 import initConsumers from "./kafka/initConsumers";
@@ -59,11 +59,12 @@ const run = async () => {
       if (err) {
         Logger.error(
           NAMESPACE,
-          `cannot establish a connection to the discovery service: ${err.message}`
+          "cannot establish a connection to the discovery service: _}",
+          err
         );
         process.exit(7);
       }
-      Logger.dev(NAMESPACE, `connected successfully to the discovery service`);
+      Logger.dev(NAMESPACE, "connected successfully to the discovery service");
     });
   });
 };
@@ -104,6 +105,6 @@ run().catch((ex) => {
   }
 
   // TODO complete exception handling
-  Logger.error(NAMESPACE, `generic error: ${JSON.stringify(ex)}`);
+  Logger.error(NAMESPACE, "generic error: _", ex);
   process.exit(255);
 });

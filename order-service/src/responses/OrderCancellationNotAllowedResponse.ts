@@ -1,5 +1,5 @@
-import { ErrorResponse } from "./ErrorResponse";
 import ErrorType from "./ErrorType";
+import ErrorResponse from "./ErrorResponse";
 
 export default class OrderCancellationNotAllowedResponse extends ErrorResponse {
   constructor(orderId: string) {

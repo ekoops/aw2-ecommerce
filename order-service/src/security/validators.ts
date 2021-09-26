@@ -8,11 +8,8 @@ import {
 } from "express-validator";
 import mongoose from "mongoose";
 import { NextFunction, Request, Response } from "express";
-import { toOrderStatus } from "../db/OrderStatus";
-import {
-  FieldErrorReasons,
-  FieldsValidationErrorResponse,
-} from "../responses/ErrorResponse";
+import OrderStatusUtility from "../utils/OrderStatusUtility";
+import FieldsValidationErrorResponse, {FieldErrorReasons} from "../responses/FieldsValidationErrorResponse";
 
 interface Validators {
   [key: string]: ValidationChain[];
@@ -35,7 +32,7 @@ const checkErrors = (req: Request, res: Response, next: NextFunction) => {
   } else return next();
 };
 
-const validateId = (validationChain: ValidationChain): ValidationChain => {
+const validateObjectId = (validationChain: ValidationChain): ValidationChain => {
   return validationChain.custom((id) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new Error(`The provided id(${id}) is not valid`);
@@ -45,33 +42,33 @@ const validateId = (validationChain: ValidationChain): ValidationChain => {
 
 const validators: Validators = {
   getOrders: [],
-  getOrder: [validateId(param("id"))],
+  getOrder: [validateObjectId(param("id"))],
   postOrder: [
-    body("deliveryAddress")
-      .isString()
-      .withMessage("A valid delivery address must be specified"),
+    // body("deliveryAddress")
+    //   .isString()
+    //   .withMessage("A valid delivery address must be specified"),
     body("items")
       .isArray({ min: 1 })
       .withMessage("A valid items list must be specified"),
-    validateId(body("items.*.productId")),
+    validateObjectId(body("items.*.productId")),
     body("items.*.amount")
       .isInt({ min: 1 })
       .withMessage("The items amount must be greater than 0"),
   ],
   patchOrder: [
-    validateId(param("id")),
+    validateObjectId(param("id")),
     body("status")
       .isString()
       .withMessage("The new status must be a valid one")
       .bail()
       .custom((status) => {
         // try to see if the string status contains a number...
-        if (!isNaN(status) || toOrderStatus(status)) {
+        if (!isNaN(status) || OrderStatusUtility.toOrderStatus(status)) {
           throw new Error("The new status must be a valid one");
         }
       }),
   ],
-  deleteOrder: [validateId(param("id"))],
+  deleteOrder: [validateObjectId(param("id"))],
 };
 
 export { checkErrors, validators };
