@@ -30,9 +30,6 @@ class DBConfig(
     //ResourceDatabasePopulator cerca "schema.sql" che io definisco e lo lancia all'inzio
     @Bean
     fun initializer(connectionFactory: ConnectionFactory): ConnectionFactoryInitializer {
-        println("<<<<<<<<<<<<<< ${dbUrl} >>>>>>>>>>>>>>>>>>>>")
-        println("<<<<<<<<<<<<<< ${username} >>>>>>>>>>>>>>>>>>>>")
-        println("<<<<<<<<<<<<<< ${password} >>>>>>>>>>>>>>>>>>>>")
         val cfi = ConnectionFactoryInitializer()
         cfi.setConnectionFactory(connectionFactory)
         cfi.setDatabasePopulator(
