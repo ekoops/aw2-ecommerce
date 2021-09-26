@@ -1,14 +1,14 @@
 import OrderRepository from "../repositories/OrderRepository";
 import { Order, OrderDTO } from "../domain/Order";
 import { OrderStatus } from "../domain/OrderStatus";
-import FailureWrapper from "./FailureWrapper";
+import OrderCreationFailed from "./OrderCreationFailed";
 import ProducerProxy from "../kafka/ProducerProxy";
 import { generateUUID } from "../utils/utils";
 import RequestStore, {
   FailurePayload,
   SuccessPayload,
 } from "../kafka/RequestStore";
-import { ApprovationDTO, Approver, toApprover } from "../dtos/ApproverDTO";
+import { ApprovationDTO } from "../dtos/ApprovationDTO";
 import Logger from "../utils/Logger";
 import {
   NotAllowedException,
@@ -27,6 +27,8 @@ import CreateOrderRequestDTO from "../dtos/CreateOrderRequestDTO";
 import ModifyOrderStatusRequestDTO from "../dtos/ModifyOrderStatusRequestDTO";
 import CancelOrderRequestDTO from "../dtos/CancelOrderRequestDTO";
 import OrderStatusUtility from "../utils/OrderStatusUtility";
+import ApproverUtility from "../utils/ApproverUtility";
+import Approver from "../domain/Approver";
 
 const NAMESPACE = "ORDER_SERVICE";
 
@@ -109,13 +111,13 @@ export default class OrderService {
   handleApprovation = async (message: {
     key: string;
     value: ApprovationDTO;
-  }): Promise<OrderDTO | FailureWrapper> => {
+  }): Promise<OrderDTO | OrderCreationFailed> => {
     const {
       key: transactionId,
       value: { approverName, orderDTO },
     } = message;
 
-    const FAILURE_OBJ = new FailureWrapper("Order creation failed");
+    const FAILURE_OBJ = new OrderCreationFailed();
 
     // the orderDTO's id must be present and it has to be equal to
     // the transactionId. In case of mismatch, it is not safe to trying to
@@ -125,13 +127,14 @@ export default class OrderService {
       return FAILURE_OBJ;
     const orderId = orderDTO.id;
 
+    // preparing a failureHandler that can be used in case of error
     const failureHandler = this.handleApproveOrderFailure.bind(
       this,
       new CommunicationException(orderId)
     );
 
     // obtaining approver info
-    const approver = toApprover(approverName);
+    const approver = ApproverUtility.toApprover(approverName);
     if (approver === undefined) return failureHandler();
 
     // getting order
@@ -165,12 +168,11 @@ export default class OrderService {
             OrderStatus.ISSUED
           );
           const issuedOrder = await this.orderRepository.save(order);
+          // ORDER CREATED SUCCESSFULLY
           return OrderUtility.toOrderDTO(issuedOrder);
         }
         await this.orderRepository.save(order);
       } catch (ex) {
-        // trying to delete order. It doesn't matter if it is not possibile
-        // to delete the order since the job will be done by a worker
         return failureHandler();
       }
     }
@@ -185,57 +187,60 @@ export default class OrderService {
 
   handleApproveOrderFailure = async (
     err: FailurePayload
-  ): Promise<FailureWrapper> => {
+  ): Promise<OrderCreationFailed> => {
     Logger.dev(
       NAMESPACE,
       `handleApproveOrderFailure(err: ${err.constructor.name})`
     );
-    this.orderRepository.deleteOrderById(err.transactionId).catch((ex) => {
-      Logger.dev(
-        NAMESPACE,
-        `handleApproveOrderFailure(err: ${ex.constructor.name})`
-      );
-    });
+    // trying to delete order. It doesn't matter if it is not possible
+    // to delete the order since the job will be done by the cleaner
+    this.orderRepository.deleteOrderById(err.transactionId).catch((() => {/* doing nothing... */}));
 
-    return new FailureWrapper("Order creation failed");
+    return new OrderCreationFailed();
   };
 
   approveOrder = async (
     message: SuccessPayload
-  ): Promise<OrderDTO | FailureWrapper> => {
+  ): Promise<OrderDTO | OrderCreationFailed> => {
     const { value: orderDTO } = message;
 
     // preparing order object
     const transientOrder: Order | null = OrderUtility.buildOrder(orderDTO);
-    if (!transientOrder) return new FailureWrapper("Order creation failed");
+    if (!transientOrder) return new OrderCreationFailed();
 
-    // persisting order object
-    let persistedOrder: Order;
     try {
-      persistedOrder = await this.orderRepository.createOrder(transientOrder);
+      // persisting order object
+      // After the order creation, debezium will publish on the proper topic
+      // the creation event and both the warehouse service and the wallet service
+      // have to listen to this topic and perform the right action in order to
+      // finalize the order creation (such as subtract the right amount of products
+      // from warehouses and subtract the right amount of money from the customer wallet).
+      const persistedOrder: Order = await this.orderRepository.createOrder(
+        transientOrder
+      );
+
+      // Waiting for warehouse service and wallet service approvation.
+      return new Promise<{ key: string; value: ApprovationDTO }>(
+        (resolve, reject) => {
+          const orderId = persistedOrder._id!; // the order id must be present after the create operation
+          requestStore.set(orderId, resolve, reject);
+        }
+      )
+        .then(this.handleApprovation)
+        .catch(this.handleApproveOrderFailure);
     } catch (ex) {
       // The exception can only be of type OrderCreationFailedException
       Logger.dev(
         NAMESPACE,
         `approveOrder(err: ${(ex as FailurePayload).constructor.name})`
       );
-      return new FailureWrapper("Order creation failed");
+      return new OrderCreationFailed();
     }
-
-    const persistedOrderDTO = OrderUtility.toOrderDTO(persistedOrder);
-    return this.producerProxy
-      .produceAndWaitResponse<ApprovationDTO>(
-        "order-approved",
-        persistedOrderDTO.id!,
-        persistedOrderDTO
-      )
-      .then(this.handleApprovation)
-      .catch(this.handleApproveOrderFailure);
   };
 
   createOrder = async (
     createOrderRequestDTO: CreateOrderRequestDTO
-  ): Promise<OrderDTO | FailureWrapper> => {
+  ): Promise<OrderDTO | OrderCreationFailed> => {
     const transactionId: string = generateUUID();
     try {
       // checking items availability. The response is an orderDTO
@@ -248,12 +253,14 @@ export default class OrderService {
         );
       const orderDTO = itemsAvailabilityResponse.value;
 
+      // checking if there is some item without an associated price
       const arePricesMissing = orderDTO.items.some(
         (item) => item.perItemPrice === undefined
       );
-      if (arePricesMissing) return new FailureWrapper("Order creation failed");
+      if (arePricesMissing) return new OrderCreationFailed();
 
-      // checking buyer budget availability
+      // checking buyer budget availability. The response must have
+      // key = transactionId and value = orderDTO without any modification.
       const budgetAvailabilityResponse =
         await this.producerProxy.produceAndWaitResponse<OrderDTO>(
           "budget-availability-requested",
@@ -268,7 +275,7 @@ export default class OrderService {
           (ex as FailurePayload).constructor.name
         })`
       );
-      return new FailureWrapper("Order creation failed");
+      return new OrderCreationFailed();
     }
   };
 
