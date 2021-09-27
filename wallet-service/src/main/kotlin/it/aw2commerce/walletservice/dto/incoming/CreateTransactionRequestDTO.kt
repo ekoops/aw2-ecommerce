@@ -5,10 +5,13 @@ import javax.validation.constraints.Positive
 
     data class CreateTransactionRequestDTO(
         @field:NotNull(message = "An amount must be specified")
-        @field:Positive(message = "The amount must be positive")
         val amount: Double,
 
-        @field:NotNull(message = "A recharged wallet id must be specified")
-        @field:Positive(message = "The recharged wallet id must be positive")
-        val rechargingWalletId: Long,
+        @field:NotNull(message = "A wallet id must be specified")
+        @field:Positive(message = "The wallet id must be positive")
+        val walletId: Long,
+
+        @field:NotNull(message = "A order id must be specified")
+        @field:Positive(message = "The order id must be positive")
+        val orderId: Long,
     )

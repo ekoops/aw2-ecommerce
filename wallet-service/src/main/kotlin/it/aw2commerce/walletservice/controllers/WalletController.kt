@@ -47,8 +47,8 @@ class WalletController(
        @PathVariable("walletId") walletId: Long,
        @Valid @RequestBody createTransactionRequestDTO: CreateTransactionRequestDTO,
     ): TransactionDTO = walletService.createWalletTransaction(
-        purchasingWalletId = walletId,
-        createTransactionRequestDTO = createTransactionRequestDTO
+        walletId = walletId,
+        createTransactionRequestDTO = createTransactionRequestDTO,
     )
 
 

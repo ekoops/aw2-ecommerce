@@ -11,12 +11,13 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 import java.util.*
 
+//TODO check if all works
+
 @Repository
 interface TransactionRepository : PagingAndSortingRepository<Transaction, Long> {
-    fun findByIdAndPurchasingWalletOrRechargingWallet(
+    fun findByIdAndWallet(
         id: Long,
-        purchasingWallet: Wallet,
-        rechargingWallet: Wallet
+        purchasingWallet: Wallet
     ): Optional<Transaction>
 
     @Query(
@@ -24,7 +25,7 @@ interface TransactionRepository : PagingAndSortingRepository<Transaction, Long> 
         SELECT t
         FROM Transaction t
         WHERE (t.timeInstant BETWEEN :startDate AND :endDate) AND
-            (t.purchasingWallet = :wallet OR t.rechargingWallet = :wallet)
+            (t.wallet = :wallet)
     """
     )
     fun customFindByWalletAndTimeInstantBetween(
@@ -34,19 +35,15 @@ interface TransactionRepository : PagingAndSortingRepository<Transaction, Long> 
         pageable: Pageable
     ): Page<Transaction>
 
-    fun findAllByPurchasingWalletOrRechargingWallet(
-        purchasingWallet: Wallet,
-        rechargingWallet: Wallet,
+    fun findAllByWallet(
+        wallet: Wallet,
         pageable: Pageable
     ): Page<Transaction>
 
-    fun findAllByPurchasingWallet(
-        purchasingWallet: Wallet,
-    ): List<Transaction>
 
-    fun findAllByRechargingWallet(
-        rechargingWallet: Wallet,
-    ): List<Transaction>
+//    fun findAllByWallet(
+//        wallet: Wallet,
+//    ): List<Transaction>
 
     companion object {
         const val TRANSACTION_PAGE_SIZE: Int = 10
