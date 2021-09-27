@@ -16,20 +16,20 @@ export default class Logger {
 
     static dev(namespace: string, template: string, ...args: any[]) {
         if (env === "development") {
-            const message = Logger.buildMessage(template, args);
+            const message = Logger.buildMessage(template, ...args);
             if (message === null) return;
             const logline = `[${new Date().toISOString()}] [${instanceId}] [${namespace}] [DEV] --- ${message} ---`
             console.log(logline);
         }
     }
     static log(namespace: string, template: string, ...args: any[]) {
-        const message = Logger.buildMessage(template, args);
+        const message = Logger.buildMessage(template, ...args);
         if (message === null) return;
         const logline = `[${new Date().toISOString()}] [${instanceId}] [${namespace}] [LOG] --- ${message} ---`
         console.log(logline)
     }
     static error(namespace: string, template: string, ...args: any[]) {
-        const message = Logger.buildMessage(template, args);
+        const message = Logger.buildMessage(template, ...args);
         if (message === null) return;
         const logline = `[${new Date().toISOString()}] [${instanceId}] [${namespace}] [ERROR] --- ${message} ---`
         console.error(logline)
