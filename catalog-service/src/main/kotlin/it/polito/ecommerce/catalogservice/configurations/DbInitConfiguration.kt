@@ -19,7 +19,7 @@ class DbInitConfiguration(
         val user1 = User(
             username = "user1",
             email = "user1@yopmail.com",
-            password = passwordEncoder.encode("password"),
+            password = passwordEncoder.encode("User!001"),
             isEnabled = true,
             isLocked = false,
             rolesList = listOf(Rolename.ADMIN, Rolename.CUSTOMER),
@@ -31,7 +31,7 @@ class DbInitConfiguration(
         val user2 = User(
             username = "user2",
             email = "user2@yopmail.com",
-            password = passwordEncoder.encode("password"),
+            password = passwordEncoder.encode("User!002"),
             isEnabled = true,
             isLocked = false,
             rolesList = listOf(Rolename.ADMIN),
@@ -43,7 +43,7 @@ class DbInitConfiguration(
         val user3 = User(
             username = "user3",
             email = "user3@yopmail.com",
-            password = passwordEncoder.encode("password"),
+            password = passwordEncoder.encode("User!003"),
             isEnabled = true,
             isLocked = false,
             rolesList = listOf(Rolename.CUSTOMER),

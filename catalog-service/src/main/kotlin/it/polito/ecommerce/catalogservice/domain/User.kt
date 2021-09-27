@@ -207,7 +207,7 @@ fun Row.extractUser(): User{
        rolesList = this.get("roles").toString().split(",").map { Rolename.valueOf(it) },
        name = this.get("name").toString(),
        surname = this.get("surname").toString(),
-       deliveryAddress = this.get("deliveryAddress")?.toString()
+       deliveryAddress = this.get("delivery_address")?.toString()
    )
 //    println(">>>>>>>>>>>> extractedUser = $user")
 }
