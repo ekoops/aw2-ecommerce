@@ -11,7 +11,6 @@ import it.polito.ecommerce.catalogservice.exceptions.user.ActionNotPermittedExce
 import it.polito.ecommerce.catalogservice.exceptions.user.InconsistentUserException
 import it.polito.ecommerce.catalogservice.exceptions.user.NoSuchRoleException
 import it.polito.ecommerce.catalogservice.exceptions.user.UserAlreadyExistsException
-import it.polito.ecommerce.catalogservice.exceptions.user.customer.InconsistentCustomerException
 import it.polito.ecommerce.catalogservice.exceptions.user.emailverificationtoken.EmailVerificationTokenExpiredException
 import it.polito.ecommerce.catalogservice.kafka.dispatch
 import it.polito.ecommerce.catalogservice.repositories.CoroutineUserRepository

@@ -23,12 +23,11 @@ create table if not exists `catalog-db`.`email_verification_token`(
     );
 
 
--- INSERT IGNORE INTO `catalog-db`.`user`(id, username, email, password, is_enabled, is_locked, roles)
---     VALUES (1, "user1", "user1@yopmail.com", "{bcrypt}$2a$10$4UkJEJ3UQCZEeSUt/zoMC.j3YyxkPFS5j8mheomTIL0W8Q7vx/ta2", 1, 0, "ADMIN,CUSTOMER");
---
---
--- INSERT IGNORE INTO `catalog-db`.`user`(id, username, email, password, is_enabled, is_locked, roles)
---     VALUES (2, "user2", "user2@yopmail.com", "{bcrypt}$2a$10$4UkJEJ3UQCZEeSUt/zoMC.j3YyxkPFS5j8mheomTIL0W8Q7vx/ta2", 1, 0, "ADMIN");
+-- INSERT IGNORE INTO `catalog-db`.`user`(id, username, email, password, is_enabled, is_locked, roles, name, surname, delivery_address)
+--     VALUES (1, "user1", "user1@yopmail.com", "{bcrypt}$2a$10$4UkJEJ3UQCZEeSUt/zoMC.j3YyxkPFS5j8mheomTIL0W8Q7vx/ta2", 1, 0, "ADMIN,CUSTOMER", "user1_name", "user1_surname", "user1_deliveryAddres");
 --
 -- INSERT IGNORE INTO `catalog-db`.`user`(id, username, email, password, is_enabled, is_locked, roles)
---     VALUES (3, "user3", "user3@yopmail.com", "{bcrypt}$2a$10$4UkJEJ3UQCZEeSUt/zoMC.j3YyxkPFS5j8mheomTIL0W8Q7vx/ta2", 1, 0, "CUSTOMER");
+--     VALUES (2, "user2", "user2@yopmail.com", "{bcrypt}$2a$10$4UkJEJ3UQCZEeSUt/zoMC.j3YyxkPFS5j8mheomTIL0W8Q7vx/ta2", 1, 0, "ADMIN", "user2_name", "user2_surname");
+--
+-- INSERT IGNORE INTO `catalog-db`.`user`(id, username, email, password, is_enabled, is_locked, roles)
+--     VALUES (3, "user3", "user3@yopmail.com", "{bcrypt}$2a$10$4UkJEJ3UQCZEeSUt/zoMC.j3YyxkPFS5j8mheomTIL0W8Q7vx/ta2", 1, 0, "CUSTOMER", "user3_name", "user3_surname", "user3_deliveryAddres");

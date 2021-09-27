@@ -1,7 +1,6 @@
 package it.polito.ecommerce.catalogservice.converters
 
 import io.r2dbc.spi.Row
-import it.polito.ecommerce.catalogservice.domain.Customer
 import it.polito.ecommerce.catalogservice.domain.User
 import org.springframework.core.convert.converter.Converter
 import org.springframework.data.convert.WritingConverter
@@ -19,5 +18,8 @@ class UserWriter: Converter<User, OutboundRow> {
             put("is_enabled", Parameter.from(u.isEnabled))
             put("is_locked", Parameter.from(u.isLocked))
             put("roles", Parameter.from(u.roles))
+            put("name", Parameter.from(u.name))
+            put("surname", Parameter.from(u.surname))
+            if (u.deliveryAddress != null) put("delivery_address", Parameter.from(u.deliveryAddress))
         }
 }
