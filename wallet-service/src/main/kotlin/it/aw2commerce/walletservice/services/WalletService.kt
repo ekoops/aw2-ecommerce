@@ -12,7 +12,7 @@ interface WalletService {
     fun getWallet(walletId: Long): WalletDTO
     fun getCustomerIdFromWalletId(walletId: Long): Long?
     fun createWalletTransaction(
-        purchasingWalletId: Long,
+        walletId: Long,
         createTransactionRequestDTO: CreateTransactionRequestDTO
     ): TransactionDTO
     fun getWalletTransactions(walletId: Long, pageNumber: Int): TransactionsPageDTO

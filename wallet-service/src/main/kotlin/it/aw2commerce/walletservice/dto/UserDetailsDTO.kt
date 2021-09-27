@@ -36,11 +36,3 @@ data class UserDetailsDTO(
         return true
     }
 }
-//
-//fun UserDetailsDTO.toUser() = User(
-//    email = this.getEmail(),
-//    username = this.getUsername(),
-//    password = this.getPassword(),
-//    isEnabled = this.isEnabled(),
-//    roles = this.getRoles(),
-//)

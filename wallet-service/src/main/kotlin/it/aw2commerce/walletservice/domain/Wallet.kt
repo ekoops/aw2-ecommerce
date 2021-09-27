@@ -17,18 +17,12 @@ class Wallet(
     var customerId: Long,
 
     @OneToMany(
-        mappedBy = "purchasingWallet",
+        mappedBy = "wallet",
         targetEntity = Transaction::class,
         fetch = FetchType.LAZY
     )
-    var purchasingTransactions: Set<Transaction>,
+    var transactions: Set<Transaction>,
 
-    @OneToMany(
-        mappedBy = "rechargingWallet",
-        targetEntity = Transaction::class,
-        fetch = FetchType.LAZY
-    )
-    var rechargingTransactions: Set<Transaction>,
 
 
     @field:Min(value = 0, message = "The wallet amount must be greater or equal than zero")
