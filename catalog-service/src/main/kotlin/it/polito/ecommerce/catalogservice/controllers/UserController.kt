@@ -43,6 +43,7 @@ class UserController(
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/addRole/{userId}")
     suspend fun addRole(
         @RequestParam("role", required = true) role: String,
