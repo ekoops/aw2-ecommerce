@@ -28,7 +28,7 @@ import reactor.core.publisher.Mono
 
 @Configuration
 @EnableWebFluxSecurity
-//@EnableReactiveMethodSecurity(proxyTargetClass = true)
+@EnableReactiveMethodSecurity
 //@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 class WebSecurityConfig(
     private val userDetailsService: UserDetailsServiceImpl,
