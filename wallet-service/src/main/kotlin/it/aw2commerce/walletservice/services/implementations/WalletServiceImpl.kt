@@ -81,16 +81,19 @@ class WalletServiceImpl(
     ): TransactionDTO {
 
         val auth: Authentication = SecurityContextHolder.getContext().authentication
-        val isAdmin = auth.authorities.first().authority.equals("ADMIN")
+//        val isAdmin = auth.authorities.first().authority.equals("ADMIN")
+        val isAdmin = false
         val orderId = createTransactionRequestDTO.orderId
 //todo check is admin
 //        val purchasingWallet =  if(isAdmin) this.getWalletEntity(purchasingWalletId)
 //          else getWalletEntity(purchasingWalletId)
         try {
             // 422 if not present...
-            val wallet = getWalletEntity(createTransactionRequestDTO.walletId)
+            println(" before get wallet")
+            val wallet = getWalletEntity(walletId)
+            println(" after get wallet" + wallet.amount)
             val amountToLong = (createTransactionRequestDTO.amount * 100).toLong()
-            if (wallet.amount < amountToLong && !isAdmin) {
+            if (wallet.amount < -amountToLong) {
                 throw TransactionFailedException(
                     detail = "Insufficient balance to perform transaction"
                 )
@@ -103,7 +106,7 @@ class WalletServiceImpl(
             )
             val createdTransaction = transactionRepository.save(newTransaction)
 //            if (!isAdmin) purchasingWallet.amount -= newTransaction.amount
-//            rechargingWallet.amount += newTransaction.amount
+            wallet.amount += newTransaction.amount
             return createdTransaction.toTransactionDTO()
         } catch (ex: WalletNotFoundException) {
             // returning the same message but allowing status code to be bad request
@@ -150,7 +153,7 @@ class WalletServiceImpl(
         val wallet = getWalletEntity(walletId)
         val optionalTransaction = transactionRepository.findByIdAndWallet(
             id = transactionId,
-            purchasingWallet = wallet
+            wallet = wallet
         )
         if (!optionalTransaction.isPresent) {
             throw TransactionNotFoundException(id = transactionId)

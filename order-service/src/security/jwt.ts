@@ -11,13 +11,13 @@ const NAMESPACE = "JWT";
 export const handleJwt: RequestHandler = (req, res, next) => {
   const authHeader = req.header("Authorization");
   if (authHeader === undefined || !authHeader.startsWith("Bearer ")) {
-    Logger.error(NAMESPACE, "invalid auth header: _", authHeader);
+    Logger.error(NAMESPACE, "invalid auth header: %v", authHeader);
     return res.status(400).json(new BadRequestResponse("invalid auth header"));
   }
   const token = authHeader.substr(authHeader.indexOf(" ") + 1);
   // assuming that the api gateway verify the jwt...
   const decodedJwt: any = jwt.decode(token);
-  Logger.dev(NAMESPACE, "jwt payload: _", decodedJwt);
+  Logger.dev(NAMESPACE, "jwt payload: %v", decodedJwt);
 
   const userRole = UserUtility.toUserRole(decodedJwt.role);
   if (userRole === undefined) {

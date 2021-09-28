@@ -21,10 +21,10 @@ class OrderRepository {
   findOrders = async (): Promise<Order[]> => {
     try {
       const orders: Order[] = await this.OrderModel.find();
-      Logger.dev(NAMESPACE, "findAllOrders(): _", orders);
+      Logger.dev(NAMESPACE, "findAllOrders(): %v", orders);
       return orders;
     } catch (ex) {
-      Logger.error(NAMESPACE, "findAllOrders(): _", ex);
+      Logger.error(NAMESPACE, "findAllOrders(): %v", ex);
       throw new OrdersRetrievingFailedException();
     }
   };
@@ -33,7 +33,7 @@ class OrderRepository {
       const orders: Order[] = await this.OrderModel.find({ userId })
       return orders;
     } catch (ex) {
-      Logger.error(NAMESPACE, "findUserOrders(): _", ex);
+      Logger.error(NAMESPACE, "findUserOrders(): %v", ex);
       throw new OrdersRetrievingFailedException();
     }
   };
@@ -42,20 +42,20 @@ class OrderRepository {
   findOrderById = async (id: string): Promise<Order | null> => {
     try {
       const order = await this.OrderModel.findById(id);
-      Logger.dev(NAMESPACE, "findOrderById(id: _): _", id, order);
+      Logger.dev(NAMESPACE, "findOrderById(id: %v): %v", id, order);
       return order;
     } catch (ex) {
-      Logger.error(NAMESPACE, "findOrderById(id: _): _", id, ex);
+      Logger.error(NAMESPACE, "findOrderById(id: %v): %v", id, ex);
       throw new OrdersRetrievingFailedException();
     }
   };
   findUserOrderById = async (userId: number, orderId: string): Promise<Order | null> => {
     try {
       const order = await this.OrderModel.findOne({_id: orderId, buyerId: userId});
-      Logger.dev(NAMESPACE, "findUserOrderById(userId: _, orderId: _): _", userId, orderId, order);
+      Logger.dev(NAMESPACE, "findUserOrderById(userId: %v, orderId: %v): %v", userId, orderId, order);
       return order;
     } catch (ex) {
-      Logger.error(NAMESPACE, "findUserOrderById(userId: _, userId: _): _", userId, orderId, ex);
+      Logger.error(NAMESPACE, "findUserOrderById(userId: %v, userId: %v): %v", userId, orderId, ex);
       throw new OrdersRetrievingFailedException();
     }
   };
@@ -64,10 +64,10 @@ class OrderRepository {
     const orderModel = new this.OrderModel(order);
     try {
       const concreteOrder = await orderModel.save();
-      Logger.dev(NAMESPACE, "createOrder(order: _): _", order, concreteOrder);
+      Logger.dev(NAMESPACE, "createOrder(order: %v): %v", order, concreteOrder);
       return concreteOrder;
     } catch (ex) {
-      Logger.error(NAMESPACE, "createOrder(order: _): _", order, ex);
+      Logger.error(NAMESPACE, "createOrder(order: %v): %v", order, ex);
       throw new OrderCreationFailedException();
     }
   };
@@ -76,10 +76,10 @@ class OrderRepository {
     try {
       // @ts-ignore
       const updatedOrder = await order.save();
-      Logger.dev(NAMESPACE, "save(order: _): _", order, updatedOrder);
+      Logger.dev(NAMESPACE, "save(order: %v): %v", order, updatedOrder);
       return updatedOrder;
     } catch (ex) {
-      Logger.error(NAMESPACE, "save(order: _): _", order, ex);
+      Logger.error(NAMESPACE, "save(order: %v): %v", order, ex);
       throw new OrderSavingFailedException();
     }
   };
@@ -87,10 +87,10 @@ class OrderRepository {
   deleteOrderById = async (id: string): Promise<Order | null> => {
     try {
       const deletedOrder = await this.OrderModel.findOneAndDelete({_id: id})
-      Logger.dev(NAMESPACE, "deleteOrderById(id: _): _", id, deletedOrder);
+      Logger.dev(NAMESPACE, "deleteOrderById(id: %v): %v", id, deletedOrder);
       return deletedOrder;
     } catch (ex) {
-      Logger.error(NAMESPACE, "deleteOrderById(id: _): _", id, ex);
+      Logger.error(NAMESPACE, "deleteOrderById(id: %v): %v", id, ex);
       throw new OrderDeletionFailedException();
     }
   };

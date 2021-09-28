@@ -4,11 +4,19 @@ eureka:
   instance:
     hostname: localhost
   client:
+    healthcheck:
+      enabled: true
     register-with-eureka: false
     fetch-registry: false
   server:
     enable-self-preservation: false
+    expected-client-renewal-interval-seconds: 5
+    eviction-interval-timer-in-ms: 20000
+    renewal-percent-threshold: 0.85
+    renewal-threshold-update-interval-ms: 40000
+
     response-cache-update-interval-ms: 5000
+
 #    registry-sync-retry-wait-ms: 0
 
 spring:

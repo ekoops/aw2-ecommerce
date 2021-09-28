@@ -58,7 +58,7 @@ export default class KafkaProxy {
           try {
             haveBeenCreated = await admin.createTopics({ topics });
           } catch (ex) {
-            Logger.error(NAMESPACE, "cannot create topics: _", ex);
+            Logger.error(NAMESPACE, "cannot create topics: %v", ex);
             throw new CannotCreateTopicException();
           }
 
@@ -66,20 +66,20 @@ export default class KafkaProxy {
           if (!haveBeenCreated) {
             Logger.error(
               NAMESPACE,
-              "failed to create the following topics _",
+              "failed to create the following topics %v",
               topicNames
             );
             throw new CannotCreateTopicException();
           }
-          Logger.dev(NAMESPACE, "topics created: _", topicNames);
+          Logger.dev(NAMESPACE, "topics created: %v", topicNames);
         },
         listTopics: async (): Promise<string[]> => {
           try {
             const topics = await admin.listTopics();
-            Logger.dev(NAMESPACE, "retrieved topics: _", topics);
+            Logger.dev(NAMESPACE, "retrieved topics: %v", topics);
             return topics;
           } catch (ex) {
-            Logger.error(NAMESPACE, "failed to retrieve topics list: _", ex);
+            Logger.error(NAMESPACE, "failed to retrieve topics list: %v", ex);
             // @ts-ignore
             throw new CannotRetrieveTopicListException(ex.toString());
           }
@@ -88,7 +88,7 @@ export default class KafkaProxy {
     } catch (ex) {
       Logger.error(
         NAMESPACE,
-        "failed to established a cluster admin connection: _",
+        "failed to established a cluster admin connection: %v",
         ex
       );
       // @ts-ignore
@@ -111,10 +111,10 @@ export default class KafkaProxy {
         ): Promise<RecordMetadata[]> => {
           try {
             const result = await producer.send(producerRecord);
-            Logger.dev(NAMESPACE, "produced: _", producerRecord);
+            Logger.dev(NAMESPACE, "produced: %v", producerRecord);
             return result;
           } catch (ex) {
-            Logger.error(NAMESPACE, "failed to produce _", producerRecord);
+            Logger.error(NAMESPACE, "failed to produce %v", producerRecord);
             // The transaction id cannot be handled at this level
             throw new CannotProduceException("no_id");
           }
@@ -123,7 +123,7 @@ export default class KafkaProxy {
     } catch (ex) {
       Logger.error(
         NAMESPACE,
-        "failed to established a cluster producer connection: _",
+        "failed to established a cluster producer connection: %v",
         ex
       );
       // @ts-ignore
@@ -146,21 +146,21 @@ export default class KafkaProxy {
     try {
       Logger.dev(
         NAMESPACE,
-        "creating consumer... trying to subscript to the topics _",
+        "creating consumer... trying to subscript to the topics %v",
         topics
       );
       await Promise.all(subscriptionsPromises);
 
       Logger.dev(
         NAMESPACE,
-        "topics subscription done... trying to established a cluster consumer connection on group _",
+        "topics subscription done... trying to established a cluster consumer connection on group %v",
         groupId
       );
       await consumer.connect();
 
       Logger.dev(
         NAMESPACE,
-        "cluster consumer connection established on group _",
+        "cluster consumer connection established on group %v",
         groupId
       );
       return {
@@ -173,7 +173,7 @@ export default class KafkaProxy {
               const key = payload.message.key.toString();
               if (filter !== undefined && !filter(key)) return;
               const value = payload.message.value?.toString();
-              Logger.dev(NAMESPACE, "consumed: {key: _, value: _", key, value);
+              Logger.dev(NAMESPACE, "consumed: {key: %v, value: %v", key, value);
               await callback(key, value);
             },
           });
@@ -182,7 +182,7 @@ export default class KafkaProxy {
     } catch (ex) {
       Logger.error(
         NAMESPACE,
-        "failed to established a cluster consumer connection: _",
+        "failed to established a cluster consumer connection: %v",
         ex
       );
       // @ts-ignore
