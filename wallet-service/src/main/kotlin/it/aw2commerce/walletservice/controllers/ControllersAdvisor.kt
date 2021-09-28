@@ -103,7 +103,7 @@ class ControllersAdvisor {
 //        detail = "Failed to authenticate with the provided credentials"
 //    )
 
-    //todo check
+    //todo fix expired jwt (actually returns internall error)
     @ExceptionHandler(io.jsonwebtoken.ExpiredJwtException::class , ExpiredJwtException::class , ClaimJwtException::class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     fun expiredJwtException(ex: io.jsonwebtoken.ExpiredJwtException) : ErrorDetails = ErrorDetails(
