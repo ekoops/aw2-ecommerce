@@ -18,7 +18,7 @@ import OrderStatusUtility from "../utils/OrderStatusUtility";
 import UnauthorizedResponse from "../responses/UnauthorizedResponse";
 import OrderStatusChangeNotAllowedResponse from "../responses/OrderStatusChangeNotAllowedResponse";
 import OrderCreationNotAllowedResponse from "../responses/OrderCreationNotAllowedResponse";
-import OrderCreationFailed from "../services/OrderCreationFailed";
+import OrderCreationFailed from "../domain/OrderCreationFailed";
 import InternalServerErrorResponse from "../responses/InternalServerErrorResponse";
 
 const NAMESPACE = "ORDER_CONTROLLER";
@@ -104,7 +104,7 @@ export default class OrderController {
       req.body.status
     );
     if (newStatus === undefined) {
-      Logger.error(NAMESPACE, "patchOrder(): bad status _", newStatus);
+      Logger.error(NAMESPACE, "patchOrder(): bad status %v", newStatus);
       return res.status(400).json({ reason: `bad status ${newStatus}` });
     }
 

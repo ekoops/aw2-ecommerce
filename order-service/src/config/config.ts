@@ -26,7 +26,7 @@ const eureka_instance_app = process.env.EUREKA_INSTANCE_APP || "order-svc";
 const eureka_instance_id = process.env.EUREKA_INSTANCE_ID || server_instance_id;
 const eureka_instance_hostName = process.env.EUREKA_INSTANCE_HOST_NAME || "localhost";
 const eureka_instance_ipAddr = process.env.EUREKA_INSTANCE_IP_ADDR || "127.0.0.1";
-const eureka_instance_statusPageUrl = process.env.EUREKA_INSTANCE_STATUS_PAGE_URL || "http://localhost:3000/info";
+const eureka_instance_statusPageUrl = process.env.EUREKA_INSTANCE_STATUS_PAGE_URL || "http://localhost:3000/status";
 const eureka_instance_port = process.env.EUREKA_INSTANCE_PORT || 3000;
 const eureka_instance_vipAddress = process.env.EUREKA_INSTANCE_VIP_ADDRESS || "order-svc";
 

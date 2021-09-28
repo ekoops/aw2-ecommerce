@@ -10,8 +10,8 @@ services:
     #    restart: always
     env_file:
       - configs/order-svc.env.prod
-#    ports:
-#      - "3000:3000"
+    ports:
+      - "3000:3000"
     networks:
       - order-net
       - communication-net
