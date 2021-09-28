@@ -1,7 +1,7 @@
 import OrderRepository from "../repositories/OrderRepository";
 import { Order, OrderDTO } from "../domain/Order";
 import { OrderStatus } from "../domain/OrderStatus";
-import OrderCreationFailed from "./OrderCreationFailed";
+import OrderCreationFailed from "../domain/OrderCreationFailed";
 import ProducerProxy from "../kafka/ProducerProxy";
 import { generateUUID } from "../utils/utils";
 import RequestStore, {
@@ -61,7 +61,7 @@ export default class OrderService {
   ): Promise<OrderDTO[]> => {
     Logger.dev(
       NAMESPACE,
-      "request for service: getOrders(user: _)...",
+      "request for service: getOrders(user: %v)...",
       getOrdersRequestDTO
     );
 
@@ -71,7 +71,7 @@ export default class OrderService {
       ? this.orderRepository.findUserOrders(userId)
       : this.orderRepository.findOrders());
     const ordersDTO = orders.map(OrderUtility.toOrderDTO);
-    Logger.dev(NAMESPACE, "getOrders(): _", ordersDTO);
+    Logger.dev(NAMESPACE, "getOrders(): %v", ordersDTO);
 
     return ordersDTO;
   };
@@ -86,7 +86,7 @@ export default class OrderService {
   ): Promise<OrderDTO | null> => {
     Logger.dev(
       NAMESPACE,
-      "request for service: getOrder(getOrderRequestDTO: _...",
+      "request for service: getOrder(getOrderRequestDTO: %v...",
       getOrderRequestDTO
     );
 
@@ -101,7 +101,7 @@ export default class OrderService {
     const orderDTO = order !== null ? OrderUtility.toOrderDTO(order) : null;
     Logger.dev(
       NAMESPACE,
-      "getOrder(getOrderRequestDTO: _): _",
+      "getOrder(getOrderRequestDTO: %v): %v",
       getOrderRequestDTO,
       orderDTO
     );
@@ -298,7 +298,7 @@ export default class OrderService {
   ): Promise<OrderDTO> => {
     Logger.dev(
       NAMESPACE,
-      "request for service: modifyOrderStatus(modifyOrderStatusRequestDTO: _...",
+      "request for service: modifyOrderStatus(modifyOrderStatusRequestDTO: %v...",
       modifyOrderStatusRequestDTO
     );
 
@@ -314,7 +314,7 @@ export default class OrderService {
     if (order === null) {
       Logger.dev(
         NAMESPACE,
-        "modifyOrderStatus(modifyOrderStatusRequestDTO: _): null",
+        "modifyOrderStatus(modifyOrderStatusRequestDTO: %v): null",
         modifyOrderStatusRequestDTO
       );
       throw new OrderNotFoundException();
@@ -328,7 +328,7 @@ export default class OrderService {
       const updatedOrderDTO = OrderUtility.toOrderDTO(updatedOrder);
       Logger.dev(
         NAMESPACE,
-        "modifyOrderStatus(modifyOrderStatusRequestDTO: _): _",
+        "modifyOrderStatus(modifyOrderStatusRequestDTO: %v): %v",
         modifyOrderStatusRequestDTO,
         updatedOrderDTO
       );
@@ -336,7 +336,7 @@ export default class OrderService {
     } else {
       Logger.dev(
         NAMESPACE,
-        `modifyOrderStatus(patchOrderRequestDTO: _): not allowed`,
+        `modifyOrderStatus(patchOrderRequestDTO: %v): not allowed`,
         modifyOrderStatusRequestDTO
       );
       throw new NotAllowedException();
@@ -348,7 +348,7 @@ export default class OrderService {
   ): Promise<void> => {
     Logger.dev(
       NAMESPACE,
-      "request for service: cancelOrder(cancelRequestDTO: _...",
+      "request for service: cancelOrder(cancelRequestDTO: %v...",
       cancelOrderRequestDTO
     );
 
@@ -363,7 +363,7 @@ export default class OrderService {
     if (order === null) {
       Logger.dev(
         NAMESPACE,
-        "cancelOrder(cancelOrderRequestDTO: _): no order",
+        "cancelOrder(cancelOrderRequestDTO: %v): no order",
         cancelOrderRequestDTO
       );
       throw new OrderNotFoundException();
@@ -377,7 +377,7 @@ export default class OrderService {
     if (orderStatus !== OrderStatus.ISSUED) {
       Logger.dev(
         NAMESPACE,
-        "cancelOrder(cancelOrderRequestDTO: _): not allowed",
+        "cancelOrder(cancelOrderRequestDTO: %v): not allowed",
         cancelOrderRequestDTO
       );
       throw new NotAllowedException();
@@ -387,7 +387,7 @@ export default class OrderService {
     const cancelledOrder = await this.orderRepository.save(order);
     Logger.dev(
       NAMESPACE,
-      "cancelOrder(cancelOrderRequestDTO: _): _",
+      "cancelOrder(cancelOrderRequestDTO: %v): %v",
       cancelOrderRequestDTO,
       cancelledOrder
     );
