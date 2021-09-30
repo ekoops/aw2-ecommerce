@@ -34,7 +34,7 @@ class DbInitConfiguration(
             password = passwordEncoder.encode("User!002"),
             isEnabled = true,
             isLocked = false,
-            rolesList = listOf(Rolename.ADMIN),
+            rolesList = listOf(Rolename.CUSTOMER),
             name = "user2_name",
             surname = "user2_surname",
             deliveryAddress = null

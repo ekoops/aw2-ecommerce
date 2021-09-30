@@ -4,6 +4,7 @@ import it.polito.ecommerce.catalogservice.services.implementations.UserDetailsSe
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
@@ -12,6 +13,7 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.AuthenticationException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.ServerAuthenticationEntryPoint
@@ -66,19 +68,25 @@ class WebSecurityConfig(
         return http
             .requestCache().requestCache(NoOpServerRequestCache.getInstance()).and()
             .exceptionHandling()
-            .authenticationEntryPoint { swe, e ->
-                Mono.fromRunnable {
-                    println(">>>>>>>>>>>>>>> UNAUTHORIZED")
-                    swe.response.statusCode = HttpStatus.UNAUTHORIZED
-                    println(">>>>>>>>>>>>>> MESSAGE: ${e.message}")
-                    throw e
-                }
-            }.accessDeniedHandler { swe, e ->
-                Mono.fromRunnable {
-                    swe.response.statusCode = HttpStatus.FORBIDDEN
-                    throw e
-                }
+            .accessDeniedHandler { swe: ServerWebExchange, _: AccessDeniedException? ->
+                Mono.fromRunnable { swe.response.statusCode = HttpStatus.FORBIDDEN }
+            }
+            .authenticationEntryPoint { swe: ServerWebExchange, _: AuthenticationException? ->
+                Mono.fromRunnable { swe.response.statusCode = HttpStatus.UNAUTHORIZED }
             }.and()
+//            .authenticationEntryPoint { swe, e ->
+//                Mono.fromRunnable {
+//                    println(">>>>>>>>>>>>>>> UNAUTHORIZED")
+//                    swe.response.statusCode = HttpStatus.UNAUTHORIZED
+//                    println(">>>>>>>>>>>>>> MESSAGE: ${e.message}")
+//                    throw e
+//                }
+//            }.accessDeniedHandler { swe, e ->
+//                Mono.fromRunnable {
+//                    swe.response.statusCode = HttpStatus.FORBIDDEN
+//                    throw e
+//                }
+//            }.and()
             .addFilterAt(
                 bearerAuthenticationFilter(),
                 SecurityWebFiltersOrder.AUTHENTICATION)
@@ -89,6 +97,7 @@ class WebSecurityConfig(
             .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
             .authorizeExchange()
             .pathMatchers("/auth/**").permitAll()
+            .pathMatchers("/users/**").hasAuthority("ADMIN")
             .anyExchange().authenticated()
             .and().build()
     }

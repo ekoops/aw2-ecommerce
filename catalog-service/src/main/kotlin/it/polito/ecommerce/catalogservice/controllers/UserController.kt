@@ -15,7 +15,7 @@ class UserController(
 
 //  This endpoint allows an admin to enable or disable an user
 
-    @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{userId}")
     suspend fun patchUser(
         @Valid @RequestBody patchUserPropertiesDTO: PatchUserPropertiesRequestDTO,
@@ -43,7 +43,7 @@ class UserController(
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/addRole/{userId}")
     suspend fun addRole(
         @RequestParam("role", required = true) role: String,
@@ -52,7 +52,7 @@ class UserController(
         userDetailsService.addUserRole(username,role)
 
 //    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/removeRole/{userId}")
     suspend fun removeRole(
         @RequestParam("role", required = true) role: String,
