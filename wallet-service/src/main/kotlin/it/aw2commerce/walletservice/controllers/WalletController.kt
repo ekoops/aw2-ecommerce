@@ -18,7 +18,6 @@ import java.util.*
 import javax.validation.Valid
 import javax.validation.constraints.Min
 
-//TODO fix preauthorize
 
 @RequestMapping("/wallets")
 @RestController
@@ -54,7 +53,7 @@ class WalletController(
 
 
 
-//    @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
+    @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
     @GetMapping("/{walletId}/transactions")
     @ResponseStatus(HttpStatus.OK)
     fun getTransactionsInDateRange(
@@ -101,7 +100,7 @@ class WalletController(
     }
 
 
-//    @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
+    @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
     @GetMapping("/{walletId}/transactions/{transactionId}")
     @ResponseStatus(HttpStatus.OK)
     fun getTransaction(

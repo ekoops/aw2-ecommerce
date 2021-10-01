@@ -83,7 +83,6 @@ class WalletServiceImpl(
 
         val auth: Authentication = SecurityContextHolder.getContext().authentication
         val isAdmin = auth.authorities.first().authority.equals("ADMIN")
-        //todo check is admin
         if(createTransactionRequestDTO.amount > 0 && !isAdmin){
             throw TransactionFailedException(
                 detail = "Recharges can be done only by admins"
