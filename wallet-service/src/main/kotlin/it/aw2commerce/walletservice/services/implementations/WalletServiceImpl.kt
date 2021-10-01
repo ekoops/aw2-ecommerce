@@ -82,18 +82,20 @@ class WalletServiceImpl(
     ): TransactionDTO {
 
         val auth: Authentication = SecurityContextHolder.getContext().authentication
-//        val isAdmin = auth.authorities.first().authority.equals("ADMIN")
-        val isAdmin = false
-        val orderId = createTransactionRequestDTO.orderId
-//todo check is admin
+        val isAdmin = auth.authorities.first().authority.equals("ADMIN")
+        //todo check is admin
+        if(createTransactionRequestDTO.amount > 0 && !isAdmin){
+            throw TransactionFailedException(
+                detail = "Recharges can be done only by admins"
+            )
+        }
 
-//        val purchasingWallet =  if(isAdmin) this.getWalletEntity(purchasingWalletId)
-//          else getWalletEntity(purchasingWalletId)
+        val orderId = createTransactionRequestDTO.orderId
+
+
         try {
             // 422 if not present...
-            println(" before get wallet")
             val wallet = getWalletEntity(walletId)
-            println(" after get wallet" + wallet.amount)
             val amountToLong = (createTransactionRequestDTO.amount * 100).toLong()
             if (wallet.amount < -amountToLong) {
                 throw TransactionFailedException(

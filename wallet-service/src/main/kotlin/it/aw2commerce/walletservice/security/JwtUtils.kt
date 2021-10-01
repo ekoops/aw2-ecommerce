@@ -16,11 +16,11 @@ class JwtUtils constructor(
 ) {
     fun getDetailsFromJwtToken(authToken: String): UserDetailsDTO {
         val i = authToken.lastIndexOf('.')
-        val withoutSignature = authToken.substring(0, i+1);
+        val withoutSignature = authToken.substring(0, i+1)
         val claims = Jwts
             .parserBuilder()
             .build()
-            .parseClaimsJwt(withoutSignature).body;
+            .parseClaimsJwt(withoutSignature).body
 
         return UserDetailsDTO(
             id = claims["id"].toString().toLong(),
