@@ -8,6 +8,7 @@ import it.aw2commerce.walletservice.dto.incoming.CreateWalletRequestDTO
 import it.aw2commerce.walletservice.exceptions.InvalidIntervalException
 import it.aw2commerce.walletservice.services.WalletService
 import org.springframework.http.HttpStatus
+import org.springframework.messaging.handler.annotation.Header
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
@@ -24,7 +25,7 @@ import javax.validation.constraints.Min
 class WalletController(
     val walletService: WalletService
 ) {
-//    @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
+    @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
     @GetMapping("/{walletId}")
     @ResponseStatus(HttpStatus.OK)
     fun getWallet(
@@ -35,13 +36,12 @@ class WalletController(
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createWallet(
-        @Valid @RequestBody walletDTO: CreateWalletRequestDTO,
     ): WalletDTO {
-        return walletService.createWallet(walletDTO.customerId)
+        return walletService.createWallet()
     }
 
 
-//    @PreAuthorize("hasAuthority('ADMIN') or @walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
+    @PreAuthorize("hasAuthority('ADMIN') or @walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
     @PostMapping("/{walletId}/transactions")
     @ResponseStatus(HttpStatus.CREATED)
     fun createTransaction(

@@ -26,7 +26,11 @@ class JwtUtils constructor(
             id = claims["id"].toString().toLong(),
             username = claims["username"].toString(),
             email = claims["email"].toString(),
-            role =  Rolename.valueOf(claims["role"].toString() )
+            role =  Rolename.valueOf(claims["role"].toString() ),
+            isEnabled = true,
+            name = claims["name"].toString(),
+            surname = claims["surname"].toString(),
+            deliveryAddress = claims["deliveryAddress"].toString()
         )
     }
 }

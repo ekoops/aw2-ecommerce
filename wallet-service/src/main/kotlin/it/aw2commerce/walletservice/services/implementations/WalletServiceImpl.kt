@@ -17,6 +17,7 @@ import it.aw2commerce.walletservice.services.WalletService
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -57,14 +58,14 @@ class WalletServiceImpl(
 
     override fun getWallet(walletId: Long) = getWalletEntity(walletId).toWalletDTO()
 
-    override fun createWallet(customerId: Long): WalletDTO {
-//        val optionalCustomer = customerRepository.findById(customerId)
-//        if (!optionalCustomer.isPresent) {
-//            // Unprocessable entity 422
-//            throw CustomerNotFoundException(id = customerId)
-//        }
+    override fun createWallet(): WalletDTO {
 
-        if (customerHasWallet(customerId)) throw CustomerAlreadyHasWalletException(customerId)
+        val principal: UserDetailsDTO = SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
+        val customerId = principal.getId()
+
+
+
+        if (customerHasWallet(customerId)) throw CustomerAlreadyHasWalletException()
         val newWallet = Wallet(
             customerId = customerId,
             transactions = emptySet(),
@@ -85,6 +86,7 @@ class WalletServiceImpl(
         val isAdmin = false
         val orderId = createTransactionRequestDTO.orderId
 //todo check is admin
+
 //        val purchasingWallet =  if(isAdmin) this.getWalletEntity(purchasingWalletId)
 //          else getWalletEntity(purchasingWalletId)
         try {
