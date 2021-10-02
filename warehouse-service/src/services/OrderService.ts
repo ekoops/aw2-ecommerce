@@ -1,9 +1,7 @@
 import OrderRepository from "../repositories/OrderRepository";
 import ProducerProxy from "../kafka/ProducerProxy";
 import { SuccessPayload } from "../kafka/RequestStore";
-import WarehouseService from "../../../warehouse-service-cleaner/src/services/WarehouseService";
 import ProductService from "./ProductService";
-import OperationType, { OperationTypeUtility } from "./OperationType";
 import { Order, OrderDTO } from "../domain/Order";
 import { Source } from "../domain/Source";
 import mongoose from "mongoose";
@@ -12,6 +10,7 @@ import { DbTransactionFailedException } from "../exceptions/db/DbException";
 import { OrderItem, OrderItemDTO } from "../domain/OrderItem";
 import { OrderStatus } from "../domain/OrderStatus";
 import OrderStatusUtility from "../utils/OrderStatusUtility";
+import WarehouseService from "./WarehouseService";
 
 const NAMESPACE = "ORDER_SERVICE";
 
@@ -99,12 +98,11 @@ export default class OrderService {
     else return sources;
   };
 
-  private buildPerWarehouseProductsQuantities = async (products: OrderItem[]) => {
+  private buildPerWarehouseProductsQuantities = (products: OrderItem[]) => {
     const perWarehouseProductsQuantities: any = {};
 
     for (const product of products) {
       const { productId, sources } = product;
-      // in the meantime, building the per-warehouse list of product's quantity to subtract
       for (const source of sources) {
         const { warehouseId, quantity } = source;
         const productQuantitiesToSubtract = { productId, quantity };
@@ -166,7 +164,7 @@ export default class OrderService {
         );
 
         const perWarehouseProductsQuantities =
-          await this.buildPerWarehouseProductsQuantities(products);
+          this.buildPerWarehouseProductsQuantities(products);
         const areRemoved = await this.warehouseService.removeWarehousesProducts(
           perWarehouseProductsQuantities,
           session

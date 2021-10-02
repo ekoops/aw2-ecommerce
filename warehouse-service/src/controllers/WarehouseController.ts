@@ -1,9 +1,8 @@
 import express from "express";
 import mongoose from "mongoose";
-import AppError from "../domain/AppError";
 import { WarehouseRequestDto } from "../domain/Warehouse";
-import WarehouseService from "../../../warehouse-service-cleaner/src/services/WarehouseService";
 import ProductService from "../services/ProductService";
+import WarehouseService from "../services/WarehouseService";
 
 export default class WarehouseController {
   private static _instance: WarehouseController;

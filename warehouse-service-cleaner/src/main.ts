@@ -50,6 +50,7 @@ const handleOrderData = (
 
 const cleanWarehouse = async () => {
   try {
+    // TODO: cambiare filter: prelevare soltanto ordini pendenti da più di un certo periodo
     const pendingOrders = await OrderModel.find({ status: PENDING_STATUS });
     for (const order of pendingOrders) {
       const requestOptions: RequestOptions = {

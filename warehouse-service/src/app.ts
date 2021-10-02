@@ -7,11 +7,13 @@ import WarehouseController from "./controllers/WarehouseController";
 import ProducerProxy from "./kafka/ProducerProxy";
 import InternalServerErrorResponse from "./responses/InternalServerErrorResponse";
 import RouteNotFoundResponse from "./responses/RouteNotFoundResponse";
+import OrderController from "./controllers/OrderController";
 
 const getApp = async (
     rootPath: string,
     productController: ProductController,
     warehouseController: WarehouseController,
+    orderController: OrderController,
     producerProxy: ProducerProxy
 ) => {
     const app = express();

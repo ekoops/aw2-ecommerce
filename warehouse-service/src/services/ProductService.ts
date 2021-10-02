@@ -1,8 +1,7 @@
 import { ProductDto, Product, Picture } from "../domain/Product";
 import { WarehouseRequestDto } from "../domain/Warehouse";
 import ProductRepository from "../repositories/ProductRepository";
-import mongoose from "mongoose";
-import {OrderItemDTO} from "../dtos/OrderDTO";
+import {OrderItemDTO} from "../domain/OrderItem";
 
 export default class ProductService {
   private static _instance: ProductService;

@@ -1,18 +1,27 @@
 enum OperationType {
-    CREATE,
-READ,
-UPDATE,
-DELETE,
+  CREATE,
+  READ,
+  UPDATE,
+  DELETE,
 }
 
 const toOperationType = (key: string): OperationType | undefined => {
-    if (!isNaN(Number(key))) return undefined;
-    return OperationType[key as keyof typeof OperationType];
+  switch (key) {
+    case "c":
+      return OperationType.CREATE;
+    case "r":
+      return OperationType.READ;
+    case "u":
+      return OperationType.UPDATE;
+    case "d":
+      return OperationType.DELETE;
+    default:
+      return undefined;
+  }
 };
 
 export const OperationTypeUtility = {
-    toOperationType
-}
-
+  toOperationType,
+};
 
 export default OperationType;

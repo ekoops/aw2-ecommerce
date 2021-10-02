@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 import Logger from "../utils/Logger";
 import User, {UserRole} from "../domain/User";
 import UserUtility from "../utils/UserUtility";
-import UnauthorizedResponse from "../responses/UnauthorizedResponse";
 import BadRequestResponse from "../responses/BadRequestResponse";
 
 const NAMESPACE = "JWT";

@@ -26,8 +26,8 @@ volumes:
   wallet-db-data:
     name: wallet-db-data
 
-warehouse-db-keys:
-    name: warehouse-db-keys
+  warehouse-db-keys:
+      name: warehouse-db-keys
   warehouse-db-rs0-1-data:
     name: warehouse-db-rs0-1-data
   warehouse-db-rs0-2-data:

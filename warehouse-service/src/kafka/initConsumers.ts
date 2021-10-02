@@ -1,12 +1,12 @@
 import KafkaProxy from "./KafkaProxy";
 import ConsumerProxy, { ExceptionBuilder } from "./ConsumerProxy";
 import config from "../config/config";
-import { OrderDTO } from "../dtos/OrderDTO";
-import OrderService from "../services/OrderService";
+import {OrderDTO} from "../domain/Order";
+import OrderController from "../controllers/OrderController";
 
 const initConsumers = async (
   kafkaProxy: KafkaProxy,
-  orderService: OrderService
+  orderController: OrderController
 ) => {
   const { groupId } = config.kafka;
 
@@ -24,20 +24,17 @@ const initConsumers = async (
   };
 
   {
-    const topics = [{ topic: "items-availability-requested" }];
+    const topics = [{ topic: "order-items-availability-requested" }];
     const consumer = await kafkaProxy.createConsumer(groupId, topics);
     const consumerProxy = new ConsumerProxy(consumer);
     consumerProxy.bindHandler<OrderDTO>(
-      orderService.checkProductsAvailability
+      orderController.checkProductsAvailability
     );
   }
   {
     const topics = [{ topic: "order-db.order-db.orders" }];
     const consumer = await kafkaProxy.createConsumer(groupId, topics, {autoCommitThreshold: 1});
-    const consumerProxy = new ConsumerProxy(consumer);
-    consumerProxy.bindHandler<OrderDTO>(
-        orderService.handleOrderCRUD // this handler has to handle all order crud operations
-    );
+    consumer.consume(orderController.handleOrderCRUD);
   }
 
   // only CannotCreateConsumerException can be throw

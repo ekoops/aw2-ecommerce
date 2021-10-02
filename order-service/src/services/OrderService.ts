@@ -15,7 +15,6 @@ import {
   UnauthorizedException,
 } from "../exceptions/AuthException";
 import {
-  OrderAlreadyCancelledException,
   OrderNotFoundException,
 } from "../exceptions/services/OrderServiceException";
 import OrderUtility from "../utils/OrderUtility";

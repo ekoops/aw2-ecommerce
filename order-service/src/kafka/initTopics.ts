@@ -8,11 +8,9 @@ const initTopics = async (admin: Admin): Promise<void> =>  {
         "order-items-availability-produced",
         "budget-availability-requested",
         "budget-availability-produced",
-        "order-approved",
+        "order-db.order-db.orders",
         "order-creation-warehouse-response",
-        "order-creation-wallet-response",
-        "order-created",
-        "order-cancelled",
+        "order-creation-wallet-response"
     ];
     const topicsToCreateList: ITopicConfig[] = desiredTopicList
         .filter(topicName => !actualTopicList.includes(topicName))

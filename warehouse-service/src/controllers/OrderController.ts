@@ -9,9 +9,13 @@ export default class OrderController {
     return this._instance || (this._instance = new this(orderService));
   }
 
-  handleOrderCRUD = async (message: SuccessPayload) => {
-    const { key, value } = message;
+  checkProductsAvailability = async (message: SuccessPayload) => {
+    return this.orderService.checkProductsAvailability(message);
+  }
+
+  handleOrderCRUD = async (key: string, value: string | undefined) => {
     try {
+      if (value === undefined) return;
       const changeEventKey = JSON.parse(key);
       const changeEventValue = JSON.parse(value);
       const { schema: keySchema, payload: keyPayload } = changeEventKey;
