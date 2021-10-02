@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
 
-
 const environment = process.env.NODE_ENV || "development";
 
 const server_instance_id = process.env.SERVER_INSTANCE_ID || `WAREHOUSE-SVC-${uuidv4()}`;
@@ -13,6 +12,9 @@ const db_pass = process.env.DB_PASS || "pass";
 const db_auth_source = process.env.DB_AUTH_SOURCE || "auth_source";
 const db_host = process.env.DB_HOST || "localhost";
 const db_port = process.env.DB_PORT || 27017;
+const db_rs_enabled = process.env.DB_RS_ENABLED || false;
+const db_rs_name = process.env.DB_RS_NAME || "";
+const db_rs_repl_fact = process.env.DB_RS_REPL_FACT || 0;
 
 const kafka_host = process.env.KAFKA_HOST || "kafka";
 const kafka_port = process.env.KAFKA_PORT || 9092;
@@ -24,7 +26,7 @@ const eureka_instance_app = process.env.EUREKA_INSTANCE_APP || "warehouse-svc";
 const eureka_instance_id = process.env.EUREKA_INSTANCE_ID || server_instance_id;
 const eureka_instance_hostName = process.env.EUREKA_INSTANCE_HOST_NAME || "localhost";
 const eureka_instance_ipAddr = process.env.EUREKA_INSTANCE_IP_ADDR || "127.0.0.1";
-const eureka_instance_statusPageUrl = process.env.EUREKA_INSTANCE_STATUS_PAGE_URL || "http://localhost:3000/info";
+const eureka_instance_statusPageUrl = process.env.EUREKA_INSTANCE_STATUS_PAGE_URL || "http://localhost:3000/status";
 const eureka_instance_port = process.env.EUREKA_INSTANCE_PORT || 3000;
 const eureka_instance_vipAddress = process.env.EUREKA_INSTANCE_VIP_ADDRESS || "warehouse-svc";
 
@@ -50,6 +52,9 @@ const config = {
     authSource: db_auth_source,
     host: db_host,
     port: +db_port,
+    rsIsEnabled: !!db_rs_enabled,
+    rsName: db_rs_name,
+    rsReplFact: +db_rs_repl_fact
   },
   kafka: {
     host: kafka_host,
@@ -81,5 +86,3 @@ const config = {
 console.log(JSON.stringify(config, null, " "));
 
 export default config;
-
-

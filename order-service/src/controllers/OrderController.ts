@@ -141,17 +141,13 @@ export default class OrderController {
       user,
     };
     try {
-      await this.orderService.cancelOrder(cancelOrderRequestDTO);
+      await this.orderService.deleteOrder(cancelOrderRequestDTO);
       res.status(204).end();
     } catch (ex) {
-      if (ex instanceof OrderNotFoundException) {
-        res.status(404).json(new OrderNotFoundResponse(orderId));
-      } else if (ex instanceof OrderAlreadyCancelledException) {
-        res.status(204).end();
-      } else if (ex instanceof NotAllowedException) {
+      if (ex instanceof NotAllowedException) {
         res.status(403).end(new OrderCancellationNotAllowedResponse(orderId));
       } else {
-        // a different type of exception from the previous ones can be throw only during
+        // a different type of exception from the previous one can be throw only during
         // db communication, so by invoking next(ex), a 500 internal server error is returned
         next(ex);
       }

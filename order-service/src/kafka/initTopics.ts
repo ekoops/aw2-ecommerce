@@ -4,13 +4,13 @@ import {Admin} from "./KafkaProxy";
 const initTopics = async (admin: Admin): Promise<void> =>  {
     const actualTopicList = await admin.listTopics();
     const desiredTopicList = [
-        "items-availability-requested",
-        "items-availability-produced",
+        "order-items-availability-requested",
+        "order-items-availability-produced",
         "budget-availability-requested",
         "budget-availability-produced",
         "order-approved",
-        "order-approved-by-warehouse",
-        "order-approved-by-wallet",
+        "order-creation-warehouse-response",
+        "order-creation-wallet-response",
         "order-created",
         "order-cancelled",
     ];

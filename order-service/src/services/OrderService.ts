@@ -219,7 +219,7 @@ export default class OrderService {
         transientOrder
       );
 
-      // Waiting for warehouse service and wallet service approvation.
+      // Waiting for warehouse service and wallet service approvations.
       return new Promise<{ key: string; value: ApprovationDTO }>(
         (resolve, reject) => {
           const orderId = persistedOrder._id!; // the order id must be present after the create operation
@@ -247,7 +247,7 @@ export default class OrderService {
       // containing price for each product in the order.
       const itemsAvailabilityResponse =
         await this.producerProxy.produceAndWaitResponse<OrderDTO>(
-          "items-availability-requested",
+          "order-items-availability-requested",
           transactionId,
           createOrderRequestDTO
         );
@@ -336,26 +336,26 @@ export default class OrderService {
     } else {
       Logger.dev(
         NAMESPACE,
-        `modifyOrderStatus(patchOrderRequestDTO: %v): not allowed`,
+        "modifyOrderStatus(patchOrderRequestDTO: %v): not allowed",
         modifyOrderStatusRequestDTO
       );
       throw new NotAllowedException();
     }
   };
 
-  cancelOrder = async (
-    cancelOrderRequestDTO: CancelOrderRequestDTO
+  deleteOrder = async (
+    deleteOrderRequestDTO: CancelOrderRequestDTO
   ): Promise<void> => {
     Logger.dev(
       NAMESPACE,
-      "request for service: cancelOrder(cancelRequestDTO: %v...",
-      cancelOrderRequestDTO
+      "request for service: deleteOrder(deleteOrderRequestDTO: %v...",
+      deleteOrderRequestDTO
     );
 
     const {
       orderId,
       user: { role: userRole, id: userId },
-    } = cancelOrderRequestDTO;
+    } = deleteOrderRequestDTO;
 
     const order = await (userRole === UserRole.CUSTOMER
       ? this.orderRepository.findUserOrderById(userId, orderId)
@@ -363,35 +363,23 @@ export default class OrderService {
     if (order === null) {
       Logger.dev(
         NAMESPACE,
-        "cancelOrder(cancelOrderRequestDTO: %v): no order",
-        cancelOrderRequestDTO
+        "deleteOrder(deleteOrderRequestDTO: %v): no order or order already cancelled",
+        deleteOrderRequestDTO
       );
-      throw new OrderNotFoundException();
+      return;
     }
 
     const orderStatus = OrderStatusUtility.toOrderStatus(order.status)!;
 
-    if (orderStatus === OrderStatus.CANCELLED)
-      throw new OrderAlreadyCancelledException();
-
     if (orderStatus !== OrderStatus.ISSUED) {
       Logger.dev(
         NAMESPACE,
-        "cancelOrder(cancelOrderRequestDTO: %v): not allowed",
-        cancelOrderRequestDTO
+        "deleteOrder(deleteOrderRequestDTO: %v): not allowed",
+        deleteOrderRequestDTO
       );
       throw new NotAllowedException();
     }
 
-    order.status = OrderStatusUtility.toOrderStatusName(OrderStatus.CANCELLED);
-    const cancelledOrder = await this.orderRepository.save(order);
-    Logger.dev(
-      NAMESPACE,
-      "cancelOrder(cancelOrderRequestDTO: %v): %v",
-      cancelOrderRequestDTO,
-      cancelledOrder
-    );
-    // The order cancellation has to be notified on the proper kafka topic:
-    // this task is achieved thanks to debezium support
+    await this.orderRepository.deleteOrderById(order._id!);
   };
 }

@@ -4,3 +4,4 @@
 envs
 .DS_store
 docker-compose/configs
+**.env

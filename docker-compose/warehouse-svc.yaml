@@ -17,18 +17,97 @@ services:
       - warehouse-db
       - kafka
 
-  warehouse-db:
+  warehouse-svc-cleaner:
+    image: aw2-ecommerce/warehouse-svc-cleaner
+    container_name: warehouse-svc-cleaner
+    build:
+      dockerfile: ../Dockerfile # relative to the build context
+      context: ../warehouse-service-cleaner/build
+    #    restart: always
+    env_file:
+      - configs/warehouse-svc-cleaner.env.prod
+    networks:
+      - warehouse-net
+      - order-net
+    depends_on:
+      - warehouse-db-rs0-1
+      - warehouse-db-rs0-2
+      - warehouse-db-rs0-3
+      - order-svc
+
+  warehouse-db-keys:
+    image: depop/openssl-bats
+    container_name: warehouse-db-keys
+    volumes:
+      - warehouse-db-keys:/mongo-conf
+    command: 'bash -c "openssl rand -base64 741 > /mongo-conf/warehouse-db-keyfile; chmod 600 /mongo-conf/warehouse-db-keyfile; chown 999 /mongo-conf/warehouse-db-keyfile"'
+
+  #  warehouse-db-initer:
+  #    image: aw2-ecommerce/warehouse-db-initer
+  #    container_name: warehouse-db-initer
+  #    build:
+  ##      dockerfile: ../Dockerfile # relative to the build context
+  #      context: ../warehouse-db-initer
+  #    #    restart: always
+  #    env_file:
+  #      - configs/warehouse-db-initer.env.prod
+  #    networks:
+  #      - warehouse-net
+  #    depends_on:
+  #      - warehouse-db-rs0-1
+  #      - warehouse-db-rs0-2
+  #      - warehouse-db-rs0-3
+
+  warehouse-db-rs0-1:
     image: "mongo:5.0.2"
-    container_name: warehouse-db
+    container_name: warehouse-db-rs0-1
     #    restart: always
     env_file:
       - configs/warehouse-db.env.prod
     #    ports:
     #      - "27017:27017"
-    #    volumes:
-    #      - warehouse-db-data:/data/db
+    volumes:
+      - warehouse-db-rs0-1-data:/data/db
+      - warehouse-db-keys:/opt/keyfile
+    command: --keyFile /opt/keyfile/warehouse-db-keyfile --replSet rs0 --oplogSize 1024
     networks:
       - warehouse-net
       - kafka-net
-    logging:
-      driver: none
+    depends_on:
+      - warehouse-db-keys
+
+  warehouse-db-rs0-2:
+    image: "mongo:5.0.2"
+    container_name: warehouse-db-rs0-2
+    #    restart: always
+    env_file:
+      - configs/warehouse-db.env.prod
+    #    ports:
+    #      - "27018:27017"
+    volumes:
+      - warehouse-db-rs0-2-data:/data/db
+      - warehouse-db-keys:/opt/keyfile
+    command: --keyFile /opt/keyfile/warehouse-db-keyfile --replSet rs0 --oplogSize 128
+    networks:
+      - warehouse-net
+      - kafka-net
+    depends_on:
+      - warehouse-db-keys
+
+  warehouse-db-rs0-3:
+    image: "mongo:5.0.2"
+    container_name: warehouse-db-rs0-3
+    #    restart: always
+    env_file:
+      - configs/warehouse-db.env.prod
+    #    ports:
+    #      - "27019:27017"
+    volumes:
+      - warehouse-db-rs0-3-data:/data/db
+      - warehouse-db-keys:/opt/keyfile
+    command: --keyFile /opt/keyfile/warehouse-db-keyfile --replSet rs0 --oplogSize 128
+    networks:
+      - warehouse-net
+      - kafka-net
+    depends_on:
+      - warehouse-db-keys

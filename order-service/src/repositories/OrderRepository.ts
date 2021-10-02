@@ -28,12 +28,13 @@ class OrderRepository {
       throw new OrdersRetrievingFailedException();
     }
   };
-  findUserOrders = async (userId?: number): Promise<Order[]> => {
+  findUserOrders = async (userId: number): Promise<Order[]> => {
     try {
-      const orders: Order[] = await this.OrderModel.find({ userId })
+      const orders: Order[] = await this.OrderModel.find({ buyerId: userId })
+      Logger.dev(NAMESPACE, "findUserOrders(userId: %v): %v",  userId, orders);
       return orders;
     } catch (ex) {
-      Logger.error(NAMESPACE, "findUserOrders(): %v", ex);
+      Logger.error(NAMESPACE, "findUserOrders(userId: %v): %v", userId,  ex);
       throw new OrdersRetrievingFailedException();
     }
   };

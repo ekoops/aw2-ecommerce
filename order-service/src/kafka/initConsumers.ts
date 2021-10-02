@@ -40,11 +40,11 @@ const initConsumers = (kafkaProxy: KafkaProxy) => {
 
     // COUPLED CONSUMERS
     startConsumer<ApprovationDTO>({
-      topic: "order-approved-by-warehouse",
+      topic: "order-creation-warehouse-response",
       exceptionBuilder: WarehouseOrderCreationFailedException.fromJson,
     }),
     startConsumer<ApprovationDTO>({
-      topic: "order-approved-by-wallet",
+      topic: "order-creation-wallet-response",
       exceptionBuilder: WalletOrderCreationFailedException.fromJson,
     }),
   ];

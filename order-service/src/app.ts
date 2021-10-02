@@ -3,8 +3,6 @@ import express, { ErrorRequestHandler, RequestHandler } from "express";
 import morgan from "morgan";
 import OrderController from "./controllers/OrderController";
 import ProducerProxy from "./kafka/ProducerProxy";
-import ErrorType from "./responses/ErrorType";
-import ErrorResponse from "./responses/ErrorResponse";
 import InternalServerErrorResponse from "./responses/InternalServerErrorResponse";
 import RouteNotFoundResponse from "./responses/RouteNotFoundResponse";
 
