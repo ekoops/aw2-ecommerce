@@ -3,6 +3,7 @@ package it.polito.ecommerce.catalogservice.controllers
 import it.polito.ecommerce.catalogservice.dto.incoming.PatchUserPropertiesRequestDTO
 import it.polito.ecommerce.catalogservice.services.implementations.UserDetailsServiceImpl
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import javax.validation.Valid
 
@@ -14,12 +15,23 @@ class UserController(
 
 //  This endpoint allows an admin to enable or disable an user
 
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{userId}")
     suspend fun patchUser(
         @Valid @RequestBody patchUserPropertiesDTO: PatchUserPropertiesRequestDTO,
         @PathVariable("userId") userId: Long
     ) {
+//        ReactiveSecurityContextHolder
+//            .getContext()
+//            .map{
+//                val authentication = it.getAuthentication()
+//                if(!authentication.authorities.contains("ADMIN"))
+//                    throw Exception ("solo un admin")
+//
+        println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+        println("DENTRO IL PATCH USER")
+        println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
         if (patchUserPropertiesDTO.isLocked != null) {
             if (patchUserPropertiesDTO.isLocked) userDetailsService.lockUser(userId)
             else userDetailsService.unlockUser(userId)
@@ -31,7 +43,7 @@ class UserController(
         }
     }
 
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/addRole/{userId}")
     suspend fun addRole(
         @RequestParam("role", required = true) role: String,
@@ -39,7 +51,8 @@ class UserController(
     ) : Boolean =
         userDetailsService.addUserRole(username,role)
 
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+//    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/removeRole/{userId}")
     suspend fun removeRole(
         @RequestParam("role", required = true) role: String,

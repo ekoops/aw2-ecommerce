@@ -8,7 +8,7 @@ import it.aw2commerce.walletservice.dto.incoming.CreateTransactionRequestDTO
 import java.time.LocalDateTime
 
 interface WalletService {
-    fun createWallet(customerId: Long): WalletDTO
+    fun createWallet(): WalletDTO
     fun getWallet(walletId: Long): WalletDTO
     fun getCustomerIdFromWalletId(walletId: Long): Long?
     fun createWalletTransaction(

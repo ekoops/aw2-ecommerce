@@ -34,7 +34,7 @@ class DbInitConfiguration(
             password = passwordEncoder.encode("User!002"),
             isEnabled = true,
             isLocked = false,
-            rolesList = listOf(Rolename.ADMIN),
+            rolesList = listOf(Rolename.CUSTOMER),
             name = "user2_name",
             surname = "user2_surname",
             deliveryAddress = null
@@ -55,46 +55,46 @@ class DbInitConfiguration(
         userRepository
             .findByUsername("user1")
             .switchIfEmpty(userRepository.save(user1))
-            .subscribe(
-                {
-                    println("@@@! Received item: ${it.id}")
-                },
-                {
-                    println("@@@! Received error: ${it.message}")
-                },
-                {
-                    println("@@@! Completed")
-                },
+            .block(
+//                {
+//                    println("@@@! Received item: ${it.id}")
+//                },
+//                {
+//                    println("@@@! Received error: ${it.message}")
+//                },
+//                {
+//                    println("@@@! Completed")
+//                },
             )
 
         userRepository
             .findByUsername("user2")
             .switchIfEmpty(userRepository.save(user2))
-            .subscribe(
-                {
-                    println("@@@! Received item: ${it.id}")
-                },
-                {
-                    println("@@@! Received error: ${it.message}")
-                },
-                {
-                    println("@@@! Completed")
-                },
+            .block(
+//                {
+//                    println("@@@! Received item: ${it.id}")
+//                },
+//                {
+//                    println("@@@! Received error: ${it.message}")
+//                },
+//                {
+//                    println("@@@! Completed")
+//                },
             )
 
         userRepository
             .findByUsername("user3")
             .switchIfEmpty(userRepository.save(user3))
-            .subscribe(
-                {
-                    println("@@@! Received item: ${it.id}")
-                },
-                {
-                    println("@@@! Received error: ${it.message}")
-                },
-                {
-                    println("@@@! Completed")
-                },
+            .block(
+//                {
+//                    println("@@@! Received item: ${it.id}")
+//                },
+//                {
+//                    println("@@@! Received error: ${it.message}")
+//                },
+//                {
+//                    println("@@@! Completed")
+//                },
             )
     }
 }

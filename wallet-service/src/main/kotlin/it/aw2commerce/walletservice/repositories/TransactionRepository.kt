@@ -17,7 +17,7 @@ import java.util.*
 interface TransactionRepository : PagingAndSortingRepository<Transaction, Long> {
     fun findByIdAndWallet(
         id: Long,
-        purchasingWallet: Wallet
+        wallet: Wallet
     ): Optional<Transaction>
 
     @Query(

@@ -17,6 +17,7 @@ import it.aw2commerce.walletservice.services.WalletService
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -57,14 +58,14 @@ class WalletServiceImpl(
 
     override fun getWallet(walletId: Long) = getWalletEntity(walletId).toWalletDTO()
 
-    override fun createWallet(customerId: Long): WalletDTO {
-//        val optionalCustomer = customerRepository.findById(customerId)
-//        if (!optionalCustomer.isPresent) {
-//            // Unprocessable entity 422
-//            throw CustomerNotFoundException(id = customerId)
-//        }
+    override fun createWallet(): WalletDTO {
 
-        if (customerHasWallet(customerId)) throw CustomerAlreadyHasWalletException(customerId)
+        val principal: UserDetailsDTO = SecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
+        val customerId = principal.getId()
+
+
+
+        if (customerHasWallet(customerId)) throw CustomerAlreadyHasWalletException()
         val newWallet = Wallet(
             customerId = customerId,
             transactions = emptySet(),
@@ -82,15 +83,20 @@ class WalletServiceImpl(
 
         val auth: Authentication = SecurityContextHolder.getContext().authentication
         val isAdmin = auth.authorities.first().authority.equals("ADMIN")
+        if(createTransactionRequestDTO.amount > 0 && !isAdmin){
+            throw TransactionFailedException(
+                detail = "Recharges can be done only by admins"
+            )
+        }
+
         val orderId = createTransactionRequestDTO.orderId
-//todo check is admin
-//        val purchasingWallet =  if(isAdmin) this.getWalletEntity(purchasingWalletId)
-//          else getWalletEntity(purchasingWalletId)
+
+
         try {
             // 422 if not present...
-            val wallet = getWalletEntity(createTransactionRequestDTO.walletId)
+            val wallet = getWalletEntity(walletId)
             val amountToLong = (createTransactionRequestDTO.amount * 100).toLong()
-            if (wallet.amount < amountToLong && !isAdmin) {
+            if (wallet.amount < -amountToLong) {
                 throw TransactionFailedException(
                     detail = "Insufficient balance to perform transaction"
                 )
@@ -103,7 +109,7 @@ class WalletServiceImpl(
             )
             val createdTransaction = transactionRepository.save(newTransaction)
 //            if (!isAdmin) purchasingWallet.amount -= newTransaction.amount
-//            rechargingWallet.amount += newTransaction.amount
+            wallet.amount += newTransaction.amount
             return createdTransaction.toTransactionDTO()
         } catch (ex: WalletNotFoundException) {
             // returning the same message but allowing status code to be bad request
@@ -150,7 +156,7 @@ class WalletServiceImpl(
         val wallet = getWalletEntity(walletId)
         val optionalTransaction = transactionRepository.findByIdAndWallet(
             id = transactionId,
-            purchasingWallet = wallet
+            wallet = wallet
         )
         if (!optionalTransaction.isPresent) {
             throw TransactionNotFoundException(id = transactionId)

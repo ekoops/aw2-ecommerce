@@ -39,7 +39,6 @@ fun Transaction.toTransactionDTO(): TransactionDTO {
         )
 
     }
-        //TODO prova a mandare un richiesta con order id nullo
     return TransactionDTO(
         id = this.getId()!!,
         walletId = this.wallet.getId()!!,
