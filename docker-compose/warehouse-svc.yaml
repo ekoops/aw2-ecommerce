@@ -14,6 +14,7 @@ services:
       - warehouse-net
       - communication-net
     depends_on:
+#      - warehouse-db-initer
       - warehouse-db-rs0-1
       - warehouse-db-rs0-2
       - warehouse-db-rs0-3
@@ -44,21 +45,21 @@ services:
       - warehouse-db-keys:/mongo-conf
     command: 'bash -c "openssl rand -base64 741 > /mongo-conf/warehouse-db-keyfile; chmod 600 /mongo-conf/warehouse-db-keyfile; chown 999 /mongo-conf/warehouse-db-keyfile"'
 
-#   warehouse-db-initer:
-#     image: aw2-ecommerce/warehouse-db-initer
-#     container_name: warehouse-db-initer
-#     build:
-# #      dockerfile: ../Dockerfile # relative to the build context
-#       context: ../warehouse-db-initer
-#     #    restart: always
-#     env_file:
-#       - configs/warehouse-db-initer.env.prod
-#     networks:
-#       - warehouse-net
-#     depends_on:
-#       - warehouse-db-rs0-1
-#       - warehouse-db-rs0-2
-#       - warehouse-db-rs0-3
+#  warehouse-db-initer:
+#    image: aw2-ecommerce/warehouse-db-initer
+#    container_name: warehouse-db-initer
+#    build:
+#    #      dockerfile: ../Dockerfile # relative to the build context
+#     context: ../warehouse-db-initer
+#    #    restart: always
+#    env_file:
+#     - configs/warehouse-db-initer.env.prod
+#    networks:
+#     - warehouse-net
+#    depends_on:
+#     - warehouse-db-rs0-1
+#     - warehouse-db-rs0-2
+#     - warehouse-db-rs0-3
 
   warehouse-db-rs0-1:
     image: "mongo:5.0.2"

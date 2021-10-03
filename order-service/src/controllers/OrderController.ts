@@ -67,6 +67,7 @@ export default class OrderController {
 
   postOrder = async (req: Request, res: Response, next: NextFunction) => {
     const user: User = res.locals.user;
+    console.log('Got user: ', user);
 
     if (user.role !== UserRole.CUSTOMER) {
       return res.status(403).json(new OrderCreationNotAllowedResponse());
@@ -83,9 +84,6 @@ export default class OrderController {
       deliveryAddress: user.deliveryAddress!, // if CUSTOMER, deliveryAddress is always present
       items: itemsDTO,
     };
-    res.status(203).json({result: 'it works!'});
-    return;
-    //@ts-nocheck
     try {
       const result = await this.orderService.createOrder(
         orderDTO as CreateOrderRequestDTO

@@ -19,7 +19,7 @@ const getRouter = (orderController: OrderController) => {
 
   router.post(
     "/",
-    validators.postOrder,
+    validators.postOrder, // TODO: perché da 500 al posto del messaggio errore?
     checkErrors,
     orderController.postOrder
   );

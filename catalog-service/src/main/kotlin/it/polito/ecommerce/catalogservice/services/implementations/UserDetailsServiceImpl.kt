@@ -2,6 +2,7 @@ package it.polito.ecommerce.catalogservice.services.implementations
 
 import it.polito.ecommerce.catalogservice.domain.*
 import it.polito.ecommerce.catalogservice.dto.UserDTO
+import it.polito.ecommerce.catalogservice.dto.UserDetailsDTO
 import it.polito.ecommerce.catalogservice.dto.incoming.CreateUserRequestDTO
 import it.polito.ecommerce.catalogservice.dto.kafkadtos.UserCreatedDTO
 import it.polito.ecommerce.catalogservice.dto.toCreatedUserEmailVerificationTokenInfoDTO
@@ -19,6 +20,7 @@ import it.polito.ecommerce.catalogservice.services.NotificationService
 import org.apache.kafka.common.KafkaException
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.mail.MailException
+import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
@@ -206,6 +208,30 @@ suspend fun verifyUser(token: String) {
             return true
         } catch (ex: Exception) {
             throw InconsistentUserException("Error in unlocking the user")
+        }
+    }
+
+    suspend fun updateUserInformation(
+        id: Long,
+        name:String?,
+        surname:String?,
+        deliveryAddress:String?,
+        password: String?
+    ): Boolean {
+//        val principal: UserDetailsDTO = ReactiveSecurityContextHolder.getContext().authentication.principal as UserDetailsDTO
+//        val currentId = principal.getId()
+//        if(currentId != id) throw ActionNotPermittedException("You must not execute this action")
+        val newPassword: String?
+        if (password!=null) {
+            newPassword = passwordEncoder.encode(password)
+        } else newPassword = null
+        val updatedUser =
+            this.getUserById(id).updateUserInfo(name,surname, deliveryAddress, newPassword)
+        try {
+            coroutineUserRepository.save(updatedUser)
+            return true
+        } catch (ex: Exception) {
+            throw InconsistentUserException("Error in updating user info the user")
         }
     }
 }

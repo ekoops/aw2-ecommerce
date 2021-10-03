@@ -15,27 +15,38 @@ class UserController(
 
 //  This endpoint allows an admin to enable or disable an user
 
-    // @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/{userId}")
-    suspend fun patchUser(
+//    @PatchMapping("/{userId}")
+//    suspend fun patchUser(
+//        @Valid @RequestBody patchUserPropertiesDTO: PatchUserPropertiesRequestDTO,
+//        @PathVariable("userId") userId: Long
+//    ) {
+//        if (patchUserPropertiesDTO.isLocked != null) {
+//            if (patchUserPropertiesDTO.isLocked) userDetailsService.lockUser(userId)
+//            else userDetailsService.unlockUser(userId)
+//        }
+//
+//        if (patchUserPropertiesDTO.isEnabled != null) {
+//            if (patchUserPropertiesDTO.isEnabled) userDetailsService.enableUser(userId)
+//            else userDetailsService.disableUser(userId)
+//        }
+//    }
+
+    @PatchMapping("locking/{userId}")
+    suspend fun lockingUser(
         @Valid @RequestBody patchUserPropertiesDTO: PatchUserPropertiesRequestDTO,
         @PathVariable("userId") userId: Long
     ) {
-//        ReactiveSecurityContextHolder
-//            .getContext()
-//            .map{
-//                val authentication = it.getAuthentication()
-//                if(!authentication.authorities.contains("ADMIN"))
-//                    throw Exception ("solo un admin")
-//
-        println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-        println("DENTRO IL PATCH USER")
-        println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-
         if (patchUserPropertiesDTO.isLocked != null) {
             if (patchUserPropertiesDTO.isLocked) userDetailsService.lockUser(userId)
             else userDetailsService.unlockUser(userId)
         }
+    }
+
+    @PatchMapping("enabling/{userId}")
+    suspend fun enablingUser(
+        @Valid @RequestBody patchUserPropertiesDTO: PatchUserPropertiesRequestDTO,
+        @PathVariable("userId") userId: Long
+    ) {
 
         if (patchUserPropertiesDTO.isEnabled != null) {
             if (patchUserPropertiesDTO.isEnabled) userDetailsService.enableUser(userId)
@@ -43,7 +54,6 @@ class UserController(
         }
     }
 
-    // @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/addRole/{userId}")
     suspend fun addRole(
         @RequestParam("role", required = true) role: String,
@@ -51,8 +61,6 @@ class UserController(
     ) : Boolean =
         userDetailsService.addUserRole(username,role)
 
-//    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    // @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/removeRole/{userId}")
     suspend fun removeRole(
         @RequestParam("role", required = true) role: String,
@@ -63,5 +71,22 @@ class UserController(
 /*
     TODO: add method for handling name, surname, deliveryAddress updating. they should be accessible also from normal customer
 */
+    //TODO: the user has to be able to modify only his info
+
+    @PreAuthorize("#userId == java.security.Principal.id")
+    @PatchMapping("/updateUserInfo/{userId}")
+    suspend fun patchUserInformation(
+        @Valid @RequestBody patchUserPropertiesDTO: PatchUserPropertiesRequestDTO,
+        @PathVariable("userId") userId: Long
+    ) {
+        val (_, _, name, surname, deliveryAddress, password) = patchUserPropertiesDTO
+        if (patchUserPropertiesDTO.name != null ||
+            patchUserPropertiesDTO.surname != null ||
+            patchUserPropertiesDTO.deliveryAddress != null) {
+            userDetailsService.updateUserInformation(userId, name, surname, deliveryAddress, password)
+        }
+    }
+
+
 
 }
