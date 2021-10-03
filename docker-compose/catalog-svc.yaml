@@ -20,7 +20,7 @@ services:
       - kafka
 #      - mail-svc
       - order-svc
-      # - warehouse-svc
+      - warehouse-svc
       - wallet-svc
       - discovery-svc
 

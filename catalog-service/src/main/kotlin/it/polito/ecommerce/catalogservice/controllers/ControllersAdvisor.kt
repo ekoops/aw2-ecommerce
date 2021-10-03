@@ -5,7 +5,9 @@ import it.polito.ecommerce.catalogservice.exceptions.internal.CreateUserInternal
 import it.polito.ecommerce.catalogservice.exceptions.internal.VerifyUserInternalException
 import it.polito.ecommerce.catalogservice.exceptions.security.BadAuthenticationException
 import it.polito.ecommerce.catalogservice.exceptions.user.ActionNotPermittedException
+import org.springframework.context.support.DefaultMessageSourceResolvable
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.DisabledException
@@ -15,8 +17,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.bind.support.WebExchangeBindException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.server.ResponseStatusException
+import java.util.stream.Collectors
 import javax.validation.ConstraintViolationException
 
 @RestControllerAdvice
@@ -41,6 +45,18 @@ class ControllersAdvisor {
         detail = "The provided request body should follows the right DTO specification"
     )
 
+    //TODO: vedere se questa gestione delle eccezioni per la validazione dei campio dei DTO va bene e d in caso non vada bene provare a integrarla con quella di sotto
+    @ExceptionHandler(WebExchangeBindException::class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun constraintViolationExceptionHandler2(ex: WebExchangeBindException): ResponseEntity<List<String?>> {
+        val errors = ex.getBindingResult()
+            .getAllErrors()
+            .stream()
+            .map(DefaultMessageSourceResolvable::getDefaultMessage)
+            .collect(Collectors.toList())
+        return ResponseEntity.badRequest().body(errors);
+    }
+
     @ExceptionHandler(ConstraintViolationException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun constraintViolationExceptionHandler(ex: ConstraintViolationException): ErrorDetails {
@@ -50,7 +66,6 @@ class ControllersAdvisor {
             detail = "The provided fields should follows the right endpoint specification"
         )
     }
-
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

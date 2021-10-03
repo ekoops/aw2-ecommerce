@@ -74,30 +74,19 @@ class WebSecurityConfig(
             .authenticationEntryPoint { swe: ServerWebExchange, _: AuthenticationException? ->
                 Mono.fromRunnable { swe.response.statusCode = HttpStatus.UNAUTHORIZED }
             }.and()
-//            .authenticationEntryPoint { swe, e ->
-//                Mono.fromRunnable {
-//                    println(">>>>>>>>>>>>>>> UNAUTHORIZED")
-//                    swe.response.statusCode = HttpStatus.UNAUTHORIZED
-//                    println(">>>>>>>>>>>>>> MESSAGE: ${e.message}")
-//                    throw e
-//                }
-//            }.accessDeniedHandler { swe, e ->
-//                Mono.fromRunnable {
-//                    swe.response.statusCode = HttpStatus.FORBIDDEN
-//                    throw e
-//                }
-//            }.and()
             .addFilterAt(
                 bearerAuthenticationFilter(),
                 SecurityWebFiltersOrder.AUTHENTICATION)
             .cors()
             .and()
             .csrf().disable()
-
             .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
             .authorizeExchange()
             .pathMatchers("/auth/**").permitAll()
-            .pathMatchers("/users/**").hasAuthority("ADMIN")
+            .pathMatchers("/users/locking/**").hasAuthority("ADMIN")
+            .pathMatchers("/users/enabling/**").hasAuthority("ADMIN")
+            .pathMatchers("/users/addRole/**").hasAuthority("ADMIN")
+            .pathMatchers("/users/removeRole/**").hasAuthority("ADMIN")
             .anyExchange().authenticated()
             .and().build()
     }

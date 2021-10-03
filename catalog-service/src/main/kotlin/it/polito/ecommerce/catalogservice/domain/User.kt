@@ -161,6 +161,26 @@ data class User(
         )
     }
 
+    fun updateUserInfo(
+        name: String?,
+        surname: String?,
+        deliveryAddress: String?,
+        password: String?
+    ): User {
+        return User(
+            id = id,
+            username = username,
+            password = password?: this.password,
+            email = email,
+            isEnabled = isEnabled,
+            isLocked = isLocked,
+            rolesList = rolesList,
+            name = name?: this.name,
+            surname = surname?: this.surname,
+            deliveryAddress = deliveryAddress?: this.deliveryAddress
+        )
+    }
+
 }
 
 fun User.toUserDetailsDTO(): UserDetailsDTO {
