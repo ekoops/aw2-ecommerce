@@ -9,8 +9,25 @@ export default class OrderController {
     return this._instance || (this._instance = new this(orderService));
   }
 
-  checkProductsAvailability = async (message: SuccessPayload) => {
-    return this.orderService.checkProductsAvailability(message);
+  checkProductsAvailability = async (key: string, value: string | undefined) => {
+    console.log('@!@!@!@!@!@!@!@!@!@!@!@!');
+    console.log('@!@!@!@!@!@!@!@!@!@!@!@!');
+    console.log('@!@!@!@!@!@!@!@!@!@!@!@!');
+    console.log('@!@!@!@!@!@!@!@!@!@!@!@!');
+    console.log('Key: ', key);
+    console.log('Value: ', value);
+    console.log('@!@!@!@!@!@!@!@!@!@!@!@!');
+    console.log('@!@!@!@!@!@!@!@!@!@!@!@!');
+    console.log('@!@!@!@!@!@!@!@!@!@!@!@!');
+    console.log('@!@!@!@!@!@!@!@!@!@!@!@!');
+
+    let obj;
+    try {
+      obj = JSON.parse(value as string);
+    } catch (ex) {
+      return;
+    }
+    return this.orderService.checkProductsAvailability({key: key, value: obj.ok});
   }
 
   handleOrderCRUD = async (key: string, value: string | undefined) => {

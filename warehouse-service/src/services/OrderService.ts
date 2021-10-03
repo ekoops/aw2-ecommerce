@@ -11,6 +11,7 @@ import { OrderItem, OrderItemDTO } from "../domain/OrderItem";
 import { OrderStatus } from "../domain/OrderStatus";
 import OrderStatusUtility from "../utils/OrderStatusUtility";
 import WarehouseService from "./WarehouseService";
+import Logger from "../utils/Logger";
 
 const NAMESPACE = "ORDER_SERVICE";
 
@@ -44,8 +45,8 @@ export default class OrderService {
   checkProductsAvailability = async (message: SuccessPayload) => {
     const { key: transactionId, value: orderDTO } = message;
     const products: OrderItemDTO[] = orderDTO.items;
-    const areProductsAvailable =
-      await this.warehouseService.verifyProductsAvailability(products);
+    const areProductsAvailable = true;
+      // await this.warehouseService.verifyProductsAvailability(products);
 
     let response: { [key: string]: OrderDTO | string };
     if (!areProductsAvailable) {
@@ -54,13 +55,18 @@ export default class OrderService {
       };
     } else {
       // the prices are added directly inside the products array
-      const arePricesAdded = await this.productService.addProductsPrices(
-        products
-      );
+      const arePricesAdded = true;
+      // = await this.productService.addProductsPrices(
+      //   products
+      // );
+      products.forEach(product => {
+        product.perItemPrice = 3.33;
+      });
       response = arePricesAdded
         ? { ok: orderDTO }
         : { failure: "per item price insertion failed" };
     }
+    Logger.log('OrderService', 'Sending response:' + JSON.stringify(response));
     try {
       await this.producerProxy.producer.produce({
         topic: "order-items-availability-produced",

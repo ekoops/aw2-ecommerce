@@ -38,7 +38,7 @@ const run = async () => {
   const kafkaConfig: KafkaConfig = {
     clientId,
     brokers,
-    retry: { initialRetryTime },
+    retry: { initialRetryTime, retries: 25 },
   };
   const kafkaProxy = KafkaProxy.getInstance(kafkaConfig);
 
@@ -81,7 +81,7 @@ const run = async () => {
   const orderController = OrderController.getInstance(orderService);
 
   await initTopics(admin);
-  initConsumers(kafkaProxy, orderController);
+  await initConsumers(kafkaProxy, orderController);
 
   const { rootPath } = config.server.api;
   const webServerPort = config.server.port;
