@@ -30,7 +30,8 @@ const run = async () => {
   const kafkaConfig: KafkaConfig = {
     clientId,
     brokers,
-    retry: { initialRetryTime },
+    retry: { initialRetryTime, retries: 25 },
+
   };
   const kafkaProxy = KafkaProxy.getInstance(kafkaConfig);
 

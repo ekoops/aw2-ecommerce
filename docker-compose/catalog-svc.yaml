@@ -19,8 +19,8 @@ services:
       - catalog-db
       - kafka
 #      - mail-svc
-#      - order-svc
-#      - warehouse-svc
+      - order-svc
+      # - warehouse-svc
       - wallet-svc
       - discovery-svc
 

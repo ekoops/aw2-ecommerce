@@ -1,6 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import { ProductDto } from "../domain/Product";
+import RouteNotFoundResponse from "../responses/RouteNotFoundResponse";
 import ProductService from "../services/ProductService";
 import WarehouseService from "../services/WarehouseService";
 
@@ -48,7 +49,7 @@ export default class ProductController {
   ) => {
     const productId = req.params["id"];
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      next(new AppError(404, "Product not found"));
+      next(new RouteNotFoundResponse());
       return;
     }
 
@@ -56,7 +57,7 @@ export default class ProductController {
       _id: productId,
     });
     if (products.length === 0) {
-      next(new AppError(404, "Product not found"));
+      next(new RouteNotFoundResponse());
       return;
     }
 
@@ -74,6 +75,8 @@ export default class ProductController {
     product.comments.forEach((c) => {
       if (!c.creationDate) c.creationDate = new Date();
     });
+
+    //@ts-ignore
     product.createdAt = new Date();
     delete product.averageRating;
     const result = await this.productService.insertProducts([product]);
@@ -108,7 +111,7 @@ export default class ProductController {
     )[0];
 
     if (!result) {
-      next(new AppError(404, "Product not found"));
+      next(new RouteNotFoundResponse());
       return;
     }
 
@@ -139,7 +142,7 @@ export default class ProductController {
   ) => {
     const productId = req.params["id"];
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      next(new AppError(404, "Product not found"));
+      next(new RouteNotFoundResponse());
       return;
     }
 
@@ -159,7 +162,7 @@ export default class ProductController {
     const product: ProductDto = req.body;
     let result;
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      next(new AppError(404, "Product not found"));
+      next(new RouteNotFoundResponse());
       return;
     }
 
@@ -169,6 +172,7 @@ export default class ProductController {
       product.comments.forEach((c) => {
         if (!c.creationDate) c.creationDate = new Date();
       });
+      //@ts-ignore
       product.createdAt = new Date();
       product._id = productId;
       delete product.averageRating;
@@ -186,7 +190,7 @@ export default class ProductController {
     let product: ProductDto = req.body;
     let result;
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      next(new AppError(404, "Product not found"));
+      next(new RouteNotFoundResponse());
       return;
     }
 
@@ -194,7 +198,7 @@ export default class ProductController {
       await this.productService.findProducts({ _id: productId })
     )[0];
     if (!oldProduct) {
-      next(new AppError(404, "Product not found"));
+      next(new RouteNotFoundResponse());
       return;
     }
     result = await this.productService.deleteProduct({ _id: productId });
@@ -203,6 +207,7 @@ export default class ProductController {
       product.comments.forEach((c) => {
         if (!c.creationDate) c.creationDate = new Date();
       });
+      //@ts-ignore
       product.createdAt = new Date();
       product._id = productId;
       product = {

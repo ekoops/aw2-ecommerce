@@ -20,7 +20,7 @@ const kafka_host = process.env.KAFKA_HOST || "kafka";
 const kafka_port = process.env.KAFKA_PORT || 9092;
 const kafka_client_id = process.env.KAFKA_CLIENT_ID || server_instance_id;
 const kafka_group_id = kafka_client_id;
-const kafka_initial_retry_time = process.env.KAFKA_INITIAL_RETRY_TIME || 500;
+const kafka_initial_retry_time = process.env.KAFKA_INITIAL_RETRY_TIME || 5000;
 
 const eureka_instance_app = process.env.EUREKA_INSTANCE_APP || "order-svc";
 const eureka_instance_id = process.env.EUREKA_INSTANCE_ID || server_instance_id;

@@ -23,22 +23,23 @@ const initConsumers = async (
     return consumerProxy.bindHandlers<SuccessResponseType>(exceptionBuilder);
   };
 
+  const consumerHandlers: Promise<any>[] = []
   {
     const topics = [{ topic: "order-items-availability-requested" }];
     const consumer = await kafkaProxy.createConsumer(groupId, topics);
     const consumerProxy = new ConsumerProxy(consumer);
-    consumerProxy.bindHandler<OrderDTO>(
+    consumerHandlers.push(consumerProxy.bindHandler<OrderDTO>(
       orderController.checkProductsAvailability
-    );
+    ));
   }
   {
     const topics = [{ topic: "order-db.order-db.orders" }];
     const consumer = await kafkaProxy.createConsumer(groupId, topics, {autoCommitThreshold: 1});
-    consumer.consume(orderController.handleOrderCRUD);
+    consumerHandlers.push(consumer.consume(orderController.handleOrderCRUD));
   }
 
   // only CannotCreateConsumerException can be throw
-  return Promise.all(consumersHandles);
+  return Promise.all(consumerHandlers);
 };
 
 export default initConsumers;

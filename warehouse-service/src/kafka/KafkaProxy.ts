@@ -173,7 +173,7 @@ export default class KafkaProxy {
 
           return consumer.run({
             ...consumerRunConfig,
-            eachMessage: async (payload) => {
+            eachMessage: async (payload: any) => {
               const key = payload.message.key.toString();
               if (filter !== undefined && !filter(key)) return;
               const value = payload.message.value?.toString();

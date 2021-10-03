@@ -83,7 +83,9 @@ export default class OrderController {
       deliveryAddress: user.deliveryAddress!, // if CUSTOMER, deliveryAddress is always present
       items: itemsDTO,
     };
-
+    res.status(203).json({result: 'it works!'});
+    return;
+    //@ts-nocheck
     try {
       const result = await this.orderService.createOrder(
         orderDTO as CreateOrderRequestDTO

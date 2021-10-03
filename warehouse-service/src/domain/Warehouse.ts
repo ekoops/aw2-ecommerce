@@ -38,22 +38,22 @@ const schemaOptions = {
 };
 
 const warehouseSchemaObj = {
-  name: {
+  name: { // TODO: ripristinare required
     type: mongoose.Schema.Types.String,
-    required: [true, "the warehouse name is required"],
+    // required: [true, "the warehouse name is required"],
   },
   products: [
     {
       quantity: {
         type: mongoose.Schema.Types.Number,
-        required: [true, "the product quantity is required"],
+        // required: [true, "the product quantity is required"],
       },
       product: {
         _id: {
           type: mongoose.Schema.Types.ObjectId,
-          required: [true, "the product quantity is required"],
+          // required: [true, "the product quantity is required"],
         },
-        required: [true, "the product is required"],
+        // required: [true, "the product is required"],
       },
     },
   ],

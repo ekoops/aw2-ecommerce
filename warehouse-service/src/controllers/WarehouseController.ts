@@ -1,6 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import { WarehouseRequestDto } from "../domain/Warehouse";
+import RouteNotFoundResponse from "../responses/RouteNotFoundResponse";
 import ProductService from "../services/ProductService";
 import WarehouseService from "../services/WarehouseService";
 
@@ -36,12 +37,14 @@ export default class WarehouseController {
     if (invalid?.length) {
       // TODO: muovere il controllo nel service e fare ritornare un errore
       next(
-        new AppError(
-          500,
-          `The product ids [${invalid
-            .map((p) => p.product._id)
-            .join(", ")}] are not valid`
-        )
+        // TODO: ripristinare
+        // new AppError( 
+        //   500,
+        //   `The product ids [${invalid
+        //     .map((p) => p.product._id)
+        //     .join(", ")}] are not valid`
+        // )
+        new RouteNotFoundResponse()
       );
       return;
     }
@@ -56,10 +59,11 @@ export default class WarehouseController {
     const allProducts = await this.productService.findProducts(productsQuery);
     if (allProducts.length !== idsList?.length) {
       next(
-        new AppError(
-          500,
-          `The product ids [${idsList?.join(", ")}] are not valid`
-        )
+        // new AppError(
+        //   500,
+        //   `The product ids [${idsList?.join(", ")}] are not valid`
+        // )
+        new RouteNotFoundResponse()
       ); // TODO: stampare solo id invalidi
       return;
     }
@@ -93,7 +97,7 @@ export default class WarehouseController {
       await this.warehouseService.findWarehouses({ _id: warehouseId })
     )[0];
     if (!oldWarehouse) {
-      next(new AppError(404, "Warehouse not found"));
+      next(new RouteNotFoundResponse());
       return;
     }
 
@@ -116,7 +120,7 @@ export default class WarehouseController {
       await this.warehouseService.findWarehouses({ _id: warehouseId })
     )[0];
     if (!warehouse) {
-      next(new AppError(404, "Warehouse not found"));
+      next(new RouteNotFoundResponse());
       return;
     }
     res.json(warehouse);
