@@ -21,7 +21,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 
 //todo check ids of  @KafkaListener( id =
-//
+
 //@Component
 //class RequestListener(
 //    private val budgetAvailabilityProducedKafkaTemplate: KafkaTemplate<String, BudgetAvailabilityProducedDTO>,
@@ -42,7 +42,7 @@ import java.time.LocalDateTime
 //        }
 //        // check budget availability
 //        val wallet = this.walletRepository.getWalletByCustomerId(orderDTO.buyerId.toLong())
-//        if (wallet == null) {
+//        if (wallet == null ) {
 //            val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
 //                failure = "no wallet"
 //            )
@@ -54,10 +54,19 @@ import java.time.LocalDateTime
 //            return
 //        }
 //
-//        var budget:Long = this.transactionRepository.findAllByRechargingWallet(wallet).fold(0L) { acc, transaction -> acc + transaction.amount }
-//        budget-= this.transactionRepository.findAllByPurchasingWallet(wallet).fold(0L) {acc, transaction -> acc + transaction.amount  }
+//        val budget:Long? = wallet.getId()?.let { walletRepository.findById(it).get().amount }
 //
-//
+//        if(budget == null){
+//            val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
+//                failure = "no wallet"
+//            )
+//            orderApprovedByWalletKafkaTemplate.send(
+//                "order-approved-by-wallet",
+//                key,
+//                orderApprovedByWalletDTO
+//            ).get()
+//            return
+//        }
 //        val isBudgetAvailable = budget > amount*100
 //        val budgetAvailabilityProducedDTO = if (isBudgetAvailable)
 //            BudgetAvailabilityProducedDTO(
@@ -97,11 +106,13 @@ import java.time.LocalDateTime
 //        val amount = orderDTO.items.fold(0.0) { acc, orderItemDTO ->
 //            acc + orderItemDTO.amount * orderItemDTO.perItemPrice
 //        }
+//
+//        //todo fix
 //        val transaction = Transaction(
-//            purchasingWallet = wallet,
-//            rechargingWallet = wallet, // TODO who has to be recharged???,
+//            wallet = wallet,
 //            amount = (amount * 100).toLong(),
 //            timeInstant = LocalDateTime.now(),
+//            orderId = 0
 //        )
 //        val createdTransaction = transactionRepository.save(transaction)
 //
@@ -151,10 +162,10 @@ import java.time.LocalDateTime
 //            acc + orderItemDTO.amount * orderItemDTO.perItemPrice
 //        }
 //        val transaction = Transaction(
-//            purchasingWallet = wallet,
-//            rechargingWallet = wallet, // TODO who has to be recharged???,
+//            wallet = wallet,
 //            amount = -(amount * 100).toLong(),
 //            timeInstant = LocalDateTime.now(),
+//            orderId = 0
 //        )
 //        val createdTransaction = transactionRepository.save(transaction)
 //
@@ -175,4 +186,40 @@ import java.time.LocalDateTime
 //        ).get()
 //    }
 //    }
+
+
+
+@Component
+class RequestListener(
+    private val budgetAvailabilityProducedKafkaTemplate: KafkaTemplate<String, BudgetAvailabilityProducedDTO>,
+    private val orderApprovedByWalletKafkaTemplate: KafkaTemplate<String, OrderApprovedByWalletDTO>,
+    private val walletRepository: WalletRepository,
+    private val transactionRepository: TransactionRepository
+) {
+
+    @KafkaListener(
+        id = "wallet-svc-grp",
+        topics = ["budget-availability-requested"],
+        containerFactory = "budgetAvailabilityRequestedContainerFactory",
+
+        )
+    fun listenBudgetAvailabilityRequested(@RequestHeader("key") key: String, orderDTO: OrderDTO) {
+        val orderApprovedByWalletDTO = OrderApprovedByWalletDTO (
+            ok = ApprovationDTO(
+                approverName = "WALLET",
+                orderDTO = orderDTO
+            ),
+            failure = null
+                )
+
+        orderApprovedByWalletKafkaTemplate.send(
+            "budget-availability-produced",
+            key,
+            orderApprovedByWalletDTO
+        ).get()
+
+    }
+
+}
+
 

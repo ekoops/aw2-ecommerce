@@ -24,14 +24,14 @@ import javax.validation.constraints.Min
 class WalletController(
     val walletService: WalletService
 ) {
-    @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
+    @PreAuthorize("hasAuthority('ADMIN') or @walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
     @GetMapping("/{walletId}")
     @ResponseStatus(HttpStatus.OK)
     fun getWallet(
         @PathVariable("walletId") walletId: Long
     ): WalletDTO = walletService.getWallet(walletId)
 
-//    @PreAuthorize("#walletDTO.customerId == authentication.principal.id")
+    @PreAuthorize("isAuthenticated()")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createWallet(

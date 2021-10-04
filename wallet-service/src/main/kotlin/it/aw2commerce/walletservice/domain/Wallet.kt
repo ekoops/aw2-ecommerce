@@ -32,14 +32,14 @@ class Wallet(
 ) : EntityBase<Long>()
 
 fun Wallet.toWalletDTO(): WalletDTO {
-    if (this.getId() == null || this.customerId == null) {
+    if (this.getId() == null) {
         throw InconsistentWalletException(
             message = "Wallet id or wallet customer id are undefined"
         )
     }
     return WalletDTO(
         id = this.getId()!!,
-        customerId = this.customerId!!,
+        customerId = this.customerId,
         amount = this.amount.toDouble() / 100
     )
 }
