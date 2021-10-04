@@ -45,8 +45,8 @@ const EurekaClient = new Eureka({
         host: "discovery-svc",
         port: 8761,
         servicePath: "/eureka/apps/",
-        heartbeatInterval: 5000,
-        registryFetchInterval: 5000,
+        heartbeatInterval: 1000,
+        registryFetchInterval: 1000,
         maxRetries: 10
     },
 });
