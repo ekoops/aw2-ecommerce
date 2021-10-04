@@ -27,7 +27,7 @@ export default class OrderController {
     } catch (ex) {
       return;
     }
-    return this.orderService.checkProductsAvailability({key: key, value: obj.ok});
+    return this.orderService.checkProductsAvailability({key: key, value: obj});
   }
 
   handleOrderCRUD = async (key: string, value: string | undefined) => {

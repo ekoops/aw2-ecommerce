@@ -26,4 +26,4 @@ export const retry = async (attempts: number, interval: number, f: Function, ...
   }
 };
 
-export const force = retry.bind(null, Infinity, 5000);
+export const force = retry.bind(null, Infinity, 1000);

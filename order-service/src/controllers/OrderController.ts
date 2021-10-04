@@ -88,10 +88,11 @@ export default class OrderController {
       const result = await this.orderService.createOrder(
         orderDTO as CreateOrderRequestDTO
       );
+      console.log("@0@0@0 received response and sending to client: ", orderDTO)
       if (result instanceof OrderCreationFailed) {
-        res.status(500).json(new InternalServerErrorResponse());
+        res.status(500).json(new InternalServerErrorResponse()).end();
       }
-      else res.status(201).json(result);
+      else res.status(201).json(result).end();
     } catch (ex) {
       next(ex);
     }

@@ -19,8 +19,16 @@ const getRouter = (orderController: OrderController) => {
 
   router.post(
     "/",
-    validators.postOrder, // TODO: perché da 500 al posto del messaggio errore?
-    checkErrors,
+    (req, res, next) => {
+      // res.json({
+      //   "hello": "world"
+      // });
+      console.log('User is: ', res.locals?.user);
+      // res.end();
+      next()
+    },
+    // validators.postOrder, // TODO: perché da 500 al posto del messaggio errore?
+    // checkErrors,
     orderController.postOrder
   );
 

@@ -250,23 +250,24 @@ export default class OrderService {
           transactionId,
           createOrderRequestDTO
         );
-      console.log("@@@@@", itemsAvailabilityResponse)
+      console.log("@!!!@@@@", itemsAvailabilityResponse)
       const orderDTO = itemsAvailabilityResponse.value;
-      return orderDTO;
       // checking if there is some item without an associated price
-      // const arePricesMissing = orderDTO.items.some(
-      //   (item) => item.perItemPrice === undefined
-      // );
-      // if (arePricesMissing) return new OrderCreationFailed();
+      const arePricesMissing = orderDTO.items.some(
+        (item) => item.perItemPrice === undefined
+      );
+      if (arePricesMissing) return new OrderCreationFailed();
 
       // // checking buyer budget availability. The response must have
       // // key = transactionId and value = orderDTO without any modification.
-      // const budgetAvailabilityResponse =
-      //   await this.producerProxy.produceAndWaitResponse<OrderDTO>(
-      //     "budget-availability-requested",
-      //     transactionId,
-      //     orderDTO
-      //   );
+      const budgetAvailabilityResponse =
+        await this.producerProxy.produceAndWaitResponse<OrderDTO>(
+          "budget-availability-requested",
+          transactionId,
+          orderDTO
+        );
+      console.log('!!!!! wallet service responded: ', budgetAvailabilityResponse);
+      return orderDTO;
       // return this.approveOrder(budgetAvailabilityResponse);
     } catch (ex) {
       Logger.dev(

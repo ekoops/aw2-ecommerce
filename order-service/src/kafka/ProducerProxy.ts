@@ -14,11 +14,16 @@ export default class ProducerProxy {
     return new Promise<{ key: string; value: ResponseType }>(
       async (resolve, reject) => {
         try {
+          console.log('Producing: ', { key, value: JSON.stringify(message) });
+          console.log('On topic: ', topic);
+
           await this.producer.produce({
             topic,
             messages: [{ key, value: JSON.stringify(message) }],
           });
 
+          console.log('Now waiting for response');
+          
           requestStore.set(key, resolve, reject);
         } catch (ex) {
           requestStore.remove(key);

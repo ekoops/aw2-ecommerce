@@ -39,7 +39,7 @@ export default class KafkaProxy {
       clientId,
       brokers,
       retry: {
-        initialRetryTime: 5000,
+        initialRetryTime: 1000,
       },
     });
   }

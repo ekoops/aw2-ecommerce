@@ -16,7 +16,7 @@ const initTopics = async (admin: Admin): Promise<void> =>  {
     ];
     const topicsToCreateList: ITopicConfig[] = desiredTopicList
         .filter(topicName => !actualTopicList.includes(topicName))
-        .map(topicName => ({topic: topicName, numPartitions: 3}));
+        .map(topicName => ({topic: topicName, numPartitions: 1}));
 
     if (topicsToCreateList.length !== 0) {
         return admin.createTopics(topicsToCreateList);
