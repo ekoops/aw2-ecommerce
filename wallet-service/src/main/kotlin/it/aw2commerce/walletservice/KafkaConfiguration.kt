@@ -46,7 +46,7 @@ class KafkaConfiguration(
     // CONSUMER for topic order-approved
     @Bean
     fun orderApprovedTopic(): NewTopic {
-        return TopicBuilder.name("order-approved").build()
+        return TopicBuilder.name("budget-availability-requested").build()
     }
      @Bean
     fun orderApprovedConsumerFactory(): ConsumerFactory<String, OrderDTO> {
@@ -86,7 +86,7 @@ class KafkaConfiguration(
         return factory
     }
 
-
+//todo alcuni non servono più
     // PRODUCER for topic budget-availability-produced
     @Bean
     fun budgetAvailabilityProducedTopic(): NewTopic {
@@ -110,7 +110,7 @@ class KafkaConfiguration(
     // PRODUCER for topic order-approved-by-wallet
     @Bean
     fun orderApprovedByWalletTopic(): NewTopic {
-        return TopicBuilder.name("order-approved-by-wallet").build()
+        return TopicBuilder.name("budget-availability-produced").build()
     }
     @Bean
     fun orderApprovedByWalletProducerFactory(): ProducerFactory<String, OrderApprovedByWalletDTO> {
