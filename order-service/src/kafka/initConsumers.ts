@@ -8,49 +8,70 @@ import {
   NotEnoughBudgetException, WalletOrderCreationFailedException,
   WarehouseOrderCreationFailedException
 } from "../exceptions/kafka/communication/application/ApplicationException";
+import RequestStore from "./RequestStore";
+import { ValueParsingFailedException } from "../exceptions/kafka/communication/ConsumerException";
 
-const initConsumers = (kafkaProxy: KafkaProxy) => {
+const initConsumers = async (kafkaProxy: KafkaProxy) => {
   const {groupId} = config.kafka;
+  const requestStore = RequestStore.getInstance();
 
-  const startConsumer = async <SuccessResponseType>({
-    topic,
-    exceptionBuilder,
-  }: {
-    topic: string;
-    exceptionBuilder: ExceptionBuilder;
-  }) => {
-    const topics = [{ topic }];
-    const consumer = await kafkaProxy.createConsumer(groupId, topics);
-    const consumerProxy = new ConsumerProxy(consumer);
-    return consumerProxy.bindHandlers<SuccessResponseType>(
-      exceptionBuilder
-    );
-  };
+  const topic = "order-items-availability-produced";
+  const topics = [{ topic: topic }]
+  const consumer = await kafkaProxy.createConsumer(groupId, topics);
+  return consumer.consume(async (key: string, value: string|undefined) => {
+    console.log('@#@#@#@#@#@@#@@@ Received: ', key, value);
+    const [resolve, reject] = requestStore.get(key)!;
+    console.log('Found resolver: ', !!resolve);
+    let obj;
+    try {
+      obj = JSON.parse(value as string);
+    } catch (ex) {
+      return reject(new ValueParsingFailedException(key));
+    }
+    console.log('Resolvign with ', obj.ok);
+    return resolve({ key, value: obj.ok as OrderDTO });
+  });
 
-  const consumersHandles = [
-    startConsumer<OrderDTO>({
-      topic: "order-items-availability-produced",
-      exceptionBuilder: ItemsNotAvailableException.fromJson,
-    }),
+  // const startConsumer = async <SuccessResponseType>({
+  //   topic,
+  //   exceptionBuilder,
+  // }: {
+  //   topic: string;
+  //   exceptionBuilder: ExceptionBuilder;
+  // }) => {
+  //   const topics = [{ topic }];
+  //   console.log('Creating consumer for topic ', topic)
+  //   const consumer = await kafkaProxy.createConsumer(groupId, topics);
+  //   const consumerProxy = new ConsumerProxy(consumer);
+  //   return consumerProxy.bindHandlers<SuccessResponseType>(
+  //     exceptionBuilder
+  //   );
+  // };
 
-    startConsumer<OrderDTO>({
-      topic: "budget-availability-produced",
-      exceptionBuilder: NotEnoughBudgetException.fromJson,
-    }),
+  // const consumersHandles = [
+  //   startConsumer<OrderDTO>({
+  //     topic: "order-items-availability-produced",
+  //     exceptionBuilder: ItemsNotAvailableException.fromJson,
+  //   }),
 
-    // COUPLED CONSUMERS
-    startConsumer<ApprovationDTO>({
-      topic: "order-creation-warehouse-response",
-      exceptionBuilder: WarehouseOrderCreationFailedException.fromJson,
-    }),
-    startConsumer<ApprovationDTO>({
-      topic: "order-creation-wallet-response",
-      exceptionBuilder: WalletOrderCreationFailedException.fromJson,
-    }),
-  ];
+  //   startConsumer<OrderDTO>({
+  //     topic: "budget-availability-produced",
+  //     exceptionBuilder: NotEnoughBudgetException.fromJson,
+  //   }),
 
-  // only CannotCreateConsumerException can be throw
-  return Promise.all(consumersHandles)
+  //   // COUPLED CONSUMERS
+  //   startConsumer<ApprovationDTO>({
+  //     topic: "order-creation-warehouse-response",
+  //     exceptionBuilder: WarehouseOrderCreationFailedException.fromJson,
+  //   }),
+  //   startConsumer<ApprovationDTO>({
+  //     topic: "order-creation-wallet-response",
+  //     exceptionBuilder: WalletOrderCreationFailedException.fromJson,
+  //   }),
+  // ];
+
+  // // only CannotCreateConsumerException can be throw
+  // return Promise.all(consumersHandles)
 };
 
 export default initConsumers;

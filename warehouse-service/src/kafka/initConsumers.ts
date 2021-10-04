@@ -32,7 +32,10 @@ const initConsumers = async (
     //   orderController.checkProductsAvailability
     // ));
     console.log('@!@@@@@@@@@@ order-items-availability-requested')
-    consumerHandlers.push(consumer.consume(orderController.checkProductsAvailability))
+    consumerHandlers.push(consumer.consume(async (key: string, val: string|undefined) => {
+      console.log('Receiving request: ', key, val)
+      orderController.checkProductsAvailability(key, val);
+    }))
   }
   {
     const topics = [{ topic: "order-db.order-db.orders" }];

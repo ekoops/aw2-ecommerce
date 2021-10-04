@@ -15,7 +15,7 @@ export default class ConsumerProxy {
       // if filterFn pass, then requestStore contains resolve and reject function,
       // so it is safe to extract them
       const [resolve, reject] = requestStore.get(key)!;
-
+      console.log('got resolve and reject: ', typeof resolve)
       if (value === undefined || value === "")
         return reject(new NoValueException(key));
 
@@ -33,6 +33,16 @@ export default class ConsumerProxy {
       return reject(new ValueParsingFailedException(key));
     };
 
-    return this.consumer.consume(consumerFn, filterFn);
+    return this.consumer.consume(async (key: string, value: string|undefined) => {
+      console.log('!!!! received response on topic: ', key);
+      console.log('The value is: ', value);
+      const contains = requestStore.contains(key);
+      console.log('contains is: ', contains);
+      if (!contains) {
+        console.log('Exiting')
+        return;
+      }
+      consumerFn(key, value);
+    }) //, filterFn);
   }
 }

@@ -250,9 +250,10 @@ export default class OrderService {
           transactionId,
           createOrderRequestDTO
         );
-      console.log("@@@@@", itemsAvailabilityResponse)
+      console.log("@!!!@@@@", itemsAvailabilityResponse)
       const orderDTO = itemsAvailabilityResponse.value;
       return orderDTO;
+      // return this.approveOrder({key: 'null', value: orderDTO});
       // checking if there is some item without an associated price
       // const arePricesMissing = orderDTO.items.some(
       //   (item) => item.perItemPrice === undefined

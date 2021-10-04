@@ -29,12 +29,14 @@ export default class RequestStore {
     const timerId = setTimeout(() => {
       delete this.requests[key];
       reject(new TimeoutException(key));
-    }, 10000);
+    }, 100000);
     this.requests[key] = [resolve, reject, timerId];
   };
 
   get = (key: string): [SuccessHandler, FailureHandler] | undefined => {
+    console.log('Received response with key', key);
     const handlers = this.requests[key];
+    console.log('handlers is ', handlers);
     if (handlers === undefined) return;
     const [resolve, reject, timerId] = handlers;
     clearTimeout(timerId);
