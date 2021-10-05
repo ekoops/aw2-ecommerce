@@ -36,14 +36,14 @@ class RequestListener(
         containerFactory = "budgetAvailabilityRequestedContainerFactory", //è quello che creo nella configurazione
 
         )
-    fun listenBudgetAvailabilityRequested(@RequestHeader("key") key: String, orderDTO: OrderDTO) {
+    fun listenBudgetAvailabilityRequested(orderDTO: OrderDTO, @RequestHeader("key") key: String) {
         val amount = orderDTO.items.fold(0.0) { acc, orderItemDTO ->
             acc + orderItemDTO.amount * orderItemDTO.perItemPrice
         }
         // check budget availability
         println("amount required= $amount")
         println("Getting wallet...")
-        val wallet = this.walletRepository.getWalletByCustomerId(orderDTO.buyerId.toLong())
+        val wallet = this.walletRepository.getWalletByCustomerId(orderDTO.buyerId)
         println("Retrived wallet")
         if (wallet == null ) {
             println("Wallet is null")

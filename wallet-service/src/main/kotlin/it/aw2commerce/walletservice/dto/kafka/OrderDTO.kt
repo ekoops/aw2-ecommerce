@@ -16,12 +16,12 @@ enum class  OrderStatusName{
 }
 
 class OrderDTO(
-    val buyerId: String,
+    val buyerId: Long,
     val items: List<OrderItemDTO>,
-    val id: String,
+    // val id: String,
     val deliveryAddress: String,
-    val status: OrderStatusName,
-    val createdAt: Date,
+    // val status: OrderStatusName,
+    // val createdAt: Date,
 )
 
 

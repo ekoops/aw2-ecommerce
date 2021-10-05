@@ -40,24 +40,30 @@ const initDbConnection = async () => {
     uri,
     credentials
   );
-  try {
-    await mongoose.connect(uri, mongooseOptions);
-    Logger.dev(NAMESPACE, "connected successfully to db");
+  for (let i=0; i<5; i++) {
+    try {
+      Logger.dev(NAMESPACE, "connecting to db, attempt "+i);
 
-    mongoose.set("runValidators", true);
-    // handling error after initial connection
-    mongoose.connection.on("error", (err) =>
-      Logger.error(NAMESPACE, "connection to db lost: %v", err)
-    );
-  } catch (ex) {
-    // handling initial connection fail
-    // @ts-ignore
-    Logger.error(
-      NAMESPACE,
-      "failed to initiate the connection: %v",
-      ex.message
-    );
-    throw new DbConnectionFailedException();
+      await mongoose.connect(uri, mongooseOptions);
+      Logger.dev(NAMESPACE, "connected successfully to db");
+
+      mongoose.set("runValidators", true);
+      // handling error after initial connection
+      mongoose.connection.on("error", (err) =>
+        Logger.error(NAMESPACE, "connection to db lost: %v", err)
+      );
+      break;
+    } catch (ex: any) {
+      // handling initial connection fail
+      // @ts-ignore
+      Logger.error(
+        NAMESPACE,
+        "failed to initiate the connection: %v",
+        ex.message
+      );
+      throw new DbConnectionFailedException();
+    }
+
   }
 };
 
