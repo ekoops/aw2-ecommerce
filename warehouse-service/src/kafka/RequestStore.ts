@@ -29,7 +29,7 @@ export default class RequestStore {
     const timerId = setTimeout(() => {
       delete this.requests[key];
       reject(new TimeoutException(key));
-    }, 100000);
+    }, 10000);
     this.requests[key] = [resolve, reject, timerId];
   };
 

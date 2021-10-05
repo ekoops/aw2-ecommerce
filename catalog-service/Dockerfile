@@ -9,4 +9,4 @@ USER app
 
 EXPOSE 8080
 
-ENTRYPOINT [ "java", "-jar", "./app.jar", "--trace" ]
+ENTRYPOINT [ "java", "-jar", "./app.jar", "-Xms1024m", "-Xmx4096m", "--trace" ]
