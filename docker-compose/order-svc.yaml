@@ -46,7 +46,7 @@ services:
     volumes:
       - order-db-keys:/mongo-conf
     command: 'bash -c "openssl rand -base64 741 > /mongo-conf/order-db-keyfile; chmod 600 /mongo-conf/order-db-keyfile; chown 999 /mongo-conf/order-db-keyfile"'
-
+#
 #  order-db-initer:
 #    image: aw2-ecommerce/order-db-initer
 #    container_name: order-db-initer

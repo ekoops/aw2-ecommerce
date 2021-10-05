@@ -41,8 +41,12 @@ class RequestListener(
             acc + orderItemDTO.amount * orderItemDTO.perItemPrice
         }
         // check budget availability
+        println("amount required= $amount")
+        println("Getting wallet...")
         val wallet = this.walletRepository.getWalletByCustomerId(orderDTO.buyerId.toLong())
+        println("Retrived wallet")
         if (wallet == null ) {
+            println("Wallet is null")
             val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
                 failure = "no wallet"
             )
@@ -53,22 +57,24 @@ class RequestListener(
             ).get()
             return
         }
-
+        println("Getting budget...")
         val budget:Long? = wallet.getId()?.let { walletRepository.findById(it).get().amount }
+        println("budget= $budget")
 
         if(budget == null){
             val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
                 failure = "budget is null"
             )
-            orderApprovedByWalletKafkaTemplate.send(
-                "budget-availability-produced",
-                key,
-                orderApprovedByWalletDTO
+        orderApprovedByWalletKafkaTemplate.send(
+            "budget-availability-produced",
+            key,
+            orderApprovedByWalletDTO
             ).get()
             return
         }
 
         val isBudgetAvailable = budget > amount*100
+        println("Budget is enought: $isBudgetAvailable")
         val budgetAvailabilityProducedDTO = if (isBudgetAvailable)
             BudgetAvailabilityProducedDTO(
                 ok = orderDTO
