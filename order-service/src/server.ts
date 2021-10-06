@@ -48,7 +48,7 @@ const run = async () => {
   const orderController = OrderController.getInstance(orderService);
 
   await initTopics(admin);
-  initConsumers(kafkaProxy);
+  await initConsumers(kafkaProxy);
 
   const { rootPath } = config.server.api;
   const webServerPort = config.server.port;

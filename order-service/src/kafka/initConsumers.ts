@@ -16,11 +16,11 @@ const initConsumers = async (kafkaProxy: KafkaProxy) => {
   const requestStore = RequestStore.getInstance();
   const arr = [];
   
-  // {
+  await (async () => {
     const topic = "order-items-availability-produced";
     const topics = [{ topic: topic }]
     const consumer = await kafkaProxy.createConsumer(groupId, topics);
-    const c = consumer.consume(async (key: string, value: string|undefined) => {
+    await consumer.consume(async (key: string, value: string|undefined) => {
       console.log('@#@#@#@#@#@@#@@@ Received: ', key, value);
       const [resolve, reject] = requestStore.get(key)!;
       console.log('Found resolver: ', !!resolve);
@@ -33,33 +33,29 @@ const initConsumers = async (kafkaProxy: KafkaProxy) => {
       console.log('Resolvign with ', obj.ok);
       return resolve({ key, value: obj.ok as OrderDTO });
     });
-    return c;
-    // arr.push(c);
-  // }
+  })();
 
-  // {
-  //   const topic = "budget-availability-produced";
-  //   const topics = [{ topic: topic }]
-  //   const consumer = await kafkaProxy.createConsumer(groupId, topics);
-  //   const c = consumer.consume(async (key: string, value: string|undefined) => {
-  //     console.log('@#@#@#@#@#@@#@@@ Received: ', key, value);
-  //     const [resolve, reject] = requestStore.get(key)!;
-  //     console.log('Found resolver: ', !!resolve);
-  //     let obj;
-  //     try {
-  //       obj = JSON.parse(value as string);
-  //     } catch (ex) {
-  //       return reject(new ValueParsingFailedException(key));
-  //     }
-  //     console.log('Resolvign with ', obj.ok);
-  //     return resolve({ key, value: obj.ok as OrderDTO });
-  //   });
-  //   arr.push(c);
-  // }
 
-  // return Promise.all(arr);
+  await (async () => {
+    const topic = "budget-availability-produced";
+    const topics = [{ topic: topic }]
+    const consumer = await kafkaProxy.createConsumer(groupId, topics);
+    await consumer.consume(async (key: string, value: string|undefined) => {
+      console.log('@#@#@#@#@#@@#@@@ Received: ', key, value);
+      const [resolve, reject] = requestStore.get(key)!;
+      console.log('Found resolver: ', !!resolve);
+      let obj;
+      try {
+        obj = JSON.parse(value as string);
+      } catch (ex) {
+        return reject(new ValueParsingFailedException(key));
+      }
+      console.log('Resolvign with ', obj.ok);
+      return resolve({ key, value: obj.ok as OrderDTO });
+    });
+  })();
 
-  
+  console.log('!!!!!!! topic consumers inited !!!!!!!');
 
   // const startConsumer = async <SuccessResponseType>({
   //   topic,
