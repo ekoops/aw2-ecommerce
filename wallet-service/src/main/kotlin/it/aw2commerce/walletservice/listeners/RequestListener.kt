@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.handler.annotation.Header
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.RequestHeader
@@ -36,10 +37,11 @@ class RequestListener(
         containerFactory = "budgetAvailabilityRequestedContainerFactory", //è quello che creo nella configurazione
 
         )
-    fun listenBudgetAvailabilityRequested(orderDTO: OrderDTO, @RequestHeader("key") key: String) {
+    fun listenBudgetAvailabilityRequested(orderDTO: OrderDTO, @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) key:String) {
         val amount = orderDTO.items.fold(0.0) { acc, orderItemDTO ->
             acc + orderItemDTO.amount * orderItemDTO.perItemPrice
         }
+        println("This is the key: $key")
         // check budget availability
         println("amount required= $amount")
         println("Getting wallet...")
@@ -82,7 +84,8 @@ class RequestListener(
             BudgetAvailabilityProducedDTO(
                 failure = "budget is not enough"
             )
-      val kafkaMsg = budgetAvailabilityProducedKafkaTemplate.send(
+
+        budgetAvailabilityProducedKafkaTemplate.send(
             "budget-availability-produced",
             key,
             budgetAvailabilityProducedDTO

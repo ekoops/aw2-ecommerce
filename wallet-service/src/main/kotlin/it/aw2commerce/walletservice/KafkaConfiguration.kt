@@ -1,5 +1,6 @@
 package it.aw2commerce.walletservice
 
+import it.aw2commerce.walletservice.dto.UserCreatedDTO
 import it.aw2commerce.walletservice.dto.incoming.CreateWalletRequestDTO
 import it.aw2commerce.walletservice.dto.kafka.BudgetAvailabilityProducedDTO
 import it.aw2commerce.walletservice.dto.kafka.OrderApprovedByWalletDTO
@@ -42,6 +43,29 @@ class KafkaConfiguration(
         factory.consumerFactory = budgetAvailabilityRequestedConsumerFactory()
         return factory
     }
+
+
+    //TEST
+//    @Bean
+//    fun userCreatedTopic(): NewTopic {
+//        return TopicBuilder.name("user-created").build()
+//    }
+//    @Bean
+//    fun userCreatedConsumerFactory(): ConsumerFactory<String, UserCreatedDTO> {
+//        val configProps = mutableMapOf<String, Any>()
+//        configProps[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = this.bootstrapServers
+//        configProps[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
+//        configProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = JsonDeserializer::class.java
+//        configProps[JsonDeserializer.VALUE_DEFAULT_TYPE] = UserCreatedDTO::class.java
+//        return DefaultKafkaConsumerFactory(configProps)
+//    }
+//    @Bean
+//    fun userCreatedContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, UserCreatedDTO> {
+//        val factory = ConcurrentKafkaListenerContainerFactory<String, UserCreatedDTO>()
+//        factory.consumerFactory = userCreatedConsumerFactory()
+//        return factory
+//    }
+    //END TEST
 
     // CONSUMER for topic order-approved
     @Bean
