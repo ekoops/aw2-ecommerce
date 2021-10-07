@@ -1,6 +1,6 @@
 package it.aw2commerce.walletservice
 
-import it.aw2commerce.walletservice.dto.UserCreatedDTO
+import it.aw2commerce.walletservice.dto.debezium.DebeziumOrderDTO
 import it.aw2commerce.walletservice.dto.incoming.CreateWalletRequestDTO
 import it.aw2commerce.walletservice.dto.kafka.BudgetAvailabilityProducedDTO
 import it.aw2commerce.walletservice.dto.kafka.OrderApprovedByWalletDTO
@@ -18,6 +18,7 @@ import org.springframework.kafka.config.TopicBuilder
 import org.springframework.kafka.core.*
 import org.springframework.kafka.support.serializer.JsonDeserializer
 import org.springframework.kafka.support.serializer.JsonSerializer
+import kotlin.reflect.jvm.internal.impl.load.kotlin.JvmType
 
 @Configuration
 class KafkaConfiguration(
@@ -45,27 +46,7 @@ class KafkaConfiguration(
     }
 
 
-    //TEST
-//    @Bean
-//    fun userCreatedTopic(): NewTopic {
-//        return TopicBuilder.name("user-created").build()
-//    }
-//    @Bean
-//    fun userCreatedConsumerFactory(): ConsumerFactory<String, UserCreatedDTO> {
-//        val configProps = mutableMapOf<String, Any>()
-//        configProps[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = this.bootstrapServers
-//        configProps[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
-//        configProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = JsonDeserializer::class.java
-//        configProps[JsonDeserializer.VALUE_DEFAULT_TYPE] = UserCreatedDTO::class.java
-//        return DefaultKafkaConsumerFactory(configProps)
-//    }
-//    @Bean
-//    fun userCreatedContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, UserCreatedDTO> {
-//        val factory = ConcurrentKafkaListenerContainerFactory<String, UserCreatedDTO>()
-//        factory.consumerFactory = userCreatedConsumerFactory()
-//        return factory
-//    }
-    //END TEST
+
 
     // CONSUMER for topic order-approved
     @Bean
@@ -88,27 +69,52 @@ class KafkaConfiguration(
         return factory
     }
 
+    //Debezium Test
 
-    // CONSUMER for topic order-cancelled
+    // CONSUMER for topic order-approved
     @Bean
-    fun orderCancelledTopic(): NewTopic {
-        return TopicBuilder.name("order-cancelled").build()
+    fun orderDBTopic(): NewTopic {
+        return TopicBuilder.name("order-db.order-db.orders").build()
     }
-     @Bean
-    fun orderCancelledConsumerFactory(): ConsumerFactory<String, OrderDTO> {
+    @Bean
+    fun orderDBConsumerFactory(): ConsumerFactory<String, Any> {
         val configProps = mutableMapOf<String, Any>()
         configProps[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = this.bootstrapServers
         configProps[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
-        configProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = JsonDeserializer::class.java
-        configProps[JsonDeserializer.VALUE_DEFAULT_TYPE] = OrderDTO::class.java
+        configProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
+//        configProps[JsonDeserializer.VALUE_DEFAULT_TYPE] = Object::class.java
         return DefaultKafkaConsumerFactory(configProps)
     }
     @Bean
-    fun orderCancelledContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, OrderDTO> {
-        val factory = ConcurrentKafkaListenerContainerFactory<String, OrderDTO>()
-        factory.consumerFactory = orderCancelledConsumerFactory()
+    fun orderDBContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, Any> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, Any>()
+        factory.consumerFactory = orderDBConsumerFactory()
         return factory
     }
+
+    //end test
+
+
+    // CONSUMER for topic order-cancelled
+//    @Bean
+//    fun orderCancelledTopic(): NewTopic {
+//        return TopicBuilder.name("order-cancelled").build()
+//    }
+//     @Bean
+//    fun orderCancelledConsumerFactory(): ConsumerFactory<String, OrderDTO> {
+//        val configProps = mutableMapOf<String, Any>()
+//        configProps[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = this.bootstrapServers
+//        configProps[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
+//        configProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = JsonDeserializer::class.java
+//        configProps[JsonDeserializer.VALUE_DEFAULT_TYPE] = OrderDTO::class.java
+//        return DefaultKafkaConsumerFactory(configProps)
+//    }
+//    @Bean
+//    fun orderCancelledContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, OrderDTO> {
+//        val factory = ConcurrentKafkaListenerContainerFactory<String, OrderDTO>()
+//        factory.consumerFactory = orderCancelledConsumerFactory()
+//        return factory
+//    }
 
 //todo alcuni non servono più
     // PRODUCER for topic budget-availability-produced

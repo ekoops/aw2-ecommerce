@@ -267,8 +267,8 @@ export default class OrderService {
           orderDTO
         );
       console.log('!!!!! wallet service responded: ', budgetAvailabilityResponse);
-      return orderDTO;
-      // return this.approveOrder(budgetAvailabilityResponse);
+      // return orderDTO;
+      return this.approveOrder(budgetAvailabilityResponse);
     } catch (ex) {
       Logger.dev(
         NAMESPACE,

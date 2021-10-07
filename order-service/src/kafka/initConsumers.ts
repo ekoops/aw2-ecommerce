@@ -15,11 +15,11 @@ const initConsumers = async (kafkaProxy: KafkaProxy) => {
   const {groupId} = config.kafka;
   const requestStore = RequestStore.getInstance();
   const arr = [];
-  
+
   await (async () => {
     const topic = "order-items-availability-produced";
     const topics = [{ topic: topic }]
-    const consumer = await kafkaProxy.createConsumer(groupId, topics);
+    const consumer = await kafkaProxy.createConsumer(groupId+"_1", topics);
     await consumer.consume(async (key: string, value: string|undefined) => {
       console.log('@#@#@#@#@#@@#@@@ Received: ', key, value);
       const [resolve, reject] = requestStore.get(key)!;
@@ -39,7 +39,7 @@ const initConsumers = async (kafkaProxy: KafkaProxy) => {
   await (async () => {
     const topic = "budget-availability-produced";
     const topics = [{ topic: topic }]
-    const consumer = await kafkaProxy.createConsumer(groupId, topics);
+    const consumer = await kafkaProxy.createConsumer(groupId+"_2", topics);
     await consumer.consume(async (key: string, value: string|undefined) => {
       console.log('@#@#@#@#@#@@#@@@ Received: ', key, value);
       const [resolve, reject] = requestStore.get(key)!;
@@ -56,47 +56,47 @@ const initConsumers = async (kafkaProxy: KafkaProxy) => {
   })();
 
   console.log('!!!!!!! topic consumers inited !!!!!!!');
-
-  // const startConsumer = async <SuccessResponseType>({
-  //   topic,
-  //   exceptionBuilder,
-  // }: {
-  //   topic: string;
-  //   exceptionBuilder: ExceptionBuilder;
-  // }) => {
-  //   const topics = [{ topic }];
-  //   console.log('Creating consumer for topic ', topic)
-  //   const consumer = await kafkaProxy.createConsumer(groupId, topics);
-  //   const consumerProxy = new ConsumerProxy(consumer);
-  //   return consumerProxy.bindHandlers<SuccessResponseType>(
-  //     exceptionBuilder
-  //   );
-  // };
-
-  // const consumersHandles = [
-  //   startConsumer<OrderDTO>({
-  //     topic: "order-items-availability-produced",
-  //     exceptionBuilder: ItemsNotAvailableException.fromJson,
-  //   }),
-
-  //   startConsumer<OrderDTO>({
-  //     topic: "budget-availability-produced",
-  //     exceptionBuilder: NotEnoughBudgetException.fromJson,
-  //   }),
-
-  //   // COUPLED CONSUMERS
-  //   startConsumer<ApprovationDTO>({
-  //     topic: "order-creation-warehouse-response",
-  //     exceptionBuilder: WarehouseOrderCreationFailedException.fromJson,
-  //   }),
-  //   startConsumer<ApprovationDTO>({
-  //     topic: "order-creation-wallet-response",
-  //     exceptionBuilder: WalletOrderCreationFailedException.fromJson,
-  //   }),
-  // ];
-
-  // // only CannotCreateConsumerException can be throw
-  // return Promise.all(consumersHandles)
+//
+//   const startConsumer = async <SuccessResponseType>({
+//     topic,
+//     exceptionBuilder,
+//   }: {
+//     topic: string;
+//     exceptionBuilder: ExceptionBuilder;
+//   }) => {
+//     const topics = [{ topic }];
+//     console.log('Creating consumer for topic ', topic)
+//     const consumer = await kafkaProxy.createConsumer(groupId, topics);
+//     const consumerProxy = new ConsumerProxy(consumer);
+//     return consumerProxy.bindHandlers<SuccessResponseType>(
+//       exceptionBuilder
+//     );
+//   };
+//
+//   const consumersHandles = [
+//     startConsumer<OrderDTO>({
+//       topic: "order-items-availability-produced",
+//       exceptionBuilder: ItemsNotAvailableException.fromJson,
+//     }),
+//
+//     startConsumer<OrderDTO>({
+//       topic: "budget-availability-produced",
+//       exceptionBuilder: NotEnoughBudgetException.fromJson,
+//     }),
+//
+//     // COUPLED CONSUMERS
+//     startConsumer<ApprovationDTO>({
+//       topic: "order-creation-warehouse-response",
+//       exceptionBuilder: WarehouseOrderCreationFailedException.fromJson,
+//     }),
+//     startConsumer<ApprovationDTO>({
+//       topic: "order-creation-wallet-response",
+//       exceptionBuilder: WalletOrderCreationFailedException.fromJson,
+//     }),
+//   ];
+//
+//   // only CannotCreateConsumerException can be throw
+//   return Promise.all(consumersHandles)
 };
 
 export default initConsumers;

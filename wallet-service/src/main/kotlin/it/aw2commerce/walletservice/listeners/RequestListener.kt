@@ -1,25 +1,21 @@
 package it.aw2commerce.walletservice.listeners
 
-import it.aw2commerce.walletservice.domain.Transaction
-import it.aw2commerce.walletservice.domain.toTransactionDTO
-import it.aw2commerce.walletservice.dto.incoming.CreateWalletRequestDTO
-import it.aw2commerce.walletservice.dto.kafka.ApprovationDTO
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import it.aw2commerce.walletservice.dto.debezium.KeyDebeziumDTO
 import it.aw2commerce.walletservice.dto.kafka.BudgetAvailabilityProducedDTO
 import it.aw2commerce.walletservice.dto.kafka.OrderApprovedByWalletDTO
 import it.aw2commerce.walletservice.dto.kafka.OrderDTO
 import it.aw2commerce.walletservice.repositories.TransactionRepository
 import it.aw2commerce.walletservice.repositories.WalletRepository
-import it.aw2commerce.walletservice.services.WalletService
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageRequest
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.handler.annotation.Header
 import org.springframework.stereotype.Component
-import org.springframework.web.bind.annotation.RequestHeader
-import java.time.Instant
-import java.time.LocalDateTime
+
 
 //todo check ids of  @KafkaListener( id =
 
@@ -82,9 +78,8 @@ class RequestListener(
                 ok = orderDTO
             ) else
             BudgetAvailabilityProducedDTO(
-                failure = "budget is not enough"
+                failure = "Budget is not enough"
             )
-
         budgetAvailabilityProducedKafkaTemplate.send(
             "budget-availability-produced",
             key,
@@ -93,6 +88,55 @@ class RequestListener(
 //        kafkaMsg.
         // TODO handle possibile kafka exception
     }
+
+    //Debezium
+
+    @KafkaListener(
+        id = "wallet-svc-grp-2",
+        topics = ["order-db.order-db.orders"],
+        containerFactory = "orderDBContainerFactory",
+    )
+//    fun listenDebezium(debeziumOrderDTO: DebeziumOrderDTO, @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) key:KeyDebeziumDTO) {
+//
+//        println("---------WE---------")
+//        println(key.payload.id)
+//    }
+    @Throws(JsonProcessingException::class)
+     fun listenDebezium(record: ConsumerRecord<String?, String?> , @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) key: String) {
+        val consumedValue = record.value()
+        val mapper = ObjectMapper()
+        val jsonNode = mapper.readTree(consumedValue)
+        val keyDebezium = mapper.readTree(key)
+        println("KEY-----" + key)
+        println("record.key" + record.key())
+        println("record.headers" + record.headers())
+        println("lunghezza" + record.headers().toArray().size)
+        var keyKafkaNode = keyDebezium.path("payload").path("id").textValue()
+        keyKafkaNode = keyKafkaNode.replace("\\\"" , "\"")
+        println("KEYKAFKANODE:::" + keyKafkaNode)
+        val oid = mapper.readTree(keyKafkaNode).path("\$oid").textValue()
+        println("@@@@@@@@@@ "+ oid )
+        val payload: JsonNode = jsonNode.path("payload")
+        val after: JsonNode = payload.path("after")
+        val userString: String = after.toString()
+        println("-----------------------")
+        println("PAYLOAD   $payload")
+        println(userString)
+
+        val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
+            failure = "budget is null"
+        )
+        orderApprovedByWalletKafkaTemplate.send(
+            "order-creation-wallet-response",
+            key,
+            orderApprovedByWalletDTO
+        ).get()
+        return
+    }
+
+
+    //end debezium
+
 }
 
 //todo la cancellazione e la creazione delle transazioni deve essere fatta con debesiium
