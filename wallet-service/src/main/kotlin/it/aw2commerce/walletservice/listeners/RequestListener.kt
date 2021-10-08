@@ -97,22 +97,22 @@ class RequestListener(
         var keyKafkaNode = keyDebezium.path("payload").path("id").textValue()
         keyKafkaNode = keyKafkaNode.replace("\\\"" , "\"")
         val oid = mapper.readTree(keyKafkaNode).path("\$oid").textValue()
-        println("@@@@@@@@@@ "+ oid )
+//        println("@@@@@@@@@@ "+ oid )
         val payload: JsonNode = jsonNode.path("payload")
         println(payload)
         val afterNode: JsonNode = payload.path("after")
-        println("AAAAAAAAAAAA" +  afterNode)
+//        println("AAAAAAAAAAAA" +  afterNode)
         var after = mapper.readTree(afterNode.toString()).textValue()
         after = after.replace("\\\"" , "\"")
-        println("bbbbbbb" + after )
+//        println("bbbbbbb" + after )
         val after2 = mapper.readTree(after)
-        println("b2b2b2b2b2b" + after2)
+//        println("b2b2b2b2b2b" + after2)
         val itemsPath = after2.path("items")
-        println("cccccccc" + itemsPath)
+//        println("cccccccc" + itemsPath)
         val items = mapper.readValue(itemsPath.toString() , jacksonTypeRef<Array<OrderItemDTO>>())
-        println(payload)
-        println("AAAAAAAAAAAA")
-        println(items)
+//        println(payload)
+//        println("AAAAAAAAAAAA")
+//        println(items)
         var amount = 0.0
         for (i in items){
             amount+= i.amount*i.perItemPrice
@@ -143,7 +143,7 @@ class RequestListener(
          "patch":null,"filter":null,"source":{"version":"1.6.2.Final","connector":"mongodb","name":"order-db","ts_ms":1633702840000,"snapshot":"false","db":"order-db","sequence":null,"rs":"rs0","collection":"orders","ord":1,"h":null,"tord":null,"stxnid":"99d8bd2a-17b8-361b-9b7c-b4d0c558668c:1"},"op":"c","ts_ms":1633702840079,"transaction":null}
 "{\"_id\": {\"$oid\": \"616053b7a9d89155d0d181ad\"},\"status\": \"PENDING\",\"warehouseHasApproved\": false,\"walletHasApproved\": false,\"buyerId\": 1,\"deliveryAddress\": \"user1_deliveryAddress\",\"items\": [{\"productId\": \"1\",\"amount\": 140,\"perItemPrice\": 3.33,\"sources\": []}],\"createdAt\": {\"$date\": 1633702839984},\"updatedAt\": {\"$date\": 1633702839984},\"__v\": 0}"
          */
-
+    //todo get buyed id
         val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
             ok = ApprovationDTO(
                 orderDTO = OrderDTO(
@@ -159,7 +159,7 @@ class RequestListener(
             oid,
             orderApprovedByWalletDTO
         ).get()
-        System.exit(0)
+//        System.exit(0)
     }
 
 

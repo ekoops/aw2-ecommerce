@@ -55,6 +55,25 @@ const initConsumers = async (kafkaProxy: KafkaProxy) => {
     });
   })();
 
+  await (async () => {
+    const topic = "order-creation-wallet-response";
+    const topics = [{ topic: topic }]
+    const consumer = await kafkaProxy.createConsumer(groupId+"_3", topics);
+    await consumer.consume(async (key: string, value: string|undefined) => {
+      console.log('@#@#@#@#@#@@#@@@ Received: order-creation-wallet-response ', key, value);
+      const [resolve, reject] = requestStore.get(key)!;
+      console.log('Found resolver: order-creation-wallet-response ', !!resolve);
+      let obj;
+      try {
+        obj = JSON.parse(value as string);
+      } catch (ex) {
+        return reject(new ValueParsingFailedException(key));
+      }
+      console.log('Resolvign with ', obj.ok);
+      return resolve({ key, value: obj.ok as OrderDTO });
+    });
+  })();
+
   console.log('!!!!!!! topic consumers inited !!!!!!!');
 //
 //   const startConsumer = async <SuccessResponseType>({

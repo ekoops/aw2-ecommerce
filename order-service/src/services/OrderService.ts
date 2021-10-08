@@ -115,17 +115,17 @@ export default class OrderService {
       key: transactionId,
       value: { approverName, orderDTO },
     } = message;
-
     const FAILURE_OBJ = new OrderCreationFailed();
 
     // the orderDTO's id must be present and it has to be equal to
     // the transactionId. In case of mismatch, it is not safe to trying to
     // delete an order with id === transactionId or id === orderDTO.id, so
     // I simply return FAILURE_OBJ
+    // console.log(transactionId)
+    // orderDTO.id = transactionId
     if (orderDTO.id === undefined || orderDTO.id !== transactionId)
       return FAILURE_OBJ;
     const orderId = orderDTO.id;
-
     // preparing a failureHandler that can be used in case of error
     const failureHandler = this.handleApproveOrderFailure.bind(
       this,
@@ -135,7 +135,6 @@ export default class OrderService {
     // obtaining approver info
     const approver = ApproverUtility.toApprover(approverName);
     if (approver === undefined) return failureHandler();
-
     // getting order
     let order: Order | null = null;
     try {
@@ -159,7 +158,6 @@ export default class OrderService {
         if (!areAssigned) return failureHandler();
       }
     }
-
     if (updated) {
       try {
         if (order.walletHasApproved && order.warehouseHasApproved) {
