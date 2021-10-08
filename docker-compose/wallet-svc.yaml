@@ -29,8 +29,8 @@ services:
       - configs/wallet-db.env.prod
     #    ports:
     #      - "3306:3306"
-#    volumes:
-#      - wallet-db-data:/var/lib/mysql
+    volumes:
+      - wallet-db-data:/var/lib/mysql
     networks:
       - wallet-net
     logging:

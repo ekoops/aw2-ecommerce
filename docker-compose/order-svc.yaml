@@ -18,7 +18,7 @@ services:
     depends_on:
       - kafka
       - kafka-connect
-#      - order-db-initer
+      - order-db-initer
       - order-db-rs0-1
       - order-db-rs0-2
       - order-db-rs0-3
@@ -47,21 +47,21 @@ services:
       - order-db-keys:/mongo-conf
     command: 'bash -c "openssl rand -base64 741 > /mongo-conf/order-db-keyfile; chmod 600 /mongo-conf/order-db-keyfile; chown 999 /mongo-conf/order-db-keyfile"'
 #
-#  order-db-initer:
-#    image: aw2-ecommerce/order-db-initer
-#    container_name: order-db-initer
-#    build:
-##      dockerfile: ../Dockerfile # relative to the build context
-#      context: ../order-db-initer
-#    #    restart: always
-#    env_file:
-#      - configs/order-db-initer.env.prod
-#    networks:
-#      - order-net
-#    depends_on:
-#      - order-db-rs0-1
-#      - order-db-rs0-2
-#      - order-db-rs0-3
+  order-db-initer:
+    image: aw2-ecommerce/order-db-initer
+    container_name: order-db-initer
+    build:
+#      dockerfile: ../Dockerfile # relative to the build context
+      context: ../order-db-initer
+    #    restart: always
+    env_file:
+      - configs/order-db-initer.env.prod
+    networks:
+      - order-net
+    depends_on:
+      - order-db-rs0-1
+      - order-db-rs0-2
+      - order-db-rs0-3
 
   order-db-rs0-1:
     image: "mongo:5.0.2"

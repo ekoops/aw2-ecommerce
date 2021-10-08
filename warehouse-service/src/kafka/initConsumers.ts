@@ -36,12 +36,12 @@ const initConsumers = async (
       console.log('Receiving request: ', key, val)
       orderController.checkProductsAvailability(key, val);
     }))
-  }
-  {
-    const topics = [{ topic: "order-db.order-db.orders" }];
-    const consumer = await kafkaProxy.createConsumer(groupId, topics, {autoCommitThreshold: 1});
-    consumerHandlers.push(consumer.consume(orderController.handleOrderCRUD));
-  }
+   }
+  // {
+  //   const topics = [{ topic: "order-db.order-db.orders" }];
+  //   const consumer = await kafkaProxy.createConsumer(groupId, topics, {autoCommitThreshold: 1});
+  //   consumerHandlers.push(consumer.consume(orderController.handleOrderCRUD));
+  // }
 
   // only CannotCreateConsumerException can be thrown
   return Promise.all(consumerHandlers);
