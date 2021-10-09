@@ -89,7 +89,7 @@ class WalletServiceImpl(
             )
         }
 
-        val orderId = createTransactionRequestDTO.orderId
+        val orderId = createTransactionRequestDTO.referenceId
 
 
         try {
@@ -105,10 +105,9 @@ class WalletServiceImpl(
                 amount = amountToLong,
                 timeInstant = LocalDateTime.now(),
                 wallet = wallet ,
-                orderId = orderId
+                referenceId = orderId
             )
             val createdTransaction = transactionRepository.save(newTransaction)
-//            if (!isAdmin) purchasingWallet.amount -= newTransaction.amount
             wallet.amount += newTransaction.amount
             return createdTransaction.toTransactionDTO()
         } catch (ex: WalletNotFoundException) {
