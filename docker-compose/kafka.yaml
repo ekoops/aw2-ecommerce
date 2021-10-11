@@ -18,7 +18,7 @@ services:
       - kafka-net
 
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: kymeric/cp-kafka
     restart: always
     container_name: kafka
     #    ports:

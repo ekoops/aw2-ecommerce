@@ -1,6 +1,5 @@
 package it.aw2commerce.walletservice
 
-import it.aw2commerce.walletservice.dto.debezium.DebeziumOrderDTO
 import it.aw2commerce.walletservice.dto.incoming.CreateWalletRequestDTO
 import it.aw2commerce.walletservice.dto.kafka.BudgetAvailabilityProducedDTO
 import it.aw2commerce.walletservice.dto.kafka.OrderApprovedByWalletDTO
