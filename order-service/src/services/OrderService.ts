@@ -121,8 +121,8 @@ export default class OrderService {
     // the transactionId. In case of mismatch, it is not safe to trying to
     // delete an order with id === transactionId or id === orderDTO.id, so
     // I simply return FAILURE_OBJ
-    // console.log(transactionId)
-    // orderDTO.id = transactionId
+    console.log(transactionId)
+    orderDTO.id = transactionId
     if (orderDTO.id === undefined || orderDTO.id !== transactionId)
       return FAILURE_OBJ;
     const orderId = orderDTO.id;
@@ -158,6 +158,8 @@ export default class OrderService {
         if (!areAssigned) return failureHandler();
       }
     }
+    //TODO remove
+    order.warehouseHasApproved = true
     if (updated) {
       try {
         if (order.walletHasApproved && order.warehouseHasApproved) {
