@@ -6,6 +6,6 @@ data class TransactionDTO(
     val id: Long,
     val walletId: Long,
     val amount: Double,
-    val orderId: Long,
+    val referenceId: String,
     val timeInstant: LocalDateTime,
 )
