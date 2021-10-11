@@ -16,6 +16,7 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.handler.annotation.Header
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 
@@ -89,24 +90,31 @@ class RequestListener(
         topics = ["order-db.order-db.orders"],
         containerFactory = "orderDBContainerFactory",
     )
+    @Transactional
     fun listenDebezium(
         record: ConsumerRecord<String?, String?>,
         @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) key: String
     ) {
+        println("a")
         val consumedValue = record.value()
+        if (consumedValue == null) return
         val mapper = ObjectMapper()
+        println("a2" + mapper)
         val jsonNode = mapper.readTree(consumedValue)
-        println("jsonNode")
-        println(jsonNode)
+        println("a3" + jsonNode)
         val payload: JsonNode = jsonNode.path("payload")
+        println("a4")
         val opNode: JsonNode = payload.path("op")
+        println("a5" + opNode)
         val op = mapper.readTree(opNode.toString()).textValue()
+        println("a6" + op)
 
 
 
         println(payload)
 
         if (op == "c") {
+            println("Handling create on debezium")
             val keyDebezium = mapper.readTree(key)
 
             var keyKafkaNode = keyDebezium.path("payload").path("id").textValue()
@@ -124,8 +132,9 @@ class RequestListener(
             val itemsPath = after2.path("items")
             val items = mapper.readValue(itemsPath.toString(), jacksonTypeRef<Array<OrderItemDTO>>())
             val amount = items.fold(0.0) { acc, orderItemDTO ->
-                acc + orderItemDTO.amount * orderItemDTO.perItemPrice
+                acc + orderItemDTO.amount.toDouble() * orderItemDTO.perItemPrice
             }
+            println("REMOVING UP " + amount)
 
             val buyerId = after2.path("buyerId").toString()
 
@@ -144,12 +153,12 @@ class RequestListener(
             }
 
             val newTransaction = Transaction(
-                amount = -(amount.toLong()) * 100,
+                amount = -(amount * 100).toLong(),
                 timeInstant = LocalDateTime.now(),
                 wallet = buyerWallet,
                 referenceId = oid
             )
-            transactionRepository.save(newTransaction)
+            val transactionFromRepo = transactionRepository.save(newTransaction)
             val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
                 ok = ApprovationDTO(
                     orderDTO = OrderDTO(
@@ -159,8 +168,8 @@ class RequestListener(
                     )
                 )
             )
-            buyerWallet.amount += newTransaction.amount
-            walletRepository.save(buyerWallet)
+            buyerWallet.amount += transactionFromRepo.amount
+//            walletRepository.save(buyerWallet)
 
             try {
                 orderCreationWalletKafkaTemplate.send(
@@ -205,11 +214,16 @@ class RequestListener(
             println("buyerWallet" + buyerWallet)
             val buyerId = buyerWallet.customerId
             println("buyerId" + buyerId)
+            println("amount before: " + buyerWallet.amount)
             transactions.forEach {
+                println("TRANSACTION AMOUNT: " + it.amount)
                 buyerWallet.amount -= it.amount
             }
-            walletRepository.save(buyerWallet)
-            transactions.forEach { transactionRepository.deleteByReferenceId(it.referenceId) }
+            println("amount after: " + buyerWallet.amount)
+//            walletRepository.save(buyerWallet)
+            println("amount after save: " + buyerWallet.amount)
+
+            transactions.forEach { transactionRepository.deleteAllByReferenceId(it.referenceId) }
 
             val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
                 ok = ApprovationDTO(
@@ -221,6 +235,7 @@ class RequestListener(
                 )
             )
             try {
+                println("rispondo bene")
                 orderCreationWalletKafkaTemplate.send(
                     "order-creation-wallet-response",
                     oid,
@@ -231,6 +246,7 @@ class RequestListener(
                 println(e.message)
             }
 
+            return
 
         } else {
             println("Operation unsupported: $op")

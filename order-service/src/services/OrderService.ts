@@ -373,6 +373,8 @@ export default class OrderService {
     const orderStatus = OrderStatusUtility.toOrderStatus(order.status)!;
 
     if (orderStatus !== OrderStatus.ISSUED) {
+      console.log("AAAAAAA IF")
+      console.log(orderStatus)
       Logger.dev(
         NAMESPACE,
         "deleteOrder(deleteOrderRequestDTO: %v): not allowed",
@@ -380,7 +382,7 @@ export default class OrderService {
       );
       throw new NotAllowedException();
     }
-
+    console.log("AAAAAAA CHIAMOOOOOO")
     await this.orderRepository.deleteOrderById(order._id!);
   };
 }

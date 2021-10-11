@@ -40,6 +40,6 @@ fun Wallet.toWalletDTO(): WalletDTO {
     return WalletDTO(
         id = this.getId()!!,
         customerId = this.customerId,
-        amount = this.amount.toDouble() / 100
+        amount = this.amount.toDouble() / 100.0
     )
 }
