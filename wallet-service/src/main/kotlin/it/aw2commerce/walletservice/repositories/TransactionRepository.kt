@@ -41,9 +41,13 @@ interface TransactionRepository : PagingAndSortingRepository<Transaction, Long> 
     ): Page<Transaction>
 
 
-//    fun findAllByWallet(
-//        wallet: Wallet,
-//    ): List<Transaction>
+    fun findAllByReferenceId(
+        referenceId: String,
+    ): List<Transaction>
+
+    fun deleteByReferenceId(
+        referenceId: String
+    )
 
     companion object {
         const val TRANSACTION_PAGE_SIZE: Int = 10

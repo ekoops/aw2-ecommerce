@@ -90,7 +90,6 @@ class RequestListener(
         topics = ["order-db.order-db.orders"],
         containerFactory = "orderDBContainerFactory",
     )
-//    @Throws(JsonProcessingException::class)
      fun listenDebezium(record: ConsumerRecord<String?, String?> , @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) key: String) {
         val consumedValue = record.value()
         val mapper = ObjectMapper()
@@ -102,7 +101,6 @@ class RequestListener(
         val oid = mapper.readTree(keyKafkaNode).path("\$oid").textValue()
 
         val payload: JsonNode = jsonNode.path("payload")
-//        println(payload)
         val afterNode: JsonNode = payload.path("after")
         var after = mapper.readTree(afterNode.toString()).textValue()
         after = after.replace("\\\"" , "\"")
@@ -135,30 +133,23 @@ class RequestListener(
                 return
             }
 
-            println("Wallet found:\t" + buyerWaller)
-            println("walletId:\t" + buyerWaller.getId())
             val amountLoLong:Long = amount.toLong()
-            println("amountToLong " + amountLoLong)
             val newTransaction = Transaction(
                 amount = -amountLoLong * 100,
                 timeInstant = LocalDateTime.now(),
                 wallet = buyerWaller ,
                 referenceId = oid
             )
-            println("newTransaction amount: " + newTransaction.amount)
-            val createdTransaction = transactionRepository.save(newTransaction)
-            println("SavedTransaction" + createdTransaction.getId())
-            println("CREATED TRANSACTION:\t" + createdTransaction.toTransactionDTO())
+            transactionRepository.save(newTransaction)
             val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
                 ok = ApprovationDTO(
                     orderDTO = OrderDTO(
                         buyerId = buyerId.toLong(),
                         deliveryAddress = "",
                         items= listOf(),
-
                         )
-                )
-            )
+                    )
+              )
             buyerWaller.amount += newTransaction.amount
             walletRepository.save(buyerWaller)
 
@@ -176,10 +167,89 @@ class RequestListener(
             return
 
         }else if(op == "d"){
-            println("Handling update on debezium")
+            println("Handling delete on debezium")
             //todo handle delete debezium
+            val transactions = transactionRepository.findAllByReferenceId(oid)
+
+            if(transactions.isEmpty()){
+                val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
+                    ok = ApprovationDTO(
+                        orderDTO = OrderDTO(
+                            buyerId = buyerId.toLong(),
+                            deliveryAddress = "",
+                            items= listOf(),
+                        )
+                    )
+                )
+                try{
+                    orderCreationWalletKafkaTemplate.send(
+                        "order-creation-wallet-response",
+                        oid,
+                        orderApprovedByWalletDTO
+                    ).get()
+                }catch (e:Exception){
+                    println("ERRORE")
+                    println(e.message)
+                }
+                return
+            }
+
+            val buyerWaller = walletRepository.getWalletByCustomerId(buyerId.toLong())
+
+            if(buyerWaller == null){
+                val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
+                    failure = "Wallet not found"
+                )
+
+                orderCreationWalletKafkaTemplate.send(
+                    "order-creation-wallet-response",
+                    oid,
+                    orderApprovedByWalletDTO
+                ).get()
+                return
+
+            }
+
+            transactions.forEach {
+                buyerWaller.amount += it.amount
+            }
+
+            walletRepository.save(buyerWaller)
+
+            transactions.forEach { transactionRepository.deleteByReferenceId(it.referenceId) }
+
+            val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
+                ok = ApprovationDTO(
+                    orderDTO = OrderDTO(
+                        buyerId = buyerId.toLong(),
+                        deliveryAddress = "",
+                        items= listOf(),
+                    )
+                )
+            )
+            try{
+                orderCreationWalletKafkaTemplate.send(
+                    "order-creation-wallet-response",
+                    oid,
+                    orderApprovedByWalletDTO
+                ).get()
+            }catch (e:Exception){
+                println("ERRORE")
+                println(e.message)
+            }
+
+
         }else{
             println("Operation unsupported")
+
+            orderCreationWalletKafkaTemplate.send(
+                "order-creation-wallet-response",
+                oid,
+                OrderApprovedByWalletDTO(
+                    failure = "Operation unsupported"
+                )
+            ).get()
+            return
         }
 
 
@@ -218,22 +288,6 @@ class RequestListener(
          "transaction":null}
 "{\"_id\": {\"$oid\": \"616053b7a9d89155d0d181ad\"},\"status\": \"PENDING\",\"warehouseHasApproved\": false,\"walletHasApproved\": false,\"buyerId\": 1,\"deliveryAddress\": \"user1_deliveryAddress\",\"items\": [{\"productId\": \"1\",\"amount\": 140,\"perItemPrice\": 3.33,\"sources\": []}],\"createdAt\": {\"$date\": 1633702839984},\"updatedAt\": {\"$date\": 1633702839984},\"__v\": 0}"
          */
-        val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
-            ok = ApprovationDTO(
-                orderDTO = OrderDTO(
-                    buyerId = 1,
-                    deliveryAddress = "via ",
-                    items= listOf(),
-
-                    )
-            )
-        )
-        orderCreationWalletKafkaTemplate.send(
-            "order-creation-wallet-response",
-            oid,
-            orderApprovedByWalletDTO
-        ).get()
-        System.exit(0)
     }
 
 
