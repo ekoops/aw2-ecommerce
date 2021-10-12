@@ -65,7 +65,7 @@ class RequestListener(
             return
         }
 
-        val isBudgetAvailable = budget > amount * 100
+        val isBudgetAvailable = budget >= amount * 100
         println("Budget is enought: $isBudgetAvailable")
         val budgetAvailabilityProducedDTO = if (isBudgetAvailable)
             BudgetAvailabilityProducedDTO(
