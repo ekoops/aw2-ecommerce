@@ -134,8 +134,8 @@ export default class WarehouseController {
     next: express.NextFunction
   ) => {
     const warehouses = await this.warehouseService.findWarehouses({});
-    const warehousesWithProducts =
-      await this.productService.fillWarehouseProducts(warehouses);
+    console.log('warehouses: ', warehouses);
+    const warehousesWithProducts = await this.productService.fillWarehouseProducts(warehouses);
     res.json(warehousesWithProducts);
   };
 }

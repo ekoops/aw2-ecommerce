@@ -40,8 +40,7 @@ export default class WarehouseService {
     const productIdsList = products.map(
       (product: OrderItemDTO) => product.productId
     );
-    const productsAvailability =
-      await this.warehouseRepository.getProductsAvailability(productIdsList);
+    const productsAvailability = await this.warehouseRepository.getProductsAvailability(productIdsList);
     return products.every(({ productId, amount }) => {
       return (
         productId in productsAvailability &&
