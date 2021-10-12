@@ -1,6 +1,7 @@
 import express from "express";
 import WarehouseController from "../controllers/WarehouseController";
 import {handleJwt} from "../security/jwt";
+import {UserRole} from "../domain/User";
 
 const router = express.Router();
 
@@ -11,8 +12,8 @@ const getRouter = (warehouseController: WarehouseController) => {
 
     router.use((req, res, next) => {
         const role = res.locals.user.role;
-        const isAdmin = role === "ADMIN";
-        if (!isAdmin && req.method !== 'GET' && req.method !== 'HEAD') {
+        const isAdmin = role === UserRole.ADMIN;
+        if (!isAdmin && req.method !== 'GET') {
             next({
                 code: 18,
                 message: 'Reserved to admin'

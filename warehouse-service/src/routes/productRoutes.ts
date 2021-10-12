@@ -2,6 +2,7 @@ import express from "express";
 import ProductController from "../controllers/ProductController";
 import { validators, checkErrors } from "../security/validators";
 import {handleJwt} from "../security/jwt";
+import {UserRole} from "../domain/User";
 
 const getRouter = (productController: ProductController) => {
     const router = express.Router();
@@ -10,8 +11,8 @@ const getRouter = (productController: ProductController) => {
 
     router.use((req, res, next) => {
         const role = res.locals.user.role;
-        const isAdmin = role === "ADMIN";
-        if (!isAdmin && req.method !== 'GET' && req.method !== 'HEAD') {
+        const isAdmin = role === UserRole.ADMIN;
+        if (!isAdmin && req.method !== 'GET') {
             next({
                 code: 18,
                 message: 'Reserved to admin'
