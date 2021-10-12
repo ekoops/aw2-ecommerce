@@ -66,10 +66,8 @@ export default class ProductService {
             quantity: w.products[index_j].quantity,
             product: p
           };
-          console.log('Assigning k: ', k);
           // @ts-ignore
           w.products[index_j] = k;
-          console.log('Assigned: ', w.products[index_j]);
         }
       });
       return w;

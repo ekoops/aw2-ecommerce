@@ -40,8 +40,11 @@ export default class WarehouseService {
     const productIdsList = products.map(
       (product: OrderItemDTO) => product.productId
     );
+    console.log("PRODUCTIDLIST " , productIdsList)
     const productsAvailability = await this.warehouseRepository.getProductsAvailability(productIdsList);
+    console.log("PROSUCTSAVAILABILY " , productsAvailability)
     return products.every(({ productId, amount }) => {
+      console.log("every " , productId in productsAvailability, productsAvailability[productId] >= amount)
       return (
         productId in productsAvailability &&
         productsAvailability[productId] >= amount
