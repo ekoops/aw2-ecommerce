@@ -79,14 +79,14 @@ const commentSchemaObj = {
   stars: { type: mongoose.Schema.Types.Number,
       required: [true, "the comment stars is required"]
   },
-  createdAt: { type: mongoose.Schema.Types.Date,
+  creationDate: { type: mongoose.Schema.Types.Date,
       required: [true, "the comment creation date is required"]
   },
 };
 
 const commentSchema = new mongoose.Schema<Comment>(
   commentSchemaObj,
-    {...schemaOptions, timestamps: {createdAt: true, updatedAt: false}}
+    {...schemaOptions, timestamps: {creationDate: true, updatedAt: false}}
 );
 
 const productSchemaObj = {
@@ -104,7 +104,7 @@ const productSchemaObj = {
 
 const productSchema = new mongoose.Schema<Product>(
   productSchemaObj,
-    {...schemaOptions, timestamps: {createdAt: true, updatedAt: false}}
+    {...schemaOptions, timestamps: {creationDate: true, updatedAt: false}}
 );
 
 productSchema.virtual("averageRating").get(function (this: Product) {

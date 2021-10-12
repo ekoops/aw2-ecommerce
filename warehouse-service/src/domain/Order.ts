@@ -18,7 +18,7 @@ export interface Order {
   items: OrderItem[];
   warehouseHasApproved: boolean;
   walletHasApproved: boolean;
-  createdAt?: Date;
+  creationDate?: Date;
   updatedAt?: Date;
 }
 
@@ -28,7 +28,7 @@ export interface OrderDTO {
   deliveryAddress: string;
   status?: OrderStatusName;
   items: OrderItemDTO[];
-  createdAt?: Date;
+  creationDate?: Date;
 }
 
 const orderSchema = new mongoose.Schema<Order>(

@@ -78,7 +78,7 @@ export default class ProductController {
     });
 
     //@ts-ignore
-    product.createdAt = new Date();
+    product.creationDate = new Date();
     delete product.averageRating;
     //TODO try catch?
     const result = await this.productService.insertProducts([product]);
@@ -179,7 +179,7 @@ export default class ProductController {
         if (!c.creationDate) c.creationDate = new Date();
       });
       //@ts-ignore
-      product.createdAt = new Date();
+      product.creationDate = new Date();
       product._id = productId;
       delete product.averageRating;
       result = (await this.productService.insertProducts([product]))[0];
@@ -214,7 +214,7 @@ export default class ProductController {
         if (!c.creationDate) c.creationDate = new Date();
       });
       //@ts-ignore
-      product.createdAt = new Date();
+      product.creationDate = new Date();
       product._id = productId;
       product = {
         ...oldProduct,
