@@ -10,7 +10,7 @@ export class Product {
         public category: Category,
         public price: number,
         public averageRating: number,
-        public creationDate: Date,
+        public createdAt: Date,
         public comments: Comment[],
     ) { }
 }
@@ -20,7 +20,7 @@ export class ProductDto {
     public category: Category | null = null;
     public price: number | null = null;
     public averageRating: number | null | undefined = null;
-    public creationDate: Date | null = null;
+    public createdAt: Date | null = null;
     public comments: Comment[];
     public pictureUrl: string | null;
 
@@ -31,9 +31,9 @@ export class ProductDto {
         this.category = product.category;
         this.price = product.price;
         this.averageRating = product.averageRating;
-        this.creationDate = product.creationDate;
+        this.createdAt = product.createdAt;
         this.comments = product.comments.map(
-            (c) => new Comment(c.title, c.body, c.stars, c.creationDate)
+            (c) => new Comment(c.title, c.body, c.stars, c.createdAt)
         );
         this.pictureUrl = this._pictureUrl;
     }
@@ -79,7 +79,7 @@ const commentSchemaObj = {
   stars: { type: mongoose.Schema.Types.Number,
       required: [true, "the comment stars is required"]
   },
-  creationDate: { type: mongoose.Schema.Types.Date,
+  createdAt: { type: mongoose.Schema.Types.Date,
       required: [true, "the comment creation date is required"]
   },
 };
@@ -98,7 +98,7 @@ const productSchemaObj = {
   },
   price: { type: mongoose.Schema.Types.Number },
   // averageRating: { type: mongoose.Schema.Types.Number },
-  creationDate: { type: mongoose.Schema.Types.Date },
+  createdAt: { type: mongoose.Schema.Types.Date },
   comments: { type: [commentSchema] },
 };
 

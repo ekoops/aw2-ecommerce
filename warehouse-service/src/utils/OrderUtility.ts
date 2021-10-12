@@ -11,7 +11,7 @@ const toOrderDTO = (order: Order): OrderDTO => {
     deliveryAddress: order.deliveryAddress,
     status: order.status,
     items: order.items.map(OrderItemUtility.toOrderItemDTO),
-    creationDate: order.creationDate,
+    createdAt: order.createdAt,
   };
 };
 

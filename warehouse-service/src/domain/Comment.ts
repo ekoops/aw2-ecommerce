@@ -3,11 +3,11 @@ export default class Comment {
         public title: string,
         public body: string,
         public stars: number,
-        public creationDate: Date
+        public createdAt: Date
     ) {}
     
 
     public clone(): Comment {
-        return new Comment(this.title, this.body, this.stars, this.creationDate)
+        return new Comment(this.title, this.body, this.stars, this.createdAt)
     }
 }

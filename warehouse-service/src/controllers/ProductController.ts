@@ -75,11 +75,11 @@ export default class ProductController {
     const product: ProductDto = req.body;
     if (!product.comments) product.comments = [];
     product.comments.forEach((c) => {
-      if (!c.creationDate) c.creationDate = new Date();
+      if (!c.createdAt) c.createdAt = new Date();
     });
 
     //@ts-ignore
-    product.creationDate = new Date();
+    product.createdAt = new Date();
     delete product.averageRating;
     //TODO try catch?
     const result = await this.productService.insertProducts([product]);
@@ -177,10 +177,10 @@ export default class ProductController {
     if (result.deletedCount === 1) {
       if (!product.comments) product.comments = [];
       product.comments.forEach((c) => {
-        if (!c.creationDate) c.creationDate = new Date();
+        if (!c.createdAt) c.createdAt = new Date();
       });
       //@ts-ignore
-      product.creationDate = new Date();
+      product.createdAt = new Date();
       product._id = productId;
       delete product.averageRating;
       result = (await this.productService.insertProducts([product]))[0];
@@ -212,10 +212,10 @@ export default class ProductController {
     if (result.deletedCount === 1) {
       if (!product.comments) product.comments = [];
       product.comments.forEach((c) => {
-        if (!c.creationDate) c.creationDate = new Date();
+        if (!c.createdAt) c.createdAt = new Date();
       });
       //@ts-ignore
-      product.creationDate = new Date();
+      product.createdAt = new Date();
       product._id = productId;
       product = {
         ...oldProduct,

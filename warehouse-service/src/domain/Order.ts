@@ -28,7 +28,7 @@ export interface OrderDTO {
   deliveryAddress: string;
   status?: OrderStatusName;
   items: OrderItemDTO[];
-  creationDate?: Date;
+  createdAt?: Date;
 }
 
 const orderSchema = new mongoose.Schema<Order>(
