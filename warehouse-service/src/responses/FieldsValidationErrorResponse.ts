@@ -16,4 +16,6 @@ export default class FieldsValidationErrorResponse extends BadRequestResponse {
     ) {
         super(detail, ErrorType.INVALID_FIELDS, "The provided fields are not valid")
     }
+
+    public code: number = 0;
 }
