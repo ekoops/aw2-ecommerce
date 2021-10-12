@@ -57,12 +57,13 @@ export default class ProductService {
     });
 
     const allProducts = await Promise.all(warehousesProductPromises);
+    console.log('allProducts is ', allProducts);
     const warehousesWithProducts = warehousesList.map((w, index) => {
       allProducts[index].forEach((p, index_j) => {
         if (w.products) {
           console.log(w.products[index_j], p);
           // @ts-ignore
-          w.products[index_j] = p;
+          w.products[index_j].product = p;
         }
       });
       return w;
