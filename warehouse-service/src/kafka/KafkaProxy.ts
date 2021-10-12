@@ -60,7 +60,7 @@ export default class KafkaProxy {
             haveBeenCreated = await admin.createTopics({ topics });
           } catch (ex) {
             Logger.error(NAMESPACE, "cannot create topics: %v", ex);
-            throw new CannotCreateTopicException();
+            // throw new CannotCreateTopicException();
           }
 
           const topicNames = topics.map((t) => t.topic);
@@ -70,7 +70,7 @@ export default class KafkaProxy {
               "failed to create the following topics %v",
               topicNames
             );
-            throw new CannotCreateTopicException();
+            // throw new CannotCreateTopicException();
           }
           Logger.dev(NAMESPACE, "topics created: %v", topicNames);
         },

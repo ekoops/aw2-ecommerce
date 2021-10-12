@@ -25,8 +25,8 @@ class Transaction(
     @Column(name = "time_instant", nullable = false)
     var timeInstant: LocalDateTime,
 
-    @Column(name = "orderId" , nullable = false)
-    var orderId: Long,
+    @Column(name = "referenceId" , nullable = false)
+    var referenceId: String,
 
 
 
@@ -44,6 +44,6 @@ fun Transaction.toTransactionDTO(): TransactionDTO {
         walletId = this.wallet.getId()!!,
         amount = this.amount.toDouble() / 100.0,
         timeInstant = this.timeInstant,
-        orderId = this.orderId
+        referenceId = this.referenceId
     )
 }

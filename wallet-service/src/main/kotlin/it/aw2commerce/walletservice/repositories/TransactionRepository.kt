@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.PagingAndSortingRepository
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.*
 
@@ -41,9 +42,14 @@ interface TransactionRepository : PagingAndSortingRepository<Transaction, Long> 
     ): Page<Transaction>
 
 
-//    fun findAllByWallet(
-//        wallet: Wallet,
-//    ): List<Transaction>
+    fun findAllByReferenceId(
+        referenceId: String,
+    ): List<Transaction>
+
+    @Transactional
+    fun deleteAllByReferenceId(
+        referenceId: String
+    )
 
     companion object {
         const val TRANSACTION_PAGE_SIZE: Int = 10

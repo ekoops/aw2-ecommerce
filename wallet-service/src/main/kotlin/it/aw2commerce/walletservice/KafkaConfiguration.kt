@@ -1,5 +1,6 @@
 package it.aw2commerce.walletservice
 
+import it.aw2commerce.walletservice.dto.debezium.DebeziumOrderDTO
 import it.aw2commerce.walletservice.dto.incoming.CreateWalletRequestDTO
 import it.aw2commerce.walletservice.dto.kafka.BudgetAvailabilityProducedDTO
 import it.aw2commerce.walletservice.dto.kafka.OrderApprovedByWalletDTO
@@ -17,6 +18,7 @@ import org.springframework.kafka.config.TopicBuilder
 import org.springframework.kafka.core.*
 import org.springframework.kafka.support.serializer.JsonDeserializer
 import org.springframework.kafka.support.serializer.JsonSerializer
+import kotlin.reflect.jvm.internal.impl.load.kotlin.JvmType
 
 @Configuration
 class KafkaConfiguration(
@@ -43,6 +45,29 @@ class KafkaConfiguration(
         return factory
     }
 
+
+    // PRODUCER for topic budget-availability-produced
+    @Bean
+    fun budgetAvailabilityProducedTopic(): NewTopic {
+        return TopicBuilder.name("budget-availability-produced").build()
+    }
+    @Bean
+    fun budgetAvailabilityProducedProducerFactory(): ProducerFactory<String, BudgetAvailabilityProducedDTO> {
+        val configProps = mutableMapOf<String, Any>()
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, this.bootstrapServers)
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java)
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer::class.java)
+        return DefaultKafkaProducerFactory(configProps)
+    }
+
+    @Bean
+    fun budgetAvailabilityProducedKafkaTemplate(): KafkaTemplate<String, BudgetAvailabilityProducedDTO> {
+        return KafkaTemplate(budgetAvailabilityProducedProducerFactory())
+    }
+
+    //
+
+
     // CONSUMER for topic order-approved
     @Bean
     fun orderApprovedTopic(): NewTopic {
@@ -64,47 +89,32 @@ class KafkaConfiguration(
         return factory
     }
 
+    //
 
-    // CONSUMER for topic order-cancelled
+    //Debezium
+
+    // CONSUMER for topic order-approved
     @Bean
-    fun orderCancelledTopic(): NewTopic {
-        return TopicBuilder.name("order-cancelled").build()
+    fun orderDBTopic(): NewTopic {
+        return TopicBuilder.name("order-db.order-db.orders").build()
     }
-     @Bean
-    fun orderCancelledConsumerFactory(): ConsumerFactory<String, OrderDTO> {
+    @Bean
+    fun orderDBConsumerFactory(): ConsumerFactory<String, Any> {
         val configProps = mutableMapOf<String, Any>()
         configProps[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = this.bootstrapServers
         configProps[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
-        configProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = JsonDeserializer::class.java
-        configProps[JsonDeserializer.VALUE_DEFAULT_TYPE] = OrderDTO::class.java
+        configProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
+//        configProps[JsonDeserializer.VALUE_DEFAULT_TYPE] = Object::class.java
         return DefaultKafkaConsumerFactory(configProps)
     }
     @Bean
-    fun orderCancelledContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, OrderDTO> {
-        val factory = ConcurrentKafkaListenerContainerFactory<String, OrderDTO>()
-        factory.consumerFactory = orderCancelledConsumerFactory()
+    fun orderDBContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, Any> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, Any>()
+        factory.consumerFactory = orderDBConsumerFactory()
         return factory
     }
 
-//todo alcuni non servono più
-    // PRODUCER for topic budget-availability-produced
-    @Bean
-    fun budgetAvailabilityProducedTopic(): NewTopic {
-        return TopicBuilder.name("budget-availability-produced").build()
-    }
-    @Bean
-    fun budgetAvailabilityProducedProducerFactory(): ProducerFactory<String, BudgetAvailabilityProducedDTO> {
-        val configProps = mutableMapOf<String, Any>()
-        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, this.bootstrapServers)
-        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer::class.java)
-        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer::class.java)
-        return DefaultKafkaProducerFactory(configProps)
-    }
-
-    @Bean
-    fun budgetAvailabilityProducedKafkaTemplate(): KafkaTemplate<String, BudgetAvailabilityProducedDTO> {
-        return KafkaTemplate(budgetAvailabilityProducedProducerFactory())
-    }
+    //end debezium
 
 
     // PRODUCER for topic order-approved-by-wallet
@@ -125,4 +135,26 @@ class KafkaConfiguration(
     fun orderApprovedByWalletKafkaTemplate(): KafkaTemplate<String, OrderApprovedByWalletDTO> {
         return KafkaTemplate(orderApprovedByWalletProducerFactory())
     }
+
+
+    //
+    // PRODUCER for topic order-creation-wallet-response
+    @Bean
+    fun orderCreationWalletResponseTopic(): NewTopic {
+        return TopicBuilder.name("order-creation-wallet-response").build()
+    }
+    @Bean
+    fun orderCreationWalletProducerFactory(): ProducerFactory<String, OrderApprovedByWalletDTO> {
+        val configProps = mutableMapOf<String, Any>()
+        configProps[ProducerConfig.BOOTSTRAP_SERVERS_CONFIG] = this.bootstrapServers
+        configProps[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
+        configProps[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = JsonSerializer::class.java
+        return DefaultKafkaProducerFactory(configProps)
+    }
+
+    @Bean
+    fun orderCreationWalletKafkaTemplate(): KafkaTemplate<String, OrderApprovedByWalletDTO>{
+        return KafkaTemplate(orderCreationWalletProducerFactory())
+    }
+    //
 }

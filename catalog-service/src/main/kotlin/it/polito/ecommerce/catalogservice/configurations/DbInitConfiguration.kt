@@ -37,7 +37,7 @@ class DbInitConfiguration(
             rolesList = listOf(Rolename.CUSTOMER),
             name = "user2_name",
             surname = "user2_surname",
-            deliveryAddress = null
+            deliveryAddress = "user2_deliveryAddress"
         )
 
         val user3 = User(

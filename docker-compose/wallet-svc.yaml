@@ -12,12 +12,12 @@ services:
     #    ports:
     #      - "4000:4000"
     networks:
-      - wallet-net
       - communication-net
+      - wallet-net
     depends_on:
       - wallet-db
       - kafka
-    #      - discovery-svc
+      - discovery-svc
     #    logging:
     #      driver: none
 
@@ -29,8 +29,8 @@ services:
       - configs/wallet-db.env.prod
     #    ports:
     #      - "3306:3306"
-#    volumes:
-#      - wallet-db-data:/var/lib/mysql
+    volumes:
+      - wallet-db-data:/var/lib/mysql
     networks:
       - wallet-net
     logging:

@@ -7,8 +7,6 @@ import javax.validation.constraints.Positive
         @field:NotNull(message = "An amount must be specified")
         val amount: Double,
 
-        //TODO this must be a reference for orderId o rechargeId
         @field:NotNull(message = "A order id must be specified")
-        @field:Positive(message = "The order id must be positive")
-        val orderId: Long,
+        val referenceId: String,
     )
