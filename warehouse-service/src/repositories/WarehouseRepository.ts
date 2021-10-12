@@ -137,6 +137,10 @@ export default class WarehouseRepository {
                         null,
                         { session }
                     );
+                    console.log(warehouse)
+                    console.log(warehouse?.products)
+                    console.log(warehouse?.products?.length, '!== 1')
+                    console.log(warehouse?.products?.[0]?.quantity, '<', quantity)
                     if (
                         warehouse === null ||
                         warehouse.products === null ||
@@ -154,6 +158,7 @@ export default class WarehouseRepository {
             }
             return true;
         } catch (ex) {
+            console.log(ex);
             return false;
         }
     };
