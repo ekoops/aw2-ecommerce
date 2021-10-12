@@ -154,6 +154,7 @@ export default class WarehouseRepository {
             }
             return true;
         } catch (ex) {
+            console.log(ex)
             return false;
         }
     };
