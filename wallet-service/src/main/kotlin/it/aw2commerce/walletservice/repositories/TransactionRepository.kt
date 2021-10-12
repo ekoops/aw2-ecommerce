@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.PagingAndSortingRepository
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.*
 
@@ -45,7 +46,8 @@ interface TransactionRepository : PagingAndSortingRepository<Transaction, Long> 
         referenceId: String,
     ): List<Transaction>
 
-    fun deleteByReferenceId(
+    @Transactional
+    fun deleteAllByReferenceId(
         referenceId: String
     )
 

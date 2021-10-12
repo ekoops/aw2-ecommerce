@@ -16,8 +16,8 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.handler.annotation.Header
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-
 
 
 @Component
@@ -35,13 +35,13 @@ class RequestListener(
         containerFactory = "budgetAvailabilityRequestedContainerFactory",
 
         )
-    fun listenBudgetAvailabilityRequested(orderDTO: OrderDTO, @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) key:String) {
+    fun listenBudgetAvailabilityRequested(orderDTO: OrderDTO, @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) key: String) {
         val amount = orderDTO.items.fold(0.0) { acc, orderItemDTO ->
             acc + orderItemDTO.amount * orderItemDTO.perItemPrice
         }
         // check budget availability
         val wallet = this.walletRepository.getWalletByCustomerId(orderDTO.buyerId)
-        if (wallet == null ) {
+        if (wallet == null) {
             println("Wallet is null")
             val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
                 failure = "no wallet"
@@ -53,20 +53,20 @@ class RequestListener(
             ).get()
             return
         }
-        val budget:Long? = wallet.getId()?.let { walletRepository.findById(it).get().amount }
-        if(budget == null){
+        val budget: Long? = wallet.getId()?.let { walletRepository.findById(it).get().amount }
+        if (budget == null) {
             val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
                 failure = "budget is null"
             )
-        orderApprovedByWalletKafkaTemplate.send(
-            "budget-availability-produced",
-            key,
-            orderApprovedByWalletDTO
+            orderApprovedByWalletKafkaTemplate.send(
+                "budget-availability-produced",
+                key,
+                orderApprovedByWalletDTO
             ).get()
             return
         }
 
-        val isBudgetAvailable = budget > amount*100
+        val isBudgetAvailable = budget > amount * 100
         println("Budget is enought: $isBudgetAvailable")
         val budgetAvailabilityProducedDTO = if (isBudgetAvailable)
             BudgetAvailabilityProducedDTO(
@@ -90,165 +90,177 @@ class RequestListener(
         topics = ["order-db.order-db.orders"],
         containerFactory = "orderDBContainerFactory",
     )
-     fun listenDebezium(record: ConsumerRecord<String?, String?> , @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) key: String) {
+    @Transactional
+    fun listenDebezium(
+        record: ConsumerRecord<String?, String?>,
+        @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) key: String
+    ) {
+        println("a")
         val consumedValue = record.value()
+        if (consumedValue == null) return
         val mapper = ObjectMapper()
+        println("a2" + mapper)
         val jsonNode = mapper.readTree(consumedValue)
-
-        val keyDebezium = mapper.readTree(key)
-        var keyKafkaNode = keyDebezium.path("payload").path("id").textValue()
-        keyKafkaNode = keyKafkaNode.replace("\\\"" , "\"")
-        val oid = mapper.readTree(keyKafkaNode).path("\$oid").textValue()
-
+        println("a3" + jsonNode)
         val payload: JsonNode = jsonNode.path("payload")
-        val afterNode: JsonNode = payload.path("after")
-        var after = mapper.readTree(afterNode.toString()).textValue()
-        after = after.replace("\\\"" , "\"")
-        val after2 = mapper.readTree(after)
-        val itemsPath = after2.path("items")
-        val items = mapper.readValue(itemsPath.toString() , jacksonTypeRef<Array<OrderItemDTO>>())
-        val amount = items.fold(0.0) { acc, orderItemDTO ->
-            acc + orderItemDTO.amount * orderItemDTO.perItemPrice
-        }
-
-        val buyerId = after2.path("buyerId").toString()
-
+        println("a4")
         val opNode: JsonNode = payload.path("op")
+        println("a5" + opNode)
         val op = mapper.readTree(opNode.toString()).textValue()
-        if(op == "c"){
-            println("Handling creation on debezium")
-            val buyerWaller = walletRepository.getWalletByCustomerId(buyerId.toLong())
-            if (buyerWaller == null){
-                println("Wallet is null")
+        println("a6" + op)
 
-                val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
-                    failure = "Wallet not found"
-                )
+
+
+        println(payload)
+
+        if (op == "c") {
+            println("Handling create on debezium")
+            val keyDebezium = mapper.readTree(key)
+
+            var keyKafkaNode = keyDebezium.path("payload").path("id").textValue()
+            keyKafkaNode = keyKafkaNode.replace("\\\"", "\"")
+
+            val oid = mapper.readTree(keyKafkaNode).path("\$oid").textValue()
+            val afterNode: JsonNode = payload.path("after")
+            var after = mapper.readTree(afterNode.toString()).textValue()
+            if (after == null) {
+                println("\"after\" is null. Returning...")
+                return
+            }
+            after = after.replace("\\\"", "\"")
+            val after2 = mapper.readTree(after)
+            val itemsPath = after2.path("items")
+            val items = mapper.readValue(itemsPath.toString(), jacksonTypeRef<Array<OrderItemDTO>>())
+            val amount = items.fold(0.0) { acc, orderItemDTO ->
+                acc + orderItemDTO.amount.toDouble() * orderItemDTO.perItemPrice
+            }
+            println("REMOVING UP " + amount)
+
+            val buyerId = after2.path("buyerId").toString()
+
+            val buyerWallet = walletRepository.getWalletByCustomerId(buyerId.toLong())
+            if (buyerWallet == null) {
+                println("Wallet is null")
 
                 orderCreationWalletKafkaTemplate.send(
                     "order-creation-wallet-response",
                     oid,
-                    orderApprovedByWalletDTO
+                    OrderApprovedByWalletDTO(
+                        failure = "Wallet not found"
+                    )
                 ).get()
                 return
             }
 
-            val amountLoLong:Long = amount.toLong()
             val newTransaction = Transaction(
-                amount = -amountLoLong * 100,
+                amount = -(amount * 100).toLong(),
                 timeInstant = LocalDateTime.now(),
-                wallet = buyerWaller ,
+                wallet = buyerWallet,
                 referenceId = oid
             )
-            transactionRepository.save(newTransaction)
+            val transactionFromRepo = transactionRepository.save(newTransaction)
             val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
                 ok = ApprovationDTO(
                     orderDTO = OrderDTO(
                         buyerId = buyerId.toLong(),
                         deliveryAddress = "",
-                        items= listOf(),
-                        )
+                        items = listOf(),
                     )
-              )
-            buyerWaller.amount += newTransaction.amount
-            walletRepository.save(buyerWaller)
+                )
+            )
+            buyerWallet.amount += transactionFromRepo.amount
+//            walletRepository.save(buyerWallet)
 
-            try{
+            try {
                 orderCreationWalletKafkaTemplate.send(
                     "order-creation-wallet-response",
                     oid,
                     orderApprovedByWalletDTO
                 ).get()
-            }catch (e:Exception){
+            } catch (e: Exception) {
                 println("ERRORE")
                 println(e.message)
             }
 
             return
 
-        }else if(op == "d"){
-            println("Handling delete on debezium")
-            //todo handle delete debezium
+        } else if (op == "d") {
+            println("Handling Delete on debezium")
+            val keyDebezium = mapper.readTree(key)
+            var keyKafkaNode = keyDebezium.path("payload").path("id").textValue()
+            keyKafkaNode = keyKafkaNode.replace("\\\"", "\"")
+            val oid = mapper.readTree(keyKafkaNode).path("\$oid").textValue()
+            println("@@@@@@@@@@ " + oid)
             val transactions = transactionRepository.findAllByReferenceId(oid)
+            println("Transactions: " + transactions)
 
-            if(transactions.isEmpty()){
+            if (transactions.isEmpty()) {
                 val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
-                    ok = ApprovationDTO(
-                        orderDTO = OrderDTO(
-                            buyerId = buyerId.toLong(),
-                            deliveryAddress = "",
-                            items= listOf(),
-                        )
-                    )
+                    failure = "No transactions found"
                 )
-                try{
+                try {
                     orderCreationWalletKafkaTemplate.send(
                         "order-creation-wallet-response",
                         oid,
                         orderApprovedByWalletDTO
                     ).get()
-                }catch (e:Exception){
+                } catch (e: Exception) {
                     println("ERRORE")
                     println(e.message)
                 }
                 return
             }
-
-            val buyerWaller = walletRepository.getWalletByCustomerId(buyerId.toLong())
-
-            if(buyerWaller == null){
-                val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
-                    failure = "Wallet not found"
-                )
-
-                orderCreationWalletKafkaTemplate.send(
-                    "order-creation-wallet-response",
-                    oid,
-                    orderApprovedByWalletDTO
-                ).get()
-                return
-
-            }
-
+            val buyerWallet = transactions.first().wallet
+            println("buyerWallet" + buyerWallet)
+            val buyerId = buyerWallet.customerId
+            println("buyerId" + buyerId)
+            println("amount before: " + buyerWallet.amount)
             transactions.forEach {
-                buyerWaller.amount += it.amount
+                println("TRANSACTION AMOUNT: " + it.amount)
+                buyerWallet.amount -= it.amount
             }
+            println("amount after: " + buyerWallet.amount)
+//            walletRepository.save(buyerWallet)
+            println("amount after save: " + buyerWallet.amount)
 
-            walletRepository.save(buyerWaller)
-
-            transactions.forEach { transactionRepository.deleteByReferenceId(it.referenceId) }
+            transactions.forEach { transactionRepository.deleteAllByReferenceId(it.referenceId) }
 
             val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
                 ok = ApprovationDTO(
                     orderDTO = OrderDTO(
-                        buyerId = buyerId.toLong(),
+                        buyerId = buyerId,
                         deliveryAddress = "",
-                        items= listOf(),
+                        items = listOf(),
                     )
                 )
             )
-            try{
+            try {
+                println("rispondo bene")
                 orderCreationWalletKafkaTemplate.send(
                     "order-creation-wallet-response",
                     oid,
                     orderApprovedByWalletDTO
                 ).get()
-            }catch (e:Exception){
+            } catch (e: Exception) {
                 println("ERRORE")
                 println(e.message)
             }
 
+            return
 
-        }else{
-            println("Operation unsupported")
-
-            orderCreationWalletKafkaTemplate.send(
-                "order-creation-wallet-response",
-                oid,
-                OrderApprovedByWalletDTO(
-                    failure = "Operation unsupported"
-                )
-            ).get()
+        } else {
+            println("Operation unsupported: $op")
+//                val keyDebezium = mapper.readTree(key)
+//                var keyKafkaNode = keyDebezium.path("payload").path("id").textValue()
+//                keyKafkaNode = keyKafkaNode.replace("\\\"" , "\"")
+//                val oid = mapper.readTree(keyKafkaNode).path("\$oid").textValue()
+//                orderCreationWalletKafkaTemplate.send(
+//                    "order-creation-wallet-response",
+//                    oid,
+//                    OrderApprovedByWalletDTO(
+//                        failure = "Operation unsupported"
+//                    )
+//                ).get()
             return
         }
 
@@ -289,7 +301,6 @@ class RequestListener(
 "{\"_id\": {\"$oid\": \"616053b7a9d89155d0d181ad\"},\"status\": \"PENDING\",\"warehouseHasApproved\": false,\"walletHasApproved\": false,\"buyerId\": 1,\"deliveryAddress\": \"user1_deliveryAddress\",\"items\": [{\"productId\": \"1\",\"amount\": 140,\"perItemPrice\": 3.33,\"sources\": []}],\"createdAt\": {\"$date\": 1633702839984},\"updatedAt\": {\"$date\": 1633702839984},\"__v\": 0}"
          */
     }
-
 
 
     //end debezium

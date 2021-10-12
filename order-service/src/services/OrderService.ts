@@ -121,8 +121,8 @@ export default class OrderService {
     // the transactionId. In case of mismatch, it is not safe to trying to
     // delete an order with id === transactionId or id === orderDTO.id, so
     // I simply return FAILURE_OBJ
-    // console.log(transactionId)
-    // orderDTO.id = transactionId
+    console.log(transactionId)
+    orderDTO.id = transactionId
     if (orderDTO.id === undefined || orderDTO.id !== transactionId)
       return FAILURE_OBJ;
     const orderId = orderDTO.id;
@@ -158,6 +158,8 @@ export default class OrderService {
         if (!areAssigned) return failureHandler();
       }
     }
+    //TODO remove
+    order.warehouseHasApproved = true
     if (updated) {
       try {
         if (order.walletHasApproved && order.warehouseHasApproved) {
@@ -371,6 +373,8 @@ export default class OrderService {
     const orderStatus = OrderStatusUtility.toOrderStatus(order.status)!;
 
     if (orderStatus !== OrderStatus.ISSUED) {
+      console.log("AAAAAAA IF")
+      console.log(orderStatus)
       Logger.dev(
         NAMESPACE,
         "deleteOrder(deleteOrderRequestDTO: %v): not allowed",
@@ -378,7 +382,7 @@ export default class OrderService {
       );
       throw new NotAllowedException();
     }
-
+    console.log("AAAAAAA CHIAMOOOOOO")
     await this.orderRepository.deleteOrderById(order._id!);
   };
 }

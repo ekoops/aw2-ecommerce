@@ -13,7 +13,7 @@ const initTopics = async (admin: Admin): Promise<void> =>  {
         "order-creation-wallet-response"
     ];
     const topicsToCreateList: ITopicConfig[] = desiredTopicList
-        .filter(topicName => !actualTopicList.includes(topicName))
+        // .filter(topicName => !actualTopicList.includes(topicName))
         .map(topicName => ({topic: topicName, numPartitions: 1}));
 
     if (topicsToCreateList.length !== 0) {
