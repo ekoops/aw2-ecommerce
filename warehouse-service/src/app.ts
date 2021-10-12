@@ -56,7 +56,11 @@ const getApp = async (
 
     const internalServerErrorResponse = new InternalServerErrorResponse();
     const exceptionHandler: ErrorRequestHandler = (err, req, res, next) => {
-        res.status(500).json(internalServerErrorResponse);
+        if (err.code) {
+            res.status(500).json(err);
+        } else {
+            res.status(500).json(internalServerErrorResponse);
+        }
     };
 
     app.use(notFoundHandler, exceptionHandler);

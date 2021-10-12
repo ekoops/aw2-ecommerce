@@ -32,20 +32,14 @@ export default class WarehouseController {
     const invalid = warehouseRequest.products?.filter((item) => {
       return !mongoose.Types.ObjectId.isValid(item.product._id);
     });
-    console.log("invalid checked");
+    console.log("invalid checked: ", invalid); // TODO: fare ritornare un errore parlante
 
     if (invalid?.length) {
-      // TODO: muovere il controllo nel service e fare ritornare un errore
-      next(
-        // TODO: ripristinare
-        // new AppError( 
-        //   500,
-        //   `The product ids [${invalid
-        //     .map((p) => p.product._id)
-        //     .join(", ")}] are not valid`
-        // )
-        new RouteNotFoundResponse()
-      );
+      const invalidList = invalid.map((p) => p.product._id).join(", ");
+      next({
+        code: 1,
+        message: `The product ids [${invalidList}] are not valid`
+      });
       return;
     }
 
@@ -59,12 +53,11 @@ export default class WarehouseController {
     const allProducts = await this.productService.findProducts(productsQuery);
     if (allProducts.length !== idsList?.length) {
       next(
-        // new AppError(
-        //   500,
-        //   `The product ids [${idsList?.join(", ")}] are not valid`
-        // )
-        new RouteNotFoundResponse()
-      ); // TODO: stampare solo id invalidi
+        {
+          code: 2,
+          message: `The product ids [${idsList?.join(", ")}] are not valid`
+        }
+      );
       return;
     }
     const result = await this.warehouseService.insertWarehouses([

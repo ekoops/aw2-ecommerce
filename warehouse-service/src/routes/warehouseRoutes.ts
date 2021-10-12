@@ -16,7 +16,7 @@ const getRouter = (warehouseController: WarehouseController) => {
         warehouseController.insertWarehouse
     );
 
-    router.get(
+    router.get( // TODO: quando non ci sono warehouse non ritorna errore
         '/',
         warehouseController.getWarehouses
     );

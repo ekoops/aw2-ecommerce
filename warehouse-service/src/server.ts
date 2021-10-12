@@ -144,7 +144,6 @@ run().catch((ex) => {
     process.exit(6);
   }
 
-  // TODO complete exception handling
   Logger.error(NAMESPACE, "generic error: _", ex);
   process.exit(255);
 });
