@@ -170,7 +170,7 @@ export default class OrderService {
         warehouseId: w._id,
         quantity: w.products?.find(p => {p.product._id.toString() === product._id?.toString()})?.quantity,
       }));
-      console.log({obj});
+      console.log({obj: JSON.stringify(obj, null, '  ')});
       return obj;
     });
     let productsLocations: { [key: string]: Source[] } = {};
@@ -179,7 +179,7 @@ export default class OrderService {
     );
     const perProductSortedWarehousesAndQuantities = productsLocations;
 
-    console.log({perProductSortedWarehousesAndQuantities})
+    console.log({perProductSortedWarehousesAndQuantities: JSON.stringify(perProductSortedWarehousesAndQuantities, null, '  ')})
 
     // checking if the operation failed
     if (Object.keys(perProductSortedWarehousesAndQuantities).length === 0) {
@@ -195,6 +195,7 @@ export default class OrderService {
       const availableSources =
         perProductSortedWarehousesAndQuantities[productId];
       const sources = this.buildSources(amount, availableSources);
+      console.log({sources})
       if (sources.length === 0) {
         // TODO: sending failure response to the order-service via kafka
         return;
