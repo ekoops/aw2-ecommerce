@@ -45,9 +45,9 @@ export default class OrderService {
   checkProductsAvailability = async (message: SuccessPayload) => {
     const { key: transactionId, value: orderDTO } = message;
     const products: OrderItemDTO[] = orderDTO.items;
-    const areProductsAvailable = true;
-      // await this.warehouseService.verifyProductsAvailability(products);
-
+    console.log("PRODUCTS IS: " + products)
+    const areProductsAvailable = await this.warehouseService.verifyProductsAvailability(products);
+    console.log("ARE PRODUCTS AVAILABLE: " + areProductsAvailable)
     let response: { [key: string]: OrderDTO | string };
     if (!areProductsAvailable) {
       response = {
@@ -55,13 +55,13 @@ export default class OrderService {
       };
     } else {
       // the prices are added directly inside the products array
-      const arePricesAdded = true;
-      // = await this.productService.addProductsPrices(
-      //   products
-      // );
-      products.forEach(product => {
-        product.perItemPrice = 3.33;
-      });
+      const arePricesAdded = await this.productService.addProductsPrices(
+        products
+      );
+      console.log("PRODUCTS IS_2: " + products)
+      // products.forEach(product => {
+      //   product.perItemPrice = 3.33;
+      // });
       response = arePricesAdded
         ? { ok: orderDTO }
         : { failure: "per item price insertion failed" };
