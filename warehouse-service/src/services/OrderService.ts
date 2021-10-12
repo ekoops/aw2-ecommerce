@@ -12,6 +12,7 @@ import { OrderStatus } from "../domain/OrderStatus";
 import OrderStatusUtility from "../utils/OrderStatusUtility";
 import WarehouseService from "./WarehouseService";
 import Logger from "../utils/Logger";
+import { Warehouse } from "../domain/Warehouse";
 
 const NAMESPACE = "ORDER_SERVICE";
 
@@ -139,10 +140,41 @@ export default class OrderService {
 
     // 1) Obtaining an object containing for each key (product id) a source {warehouseId, quantity} list
     // sorted by quantity.
-    const perProductSortedWarehousesAndQuantities =
-      await this.warehouseService.getPerProductSortedWarehousesAndQuantities(
-        productIds
-      );
+    // const perProductSortedWarehousesAndQuantities =
+    //   await this.warehouseService.getPerProductSortedWarehousesAndQuantities(
+    //     productIds
+    //   );
+
+    const allProducts = await this.productService.findProducts({});
+    const allWarehouses  = await this.warehouseService.findWarehouses({}) as Warehouse[];
+    console.log('allWarehouses', allWarehouses);
+            // the result should have the following form:
+        // [
+        //   {
+        //     _id: product_id1,
+        //     warehouses: [
+        //         {warehouseId: warehouseId1, quantity: quantity1]},
+        //         {warehouseId: warehouseId2, quantity: quantity2]}
+        //         ...
+        //     ]
+        //   },
+        //   ...
+        // ]
+    const result = allProducts.map(product => {
+      const obj: any = {};
+      obj._id = product._id?.toString();
+      obj.warehouses = allWarehouses.map(w => ({
+        warehouseId: w._id,
+        quantity: w.products?.find(p => {p.product._id.toString() === product._id?.toString()})?.quantity,
+      }));
+      console.log({obj});
+      return obj;
+    });
+    let productsLocations: { [key: string]: Source[] } = {};
+    result.forEach(
+        (e) => (productsLocations[e._id.toString()] = e.warehouses)
+    );
+    const perProductSortedWarehousesAndQuantities = productsLocations;
 
     console.log({perProductSortedWarehousesAndQuantities})
 

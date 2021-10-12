@@ -14,10 +14,12 @@ export type WarehouseProduct = {
 
 
 export class Warehouse {
+    public _id: string | null;
     public name: string | null;
     public products: WarehouseProduct | null;
 
-    constructor(name: string, products: WarehouseProduct) {
+    constructor(_id: string, name: string, products: WarehouseProduct) {
+        this._id = _id;
         this.name = name;
         this.products = products;
     }

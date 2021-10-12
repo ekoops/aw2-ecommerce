@@ -104,6 +104,9 @@ export default class WarehouseRepository {
         //   ...
         // ]
         try {
+            const products = await this.WarehouseModel.find({});
+            
+
             const result = await this.WarehouseModel.aggregate(pipeline);
             console.log('Result of aggregate is: ', result);
             let productsLocations: { [key: string]: Source[] } = {};
