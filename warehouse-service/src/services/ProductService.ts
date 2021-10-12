@@ -79,20 +79,26 @@ export default class ProductService {
   addProductsPrices = async (products: OrderItemDTO[]): Promise<boolean> => {
     if (products.length === 0) return false;
 
-    const productIdsList = products.map(
-        (product: OrderItemDTO) => product.productId
-    );
-
     const result: Product[] = await this.productRepository.findProducts({});
     console.log('result of findProducts is', result);
 
-    // if (result.length !== products.length) return false;
-
     for (const product of products) {
-      const p: Product | undefined = result.find(p => p._id === product.productId);
-      if (p === undefined) return false;
+      const p: Product | undefined = result.find(p => {
+        console.log("comparing ", p._id, " and ", product.productId);
+        console.log(typeof p._id);
+        console.log(typeof product.productId);
+        console.log('returning ', p._id === product.productId);
+        return p._id === product.productId
+      });
+      console.log('got ', p);
+      if (p === undefined) {
+        console.log('p is undefined, returning false');
+        return false;
+      }
       product.perItemPrice = p.price;
     }
+    console.log('end, returning true');
+
     return true;
   };
 
