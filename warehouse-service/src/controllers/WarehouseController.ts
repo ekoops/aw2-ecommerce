@@ -32,7 +32,6 @@ export default class WarehouseController {
     const invalid = warehouseRequest.products?.filter((item) => {
       return !mongoose.Types.ObjectId.isValid(item.product._id);
     });
-    console.log("invalid checked: ", invalid); // TODO: fare ritornare un errore parlante
 
     if (invalid?.length) {
       const invalidList = invalid.map((p) => p.product._id).join(", ");

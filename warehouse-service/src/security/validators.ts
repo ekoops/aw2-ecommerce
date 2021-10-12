@@ -28,6 +28,7 @@ const checkErrors = (req: Request, res: Response, next: NextFunction) => {
   const validationErrors = validationResult(req);
   if (!validationErrors.isEmpty()) {
     const error = formatError(validationErrors);
+    error.code = 17;
     return next(error);
   } else return next();
 };
