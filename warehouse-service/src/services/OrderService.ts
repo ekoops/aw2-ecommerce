@@ -200,8 +200,10 @@ export default class OrderService {
         // TODO: sending failure response to the order-service via kafka
         return;
       }
-      product.sources = sources;
+      product.sources = sources.filter(source => !!source.quantity);
     }
+
+    
     console.log("@@@@@@@@@@@@@@")
     console.log("@@@@@@@@@@@@@@")
     console.log("@@@@@@@@@@@@@@")
