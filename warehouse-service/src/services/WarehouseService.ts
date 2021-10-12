@@ -36,20 +36,55 @@ export default class WarehouseService {
   verifyProductsAvailability = async (
     products: OrderItemDTO[]
   ): Promise<boolean> => {
-    if (products.length === 0) return false;
+    // if (products.length === 0) return false;
     const productIdsList = products.map(
       (product: OrderItemDTO) => product.productId
     );
     console.log("PRODUCTIDLIST " , productIdsList)
-    const productsAvailability = await this.warehouseRepository.getProductsAvailability(productIdsList);
-    console.log("PROSUCTSAVAILABILY " , productsAvailability)
-    return products.every(({ productId, amount }) => {
-      console.log("every " , productId in productsAvailability, productsAvailability[productId] >= amount)
-      return (
-        productId in productsAvailability &&
-        productsAvailability[productId] >= amount
-      );
-    });
+    const warehouses = await this.warehouseRepository.findWarehouses({});
+    console.log('warehouses: ', warehouses);
+    const productsAndQuantities = warehouses.reduce((arr: any[], currentWarehouse) => {
+      currentWarehouse.products?.forEach(product => {
+        arr.push({
+          id: product.product._id,
+          quantity: product.quantity
+        })
+      });
+      return arr;
+    }, []);
+
+    console.log('productsAndQuantities', productsAndQuantities);
+
+    const perProductQuantities = productsAndQuantities.reduce((obj, curr) => {
+      const {id, quantity} = curr;
+      if (!obj[id]) obj[id] = 0;
+      obj[id] += quantity;
+      return obj;
+    }, {});
+
+    console.log('perProductQuantities', perProductQuantities);
+
+    for (const product of products) {
+      const availableQuantity = perProductQuantities[product.productId];
+      const requiredQuantity = product.amount;
+      console.log('available quantity is ', availableQuantity, ' while required quantity is ', requiredQuantity);
+      if (availableQuantity < requiredQuantity) {
+        console.log('returning false');
+        return false;
+      }
+    }
+    console.log('returning true');
+    return true;
+
+
+    // console.log("PROSUCTSAVAILABILY " , productsAvailability)
+    // return products.every(({ productId, amount }) => {
+    //   console.log("every " , productId in productsAvailability, productsAvailability[productId] >= amount)
+    //   return (
+    //     productId in productsAvailability &&
+    //     productsAvailability[productId] >= amount
+    //   );
+    // });
   };
 
   getPerProductSortedWarehousesAndQuantities = async (
