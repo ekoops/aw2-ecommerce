@@ -168,7 +168,7 @@ export default class OrderService {
       obj._id = product._id?.toString();
       obj.warehouses = allWarehouses.map(w => ({
         warehouseId: w._id,
-        quantity: w.products?.find(p => {p.product._id.toString() === product._id?.toString()})?.quantity,
+        quantity: w.products?.find(p => p.product._id.toString() === product._id?.toString())?.quantity,
       }));
       console.log({obj: JSON.stringify(obj, null, '  ')});
       return obj;
