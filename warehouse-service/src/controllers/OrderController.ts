@@ -54,8 +54,8 @@ export default class OrderController {
           const order = JSON.parse(valuePayload.after) as Order;
           // order.id = orderId;
           order._id = orderId;
-          order.createdAt = new Date((order as any).createdAt.date)
-          order.updatedAt = new Date((order as any).updatedAt.date)
+          order.createdAt = new Date((order as any).createdAt.$date)
+          order.updatedAt = new Date((order as any).updatedAt.$date)
           
           console.log({order})
           await this.orderService.handleOrderCreation(order);

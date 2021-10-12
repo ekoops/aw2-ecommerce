@@ -91,13 +91,16 @@ export default class OrderService {
 
     const sources: Source[] = [];
     let remaining = totalQuantity;
+    console.log({availableSources});
     for (const { warehouseId, quantity } of availableSources) {
       const quantityToSubtract = remaining <= quantity ? remaining : quantity;
       remaining -= quantityToSubtract;
+      console.log({quantityToSubtract, remaining});
       sources.push({
         warehouseId: warehouseId,
         quantity: quantityToSubtract,
       });
+      console.log({sources});
 
       if (remaining === 0) return sources;
     }
@@ -198,6 +201,14 @@ export default class OrderService {
       }
       product.sources = sources;
     }
+    console.log("@@@@@@@@@@@@@@")
+    console.log("@@@@@@@@@@@@@@")
+    console.log("@@@@@@@@@@@@@@")
+    console.log(JSON.stringify(order, null, '  '));
+    console.log("@@@@@@@@@@@@@@")
+    console.log("@@@@@@@@@@@@@@")
+    console.log("@@@@@@@@@@@@@@")
+
 
     // 3) If I reach this point, all the products have an own sources list, so now I
     // have to remove the products from warehouses and I must save
