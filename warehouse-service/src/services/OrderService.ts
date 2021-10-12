@@ -127,11 +127,15 @@ export default class OrderService {
 
   handleOrderCreation = async (order: Order) => {
     const products = order.items;
+    console.log({products})
     if (products.length === 0) return false;
 
     const productIds = products.map(
       (product: OrderItemDTO) => product.productId
     );
+
+    console.log({productIds})
+
 
     // 1) Obtaining an object containing for each key (product id) a source {warehouseId, quantity} list
     // sorted by quantity.
@@ -139,6 +143,9 @@ export default class OrderService {
       await this.warehouseService.getPerProductSortedWarehousesAndQuantities(
         productIds
       );
+
+    console.log({perProductSortedWarehousesAndQuantities})
+
     // checking if the operation failed
     if (Object.keys(perProductSortedWarehousesAndQuantities).length === 0) {
       // TODO: sending failure response to the order-service via kafka
@@ -148,6 +155,7 @@ export default class OrderService {
     // 2) Assign sources to each product
     for (const product of products) {
       const { productId, amount } = product;
+      console.log({ productId, amount });
       const availableSources =
         perProductSortedWarehousesAndQuantities[productId];
       const sources = this.buildSources(amount, availableSources);

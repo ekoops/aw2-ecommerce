@@ -26,17 +26,27 @@ const initConsumers = async (
   const consumerHandlers: Promise<any>[] = []
   {
     const topics = [{ topic: "order-items-availability-requested" }];
-    const consumer = await kafkaProxy.createConsumer(groupId, topics);
-    // const consumerProxy = new ConsumerProxy(consumer);
-    // consumerHandlers.push(consumerProxy.bindHandler<OrderDTO>(
-    //   orderController.checkProductsAvailability
-    // ));
-    console.log('@!@@@@@@@@@@ order-items-availability-requested')
+    const consumer = await kafkaProxy.createConsumer(groupId+'_1', topics);
     consumerHandlers.push(consumer.consume(async (key: string, val: string|undefined) => {
       console.log('Receiving request: ', key, val)
       orderController.checkProductsAvailability(key, val);
     }))
-   }
+  }
+
+  {
+    const topics = [{ topic: "order-items-availability-requested" }];
+    const consumer = await kafkaProxy.createConsumer(groupId+'_2', topics, {autoCommitThreshold: 1});
+    consumerHandlers.push(consumer.consume(async (key: string, val: string|undefined) => {
+      console.log('%%%%%%%%%%%%%%%%%%%');
+      console.log('%%%%%%%%%%%%%%%%%%%');
+      console.log('Received request from debezium: ', key, val);
+      console.log('%%%%%%%%%%%%%%%%%%%');
+      console.log('%%%%%%%%%%%%%%%%%%%');
+
+      orderController.handleOrderCRUD(key, val);
+    }))
+  }
+
   // {
   //   const topics = [{ topic: "order-db.order-db.orders" }];
   //   const consumer = await kafkaProxy.createConsumer(groupId, topics, {autoCommitThreshold: 1});

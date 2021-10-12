@@ -35,15 +35,22 @@ export default class OrderController {
       if (value === undefined) return;
       const changeEventKey = JSON.parse(key);
       const changeEventValue = JSON.parse(value);
+      console.log({changeEventKey, changeEventValue})
       const { schema: keySchema, payload: keyPayload } = changeEventKey;
       const { schema: valueSchema, payload: valuePayload } = changeEventValue;
       const orderId = keyPayload.id["$oid"];
+      console.log({orderId})
+
       const operationType = OperationTypeUtility.toOperationType(
         valuePayload.op
       );
+
+      console.log({operationType})
+
       switch (operationType) {
         case OperationType.CREATE:
           const order = JSON.parse(valuePayload.after);
+          console.log({order})
           await this.orderService.handleOrderCreation(order);
           break;
         case OperationType.READ:
