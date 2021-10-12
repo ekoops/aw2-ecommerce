@@ -1,6 +1,7 @@
 import OrderService from "../services/OrderService";
 import { SuccessPayload } from "../kafka/RequestStore";
 import OperationType, { OperationTypeUtility } from "../services/OperationType";
+import { Order } from "../domain/Order";
 
 export default class OrderController {
   private static _instance: OrderController;
@@ -50,8 +51,12 @@ export default class OrderController {
 
       switch (operationType) {
         case OperationType.CREATE:
-          const order = JSON.parse(valuePayload.after);
-          order.id = orderId;
+          const order = JSON.parse(valuePayload.after) as Order;
+          // order.id = orderId;
+          order._id = orderId;
+          order.createdAt = new Date((order as any).createdAt.date)
+          order.updatedAt = new Date((order as any).updatedAt.date)
+          
           console.log({order})
           await this.orderService.handleOrderCreation(order);
           break;

@@ -18,7 +18,7 @@ export interface Order {
   items: OrderItem[];
   warehouseHasApproved: boolean;
   walletHasApproved: boolean;
-  creationDate?: Date;
+  createdAt?: Date;
   updatedAt?: Date;
 }
 
