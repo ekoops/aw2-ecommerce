@@ -1,5 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
+import { PLACEHOLDER_IMG } from "../db/imgs";
 import { ProductDto } from "../domain/Product";
 import RouteNotFoundResponse from "../responses/RouteNotFoundResponse";
 import ProductService from "../services/ProductService";
@@ -79,7 +80,12 @@ export default class ProductController {
     //@ts-ignore
     product.createdAt = new Date();
     delete product.averageRating;
+    //TODO try catch?
     const result = await this.productService.insertProducts([product]);
+    await this.productService.postPicture({
+      _id: result[0]._id,
+      url: PLACEHOLDER_IMG
+    });
     res.json(result);
   };
 
