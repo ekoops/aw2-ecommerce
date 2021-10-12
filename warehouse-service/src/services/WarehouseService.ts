@@ -99,15 +99,20 @@ export default class WarehouseService {
         productIdsList
       );
 
+    console.log({perProductWarehousesAndQuantities});
+
     // verifying that a list for each product is present in the above object
     if (
       Object.keys(perProductWarehousesAndQuantities).length !==
       productIdsList.length
-    )
+    ) {
+      console.log('error because ', Object.keys(perProductWarehousesAndQuantities).length, '!==', productIdsList.length)
       return {};
+    }
 
     // sorting in place each (warehouseId, quantity) list by quantity
     for (const productId of productIdsList) {
+      console.log({productId});
       // checking for robustness... but it is not strictly necessary
       if (!(productId in perProductWarehousesAndQuantities)) return {};
       perProductWarehousesAndQuantities[productId].sort(

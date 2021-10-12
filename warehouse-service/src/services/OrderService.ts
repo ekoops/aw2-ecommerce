@@ -149,6 +149,7 @@ export default class OrderService {
     // checking if the operation failed
     if (Object.keys(perProductSortedWarehousesAndQuantities).length === 0) {
       // TODO: sending failure response to the order-service via kafka
+      process.exit(-1);
       return;
     }
 
