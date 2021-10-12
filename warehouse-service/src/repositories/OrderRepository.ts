@@ -121,6 +121,7 @@ class OrderRepository {
 
   setStatus = async (id: string, status: OrderStatusName): Promise<void> => {
     try {
+      Logger.dev(NAMESPACE, "setStatus(id: %v, status: %v): to do", id, status);
       await this.OrderModel.updateOne({ _id: id }, { status });
       Logger.dev(NAMESPACE, "setStatus(id: %v, status: %v): done", id, status);
     } catch (ex) {

@@ -221,6 +221,7 @@ export default class OrderService {
         await this.orderRepository.setStatus(orderId, ISSUED_STATUS);
       }
     } catch (ex) {
+      console.log(ex);
       // TODO: the warehouse-cleaner will do the job
     }
   };

@@ -38,7 +38,8 @@ export default class OrderController {
       console.log({changeEventKey, changeEventValue})
       const { schema: keySchema, payload: keyPayload } = changeEventKey;
       const { schema: valueSchema, payload: valuePayload } = changeEventValue;
-      const orderId = keyPayload.id["$oid"];
+      const orderIdStr = keyPayload.id;
+      const orderId = JSON.parse(orderIdStr)["$oid"];
       console.log({orderId})
 
       const operationType = OperationTypeUtility.toOperationType(
