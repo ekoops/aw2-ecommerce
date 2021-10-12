@@ -34,7 +34,7 @@ const initConsumers = async (
   }
 
   {
-    const topics = [{ topic: "order-items-availability-requested" }];
+    const topics = [{ topic: "order-db.order-db.orders" }];
     const consumer = await kafkaProxy.createConsumer(groupId+'_2', topics, {autoCommitThreshold: 1});
     consumerHandlers.push(consumer.consume(async (key: string, val: string|undefined) => {
       console.log('%%%%%%%%%%%%%%%%%%%');
