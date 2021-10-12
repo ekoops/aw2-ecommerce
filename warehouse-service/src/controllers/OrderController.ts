@@ -51,6 +51,7 @@ export default class OrderController {
       switch (operationType) {
         case OperationType.CREATE:
           const order = JSON.parse(valuePayload.after);
+          order.id = orderId;
           console.log({order})
           await this.orderService.handleOrderCreation(order);
           break;
