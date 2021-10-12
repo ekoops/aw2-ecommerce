@@ -86,7 +86,7 @@ const commentSchemaObj = {
 
 const commentSchema = new mongoose.Schema<Comment>(
   commentSchemaObj,
-    {...schemaOptions, timestamps: {creationDate: true, updatedAt: false}}
+    {...schemaOptions, timestamps: {createdAt: true, updatedAt: false}}
 );
 
 const productSchemaObj = {
@@ -104,7 +104,7 @@ const productSchemaObj = {
 
 const productSchema = new mongoose.Schema<Product>(
   productSchemaObj,
-    {...schemaOptions, timestamps: {creationDate: true, updatedAt: false}}
+    {...schemaOptions, timestamps: {createdAt: true, updatedAt: false}}
 );
 
 productSchema.virtual("averageRating").get(function (this: Product) {
