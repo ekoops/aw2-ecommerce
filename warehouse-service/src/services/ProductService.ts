@@ -62,12 +62,14 @@ export default class ProductService {
       allProducts[index].forEach((p, index_j) => {
         if (w.products) {
           console.log(w.products[index_j], p);
-          // @ts-ignore
-          w.products[index_j] = {
-            ...w.products[index_j],
-            // @ts-ignore
+          const k = {
+            quantity: w.products[index_j].quantity,
             product: p
-          }
+          };
+          console.log('Assigning k: ', k);
+          // @ts-ignore
+          w.products[index_j] = k;
+          console.log('Assigned: ', w.products[index_j]);
         }
       });
       return w;
