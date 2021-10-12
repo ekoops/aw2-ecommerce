@@ -63,7 +63,11 @@ export default class ProductService {
         if (w.products) {
           console.log(w.products[index_j], p);
           // @ts-ignore
-          w.products[index_j].product = p;
+          w.products[index_j] = {
+            ...w.products[index_j],
+            // @ts-ignore
+            product: p
+          }
         }
       });
       return w;
