@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import it.aw2commerce.walletservice.domain.Transaction
 import it.aw2commerce.walletservice.domain.toTransactionDTO
-import it.aw2commerce.walletservice.dto.debezium.KeyDebeziumDTO
 import it.aw2commerce.walletservice.dto.kafka.*
 import it.aw2commerce.walletservice.repositories.TransactionRepository
 import it.aw2commerce.walletservice.repositories.WalletRepository
