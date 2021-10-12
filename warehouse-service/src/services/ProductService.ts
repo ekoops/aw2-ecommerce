@@ -83,10 +83,10 @@ export default class ProductService {
         (product: OrderItemDTO) => product.productId
     );
 
-    const result: Product[] = await this.productRepository.findProducts({
-      _id: { $in:productIdsList },
-    });
-    if (result.length !== products.length) return false;
+    const result: Product[] = await this.productRepository.findProducts({});
+    console.log('result of findProducts is', result);
+
+    // if (result.length !== products.length) return false;
 
     for (const product of products) {
       const p: Product | undefined = result.find(p => p._id === product.productId);

@@ -58,7 +58,7 @@ export default class OrderService {
       const arePricesAdded = await this.productService.addProductsPrices(
         products
       );
-      console.log("PRODUCTS IS_2: " + products)
+      console.log("PRODUCTS IS_2: ", products)
       // products.forEach(product => {
       //   product.perItemPrice = 3.33;
       // });
