@@ -57,7 +57,9 @@ const getApp = async (
     const internalServerErrorResponse = new InternalServerErrorResponse();
     const exceptionHandler: ErrorRequestHandler = (err, req, res, next) => {
         console.log('Returning the following error: ', err);
-        if (err.code) {
+        if (err.code === 18) {
+            res.status(401).end();
+        } else if (err.code) {
             res.status(500).json(err);
         } else {
             res.status(500).json(internalServerErrorResponse);

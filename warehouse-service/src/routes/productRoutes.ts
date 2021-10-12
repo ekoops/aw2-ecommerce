@@ -8,6 +8,19 @@ const getRouter = (productController: ProductController) => {
 
     router.use(handleJwt);
 
+    router.use((req, res, next) => {
+        const role = res.locals.user.role;
+        const isAdmin = role === "ADMIN";
+        if (!isAdmin && req.method !== 'GET' && req.method !== 'HEAD') {
+            next({
+                code: 18,
+                message: 'Reserved to admin'
+            });
+            return;
+        }
+        next();
+    });
+
     router.get(
         '/',
         validators.getProductByCategory,

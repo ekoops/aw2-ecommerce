@@ -71,6 +71,7 @@ export default class ProductController {
     res: express.Response,
     next: express.NextFunction
   ) => {
+    // TODO: deve essere admin
     const product: ProductDto = req.body;
     if (!product.comments) product.comments = [];
     product.comments.forEach((c) => {
