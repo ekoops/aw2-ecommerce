@@ -78,7 +78,7 @@ const run = async () => {
     productService,
     producerProxy
   );
-  const orderController = OrderController.getInstance(orderService);
+  const orderController = OrderController.getInstance(orderService, producerProxy);
 
   await initTopics(admin);
   await initConsumers(kafkaProxy, orderController);

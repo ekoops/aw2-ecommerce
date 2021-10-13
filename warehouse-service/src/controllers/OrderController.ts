@@ -2,12 +2,13 @@ import OrderService from "../services/OrderService";
 import { SuccessPayload } from "../kafka/RequestStore";
 import OperationType, { OperationTypeUtility } from "../services/OperationType";
 import { Order } from "../domain/Order";
+import ProducerProxy from "../kafka/ProducerProxy";
 
 export default class OrderController {
   private static _instance: OrderController;
-  private constructor(private orderService: OrderService) {}
-  static getInstance(orderService: OrderService) {
-    return this._instance || (this._instance = new this(orderService));
+  private constructor(private orderService: OrderService, private producer: ProducerProxy) {}
+  static getInstance(orderService: OrderService, producer: ProducerProxy) {
+    return this._instance || (this._instance = new this(orderService, producer));
   }
 
   checkProductsAvailability = async (key: string, value: string | undefined) => {
@@ -59,6 +60,10 @@ export default class OrderController {
           
           console.log({order})
           await this.orderService.handleOrderCreation(order);
+          await this.producer.producer.produce({
+            'warehouse-threshold',
+            messages: [{ key, value: JSON.stringify(message) }],
+          })
           break;
         case OperationType.READ:
           // nothing to do
