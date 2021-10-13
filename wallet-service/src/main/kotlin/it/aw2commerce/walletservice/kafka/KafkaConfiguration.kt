@@ -1,6 +1,5 @@
-package it.aw2commerce.walletservice
+package it.aw2commerce.walletservice.kafka
 
-import it.aw2commerce.walletservice.dto.incoming.CreateWalletRequestDTO
 import it.aw2commerce.walletservice.dto.kafka.BudgetAvailabilityProducedDTO
 import it.aw2commerce.walletservice.dto.kafka.OrderApprovedByWalletDTO
 import it.aw2commerce.walletservice.dto.kafka.OrderDTO
@@ -17,7 +16,6 @@ import org.springframework.kafka.config.TopicBuilder
 import org.springframework.kafka.core.*
 import org.springframework.kafka.support.serializer.JsonDeserializer
 import org.springframework.kafka.support.serializer.JsonSerializer
-import kotlin.reflect.jvm.internal.impl.load.kotlin.JvmType
 
 @Configuration
 class KafkaConfiguration(
@@ -64,10 +62,8 @@ class KafkaConfiguration(
         return KafkaTemplate(budgetAvailabilityProducedProducerFactory())
     }
 
-    //
 
-
-    // CONSUMER for topic order-approved
+    // CONSUMER for topic budget-availability-requested
     @Bean
     fun orderApprovedTopic(): NewTopic {
         return TopicBuilder.name("budget-availability-requested").build()
@@ -88,11 +84,8 @@ class KafkaConfiguration(
         return factory
     }
 
-    //
 
-    //Debezium
-
-    // CONSUMER for topic order-approved
+    // CONSUMER for topic from debezium order-db.order-db.orders
     @Bean
     fun orderDBTopic(): NewTopic {
         return TopicBuilder.name("order-db.order-db.orders").build()
@@ -113,7 +106,6 @@ class KafkaConfiguration(
         return factory
     }
 
-    //end debezium
 
 
     // PRODUCER for topic order-approved-by-wallet
@@ -136,8 +128,7 @@ class KafkaConfiguration(
     }
 
 
-    //
-    // PRODUCER for topic order-creation-wallet-response
+
     @Bean
     fun orderCreationWalletResponseTopic(): NewTopic {
         return TopicBuilder.name("order-creation-wallet-response").build()
@@ -155,5 +146,5 @@ class KafkaConfiguration(
     fun orderCreationWalletKafkaTemplate(): KafkaTemplate<String, OrderApprovedByWalletDTO>{
         return KafkaTemplate(orderCreationWalletProducerFactory())
     }
-    //
+
 }

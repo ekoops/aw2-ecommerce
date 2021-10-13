@@ -74,12 +74,16 @@ class RequestListener(
             BudgetAvailabilityProducedDTO(
                 failure = "Budget is not enough"
             )
-        budgetAvailabilityProducedKafkaTemplate.send(
-            "budget-availability-produced",
-            key,
-            budgetAvailabilityProducedDTO
-        ).get()
-        // TODO handle possibile kafka exception
+        try{
+            budgetAvailabilityProducedKafkaTemplate.send(
+                "budget-availability-produced",
+                key,
+                budgetAvailabilityProducedDTO
+            ).get()
+
+        }catch (e:Exception){
+            println(e.message)
+        }
     }
 
     //Debezium
@@ -94,23 +98,14 @@ class RequestListener(
         record: ConsumerRecord<String?, String?>,
         @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) key: String
     ) {
-        println("a")
         val consumedValue = record.value()
         if (consumedValue == null) return
         val mapper = ObjectMapper()
-        println("a2" + mapper)
         val jsonNode = mapper.readTree(consumedValue)
-        println("a3" + jsonNode)
         val payload: JsonNode = jsonNode.path("payload")
-        println("a4")
         val opNode: JsonNode = payload.path("op")
-        println("a5" + opNode)
         val op = mapper.readTree(opNode.toString()).textValue()
-        println("a6" + op)
 
-
-
-        println(payload)
 
         if (op == "c") {
             println("Handling create on debezium")
@@ -133,13 +128,12 @@ class RequestListener(
             val amount = items.fold(0.0) { acc, orderItemDTO ->
                 acc + orderItemDTO.amount.toDouble() * orderItemDTO.perItemPrice
             }
-            println("REMOVING UP " + amount)
 
             val buyerId = after2.path("buyerId").toString()
 
             val buyerWallet = walletRepository.getWalletByCustomerId(buyerId.toLong())
             if (buyerWallet == null) {
-                println("Wallet is null")
+                println("ERROR: Wallet is null")
 
                 orderCreationWalletKafkaTemplate.send(
                     "order-creation-wallet-response",
@@ -168,7 +162,6 @@ class RequestListener(
                 )
             )
             buyerWallet.amount += transactionFromRepo.amount
-//            walletRepository.save(buyerWallet)
 
             try {
                 orderCreationWalletKafkaTemplate.send(
@@ -177,21 +170,18 @@ class RequestListener(
                     orderApprovedByWalletDTO
                 ).get()
             } catch (e: Exception) {
-                println("ERRORE")
                 println(e.message)
             }
 
             return
 
         } else if (op == "d") {
-            println("Handling Delete on debezium")
+            println("Handling delete operation from debezium")
             val keyDebezium = mapper.readTree(key)
             var keyKafkaNode = keyDebezium.path("payload").path("id").textValue()
             keyKafkaNode = keyKafkaNode.replace("\\\"", "\"")
             val oid = mapper.readTree(keyKafkaNode).path("\$oid").textValue()
-            println("@@@@@@@@@@ " + oid)
             val transactions = transactionRepository.findAllByReferenceId(oid)
-            println("Transactions: " + transactions)
 
             if (transactions.isEmpty()) {
                 val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
@@ -210,18 +200,10 @@ class RequestListener(
                 return
             }
             val buyerWallet = transactions.first().wallet
-            println("buyerWallet" + buyerWallet)
             val buyerId = buyerWallet.customerId
-            println("buyerId" + buyerId)
-            println("amount before: " + buyerWallet.amount)
             transactions.forEach {
-                println("TRANSACTION AMOUNT: " + it.amount)
                 buyerWallet.amount -= it.amount
             }
-            println("amount after: " + buyerWallet.amount)
-//            walletRepository.save(buyerWallet)
-            println("amount after save: " + buyerWallet.amount)
-
             transactions.forEach { transactionRepository.deleteAllByReferenceId(it.referenceId) }
 
             val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
@@ -234,7 +216,6 @@ class RequestListener(
                 )
             )
             try {
-                println("rispondo bene")
                 orderCreationWalletKafkaTemplate.send(
                     "order-creation-wallet-response",
                     oid,
@@ -249,60 +230,10 @@ class RequestListener(
 
         } else {
             println("Operation unsupported: $op")
-//                val keyDebezium = mapper.readTree(key)
-//                var keyKafkaNode = keyDebezium.path("payload").path("id").textValue()
-//                keyKafkaNode = keyKafkaNode.replace("\\\"" , "\"")
-//                val oid = mapper.readTree(keyKafkaNode).path("\$oid").textValue()
-//                orderCreationWalletKafkaTemplate.send(
-//                    "order-creation-wallet-response",
-//                    oid,
-//                    OrderApprovedByWalletDTO(
-//                        failure = "Operation unsupported"
-//                    )
-//                ).get()
             return
         }
 
-
-        /*
-        PAYLOAD
-
-        {"after":"
-            {\"_id\":
-                {\"$oid\": \"616053b7a9d89155d0d181ad\"},
-            \"status\": \"PENDING\",
-            \"warehouseHasApproved\": false,
-            \"walletHasApproved\": false,
-            \"buyerId\": 1,
-            \"deliveryAddress\":
-            \"user1_deliveryAddress\",
-            \"items\": [{\"productId\": \"1\",\"amount\": 140,\"perItemPrice\": 3.33,\"sources\": []}],
-            \"createdAt\": {\"$date\": 1633702839984},
-            \"updatedAt\": {\"$date\": 1633702839984},
-            \"__v\": 0}",
-         "patch":null,
-         "filter":null,
-         "source":
-            {"version":"1.6.2.Final",
-            "connector":"mongodb",
-            "name":"order-db",
-            "ts_ms":1633702840000,
-            "snapshot":"false",
-            "db":"order-db",
-            "sequence":null,
-            "rs":"rs0",
-            "collection":"orders",
-            "ord":1,
-            "h":null,"tord":null,"stxnid":"99d8bd2a-17b8-361b-9b7c-b4d0c558668c:1"},
-         "op":"c",
-         "ts_ms":1633702840079,
-         "transaction":null}
-"{\"_id\": {\"$oid\": \"616053b7a9d89155d0d181ad\"},\"status\": \"PENDING\",\"warehouseHasApproved\": false,\"walletHasApproved\": false,\"buyerId\": 1,\"deliveryAddress\": \"user1_deliveryAddress\",\"items\": [{\"productId\": \"1\",\"amount\": 140,\"perItemPrice\": 3.33,\"sources\": []}],\"createdAt\": {\"$date\": 1633702839984},\"updatedAt\": {\"$date\": 1633702839984},\"__v\": 0}"
-         */
     }
-
-
-    //end debezium
 
 }
 
