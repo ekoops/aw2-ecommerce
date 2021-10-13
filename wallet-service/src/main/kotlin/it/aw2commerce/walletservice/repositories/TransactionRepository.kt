@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.*
 
-//TODO check if all works
 
 @Repository
 interface TransactionRepository : PagingAndSortingRepository<Transaction, Long> {

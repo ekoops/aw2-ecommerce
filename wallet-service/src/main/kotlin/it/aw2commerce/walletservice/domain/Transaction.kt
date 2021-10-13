@@ -25,7 +25,7 @@ class Transaction(
     @Column(name = "time_instant", nullable = false)
     var timeInstant: LocalDateTime,
 
-    @Column(name = "referenceId" , nullable = false)
+    @Column(name = "referenceId" , nullable = false , unique = true)
     var referenceId: String,
 
 

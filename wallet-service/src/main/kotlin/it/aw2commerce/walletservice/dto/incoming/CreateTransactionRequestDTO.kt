@@ -6,7 +6,4 @@ import javax.validation.constraints.Positive
     data class CreateTransactionRequestDTO(
         @field:NotNull(message = "An amount must be specified")
         val amount: Double,
-
-        @field:NotNull(message = "A order id must be specified")
-        val referenceId: String,
     )

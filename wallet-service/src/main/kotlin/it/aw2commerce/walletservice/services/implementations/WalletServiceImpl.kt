@@ -17,10 +17,10 @@ import it.aw2commerce.walletservice.services.WalletService
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.util.*
 import kotlin.streams.toList
 
 
@@ -89,7 +89,8 @@ class WalletServiceImpl(
             )
         }
 
-        val orderId = createTransactionRequestDTO.referenceId
+        val referenceId = UUID.randomUUID().toString()
+
 
 
         try {
@@ -105,7 +106,7 @@ class WalletServiceImpl(
                 amount = amountToLong,
                 timeInstant = LocalDateTime.now(),
                 wallet = wallet ,
-                referenceId = orderId
+                referenceId = referenceId
             )
             val createdTransaction = transactionRepository.save(newTransaction)
             wallet.amount += newTransaction.amount

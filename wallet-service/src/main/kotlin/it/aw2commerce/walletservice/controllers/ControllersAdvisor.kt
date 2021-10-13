@@ -18,7 +18,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import javax.validation.ConstraintViolationException
 
 
-//TODO remove unused excepitions
 
 @RestControllerAdvice
 class ControllersAdvisor {
@@ -59,6 +58,8 @@ class ControllersAdvisor {
             detail = "The provided fields should follows the right endpoint specification"
         )
     }
+
+
     @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     fun methodNotAllowedExceptionHandler(ex: HttpRequestMethodNotSupportedException): ErrorDetails = ErrorDetails(
