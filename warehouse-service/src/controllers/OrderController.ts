@@ -76,7 +76,7 @@ export default class OrderController {
           break;
       }
     } catch (ex) {
-      // TODO
+      console.log(ex);
     }
   };
 }
