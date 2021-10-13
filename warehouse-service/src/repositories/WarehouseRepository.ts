@@ -132,28 +132,39 @@ export default class WarehouseRepository {
                     const warehouse = await this.WarehouseModel.findOne(
                         {
                             _id: warehouseId,
-                            "products.$.product._id": productId,
+                            // "products.$.product._id": productId,
                         },
                         null,
                         { session }
                     );
+                    console.log("patata")
                     console.log(warehouse)
                     console.log(warehouse?.products)
                     console.log(warehouse?.products?.length, '!== 1')
                     console.log(warehouse?.products?.[0]?.quantity, '<', quantity)
-                    if (
-                        warehouse === null ||
-                        warehouse.products === null ||
-                        warehouse.products.length !== 1 ||
-                        warehouse.products[0].quantity < quantity
-                    ) {
-                        throw new DbTransactionFailedException();
-                    }
-                    await this.WarehouseModel.updateOne(
-                        { _id: warehouseId, "products.$.product._id": productId },
-                        { $inc: { "products.$.quantity": -quantity } },
+                    // if (
+                    //     warehouse === null ||
+                    //     warehouse.products === null ||
+                    //     warehouse.products.length !== 1 ||
+                    //     warehouse.products[0].quantity < quantity
+                    // ) {
+                    //     throw new DbTransactionFailedException();
+                    // }
+                    console.log({warehouseId , productId , quantity})
+                    warehouse?.products?.forEach(p => {
+                        if (p.product._id == productId){
+                            p.quantity-=quantity
+                        }
+                    } )
+
+                    const a =  await this.WarehouseModel.updateOne(
+                        { _id: warehouseId,
+                            // "products.$.product._id": productId
+                        },
+                        { $set: {products:warehouse?.products} },
                         { session }
                     );
+                    console.log({a})
                 }
             }
             return true;
