@@ -41,6 +41,7 @@ http://localhost:8080/api/v1/auth/confirmRegistration?token=${userCreatedDTO.ema
     ${value.warehouseAddress}
 `;
     const mail = { to, subject, text };
+    console.log({mail})
     return this.mailerProxy.send(mail).catch(err => {
       Logger.error(
         NAMESPACE,
