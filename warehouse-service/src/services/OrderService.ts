@@ -175,10 +175,12 @@ export default class OrderService {
     });
     let productsLocations: { [key: string]: Source[] } = {};
     result.forEach(
-        (e) => (productsLocations[e._id.toString()] = e.warehouses)
+        (e) => (productsLocations[e._id.toString()] = e.warehouses.sort(
+          (e1: any, e2: any) => e2.quantity - e1.quantity
+        ))
     );
-    const perProductSortedWarehousesAndQuantities = productsLocations;
 
+    const perProductSortedWarehousesAndQuantities = productsLocations;
     console.log({perProductSortedWarehousesAndQuantities: JSON.stringify(perProductSortedWarehousesAndQuantities, null, '  ')})
 
     // checking if the operation failed
