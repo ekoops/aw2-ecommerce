@@ -253,7 +253,7 @@ export default class OrderService {
                 messages: [
                   {
                     key: order._id,
-                    value: JSON.stringify(JSON.stringify(x)),
+                    value: JSON.stringify(x),
                   },
                 ],
               });
