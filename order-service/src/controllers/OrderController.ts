@@ -146,7 +146,9 @@ export default class OrderController {
       res.status(204).end();
     } catch (ex) {
       if (ex instanceof NotAllowedException) {
-        res.status(403).end(new OrderCancellationNotAllowedResponse(orderId));
+        res.status(403).json({
+          error: "Cannot delete this order"
+        }).end();
       } else {
         // a different type of exception from the previous one can be throw only during
         // db communication, so by invoking next(ex), a 500 internal server error is returned

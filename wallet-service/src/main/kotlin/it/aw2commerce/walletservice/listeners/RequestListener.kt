@@ -185,7 +185,13 @@ class RequestListener(
 
             if (transactions.isEmpty()) {
                 val orderApprovedByWalletDTO = OrderApprovedByWalletDTO(
-                    failure = "No transactions found"
+                    ok = ApprovationDTO(
+                        orderDTO = OrderDTO(
+                            buyerId = -1,
+                            deliveryAddress = "",
+                            items = listOf(),
+                        )
+                    )
                 )
                 try {
                     orderCreationWalletKafkaTemplate.send(
