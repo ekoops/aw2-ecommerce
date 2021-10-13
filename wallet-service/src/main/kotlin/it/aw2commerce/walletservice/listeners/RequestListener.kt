@@ -74,14 +74,14 @@ class RequestListener(
             BudgetAvailabilityProducedDTO(
                 failure = "Budget is not enough"
             )
-        try{
+        try {
             budgetAvailabilityProducedKafkaTemplate.send(
                 "budget-availability-produced",
                 key,
                 budgetAvailabilityProducedDTO
             ).get()
 
-        }catch (e:Exception){
+        } catch (e: Exception) {
             println(e.message)
         }
     }
