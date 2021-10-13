@@ -50,6 +50,11 @@ const getRouter = (warehouseController: WarehouseController) => {
         warehouseController.patchWarehouseById
     );
 
+    router.delete(
+        '/:warehouseId',
+        warehouseController.deleteWarehouseById
+    );
+
     return router;
 };
 
