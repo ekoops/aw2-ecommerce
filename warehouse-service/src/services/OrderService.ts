@@ -110,9 +110,9 @@ export default class OrderService {
 
   private buildPerWarehouseProductsQuantities = (products: OrderItem[]) => {
     const perWarehouseProductsQuantities: any = {};
-
     for (const product of products) {
       const { productId, sources } = product;
+      console.log({products, sources})
       for (const source of sources) {
         const { warehouseId, quantity } = source;
         const productQuantitiesToSubtract = { productId, quantity };
@@ -279,15 +279,27 @@ export default class OrderService {
         const deletedOrder = await this.orderRepository.deleteOrderById(
           orderId
         );
-        if (deletedOrder === null) throw new DbTransactionFailedException();
+        console.log({deletedOrder, orderId})
 
-        const perWarehouseProductsQuantities =
-          this.buildPerWarehouseProductsQuantities(deletedOrder.items);
+        if (deletedOrder === null) {
+          console.log('error 1');
+          
+          throw new DbTransactionFailedException();
+        }
+
+        const perWarehouseProductsQuantities = this.buildPerWarehouseProductsQuantities(deletedOrder.items);
         const areAdded = await this.warehouseService.addWarehousesProducts(
           perWarehouseProductsQuantities,
           session
         );
-        if (!areAdded) throw new DbTransactionFailedException();
+
+        console.log({perWarehouseProductsQuantities, areAdded})
+
+        if (!areAdded) {
+          console.log('error 2');
+
+          throw new DbTransactionFailedException();
+        }
       });
       session.endSession();
     } catch (ex) {
