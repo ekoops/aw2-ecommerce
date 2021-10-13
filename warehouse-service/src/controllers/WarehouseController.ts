@@ -78,6 +78,18 @@ export default class WarehouseController {
     res.json(result);
   };
 
+
+  deleteWarehouseById = async(
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    const warehouseId = req.params["warehouseId"];
+    const result = await this.warehouseService.deleteWarehouse(warehouseId);
+    console.log({deletionResult: result});
+    res.status(204).end();
+  }
+
   patchWarehouseById = async (
     req: express.Request,
     res: express.Response,

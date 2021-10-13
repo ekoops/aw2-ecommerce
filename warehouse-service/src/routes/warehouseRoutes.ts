@@ -23,7 +23,7 @@ const getRouter = (warehouseController: WarehouseController) => {
         next();
     });
     
-    router.post(
+    router.post( 
         '/',
         // validators.postWarehouse,
         // checkErrors,
