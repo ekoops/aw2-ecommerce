@@ -10,8 +10,8 @@ import Logger from "./utils/Logger";
 const NAMESPACE = "SERVER";
 
 const run = async () => {
-  const OAuthO2Options = await getOAuth2Options();
-  const mailerProxy = MailerProxy.getInstance(OAuthO2Options);
+  // const OAuthO2Options = await getOAuth2Options();
+  const mailerProxy = MailerProxy.getInstance({} as any);
 
   const { host, port, clientId } = config.kafka;
   const broker = `${host}:${port}`;
