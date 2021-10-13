@@ -39,7 +39,7 @@ http://localhost:8080/api/v1/auth/confirmRegistration?token=${userCreatedDTO.ema
     console.log({message})
     const to = "warehouse_admin@yopmail.com";
     const subject = "[AW2 Ecommerce] Warehouse alert! Product is below limit";
-    const text = `Warehouse alert! The product ${value.productName} is below the limit of ${value.limit} in the warehouse located at the following address:
+    const text = `Warehouse alert! The product ${value.productName} is below the threshold. The current quantity is ${value.limit} in the warehouse located at the following address:
     ${value.warehouseAddress}
 `;
     const mail = { to, subject, text };

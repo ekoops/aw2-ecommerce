@@ -160,7 +160,7 @@ export default class WarehouseRepository {
                             if (p.quantity < WH_THRESHOLD) {
                                 productsBelowThreshold.push({
                                     limit: p.quantity,
-                                    warehouseAddress: `warehouse.name (${warehouse._id})` ,
+                                    warehouseAddress: `${warehouse.name} (${warehouse._id})` ,
                                     productName: p.product._id.toString()
                                 });
                             }

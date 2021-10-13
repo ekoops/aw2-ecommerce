@@ -248,6 +248,8 @@ export default class OrderService {
           };
           if (areRemoved.length) {
             const promises = areRemoved.map(x => {
+              // TODO: mettere nomi dei prodotti
+              // this.productService.fillWarehouseProducts([{product: {_id: x.productName}}]);
               return this.producerProxy.producer.produce({
                 topic: "warehouse-threshold",
                 messages: [
