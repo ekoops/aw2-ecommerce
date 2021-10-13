@@ -60,10 +60,6 @@ export default class OrderController {
           
           console.log({order})
           await this.orderService.handleOrderCreation(order);
-          await this.producer.producer.produce({
-            'warehouse-threshold',
-            messages: [{ key, value: JSON.stringify(message) }],
-          })
           break;
         case OperationType.READ:
           // nothing to do

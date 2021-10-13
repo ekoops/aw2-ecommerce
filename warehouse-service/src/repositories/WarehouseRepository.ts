@@ -4,6 +4,7 @@ import {Product} from "../domain/Product";
 import {Source} from "../domain/Source";
 import {DbTransactionFailedException} from "../exceptions/db/DbException";
 
+export const WH_THRESHOLD = 5;
 export type InsertionResult = (WarehouseRequestDto &
     mongoose.Document<any, any, WarehouseRequestDto>)[];
 export type DeletionResult = {
@@ -124,12 +125,14 @@ export default class WarehouseRepository {
     removeWarehousesProducts = async (
         perWarehouseProductsQuantities: any,
         session: ClientSession
-    ): Promise<boolean> => {
+    ): Promise<{warehouseAddress: string|null, productName: string, limit: number}[] | false> => {
         const pwpq = perWarehouseProductsQuantities;
         try {
+            const productsBelowThreshold: {warehouseAddress: string|null, productName: string, limit: number}[] = [];
+
             for (const warehouseId of Object.keys(pwpq)) {
                 for (const { productId, quantity } of pwpq[warehouseId]) {
-                    const warehouse = await this.WarehouseModel.findOne(
+                    const warehouse: Warehouse | null = await this.WarehouseModel.findOne(
                         {
                             _id: warehouseId,
                             // "products.$.product._id": productId,
@@ -154,6 +157,13 @@ export default class WarehouseRepository {
                     warehouse?.products?.forEach(p => {
                         if (p.product._id == productId){
                             p.quantity-=quantity
+                            if (p.quantity < WH_THRESHOLD) {
+                                productsBelowThreshold.push({
+                                    limit: p.quantity,
+                                    warehouseAddress: `warehouse.name (${warehouse._id})` ,
+                                    productName: p.product._id.toString()
+                                });
+                            }
                         }
                     } )
 
@@ -164,10 +174,10 @@ export default class WarehouseRepository {
                         { $set: {products:warehouse?.products} },
                         { session }
                     );
-                    console.log({a})
+                    console.log({a}) 
                 }
             }
-            return true;
+            return productsBelowThreshold;;
         } catch (ex) {
             console.log(ex);
             return false;

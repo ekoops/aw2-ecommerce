@@ -226,12 +226,15 @@ export default class OrderService {
           { session: session }
         );
 
+
         const perWarehouseProductsQuantities =
           this.buildPerWarehouseProductsQuantities(products);
+          
         const areRemoved = await this.warehouseService.removeWarehousesProducts(
           perWarehouseProductsQuantities,
           session
         );
+
         const response: any = {};
         if (!areRemoved) {
           await session.abortTransaction();
@@ -243,6 +246,20 @@ export default class OrderService {
             approverName: "WAREHOUSE",
             orderDTO: persistedOrderDTO,
           };
+          if (areRemoved.length) {
+            const promises = areRemoved.map(x => {
+              return this.producerProxy.producer.produce({
+                topic: "warehouse-threshold",
+                messages: [
+                  {
+                    key: order._id,
+                    value: JSON.stringify(JSON.stringify(x)),
+                  },
+                ],
+              });
+            })
+            await Promise.all(promises);
+          }
         }
         await this.producerProxy.producer.produce({
           topic: "order-creation-warehouse-response",
