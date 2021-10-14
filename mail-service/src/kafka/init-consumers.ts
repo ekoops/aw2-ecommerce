@@ -7,6 +7,7 @@ import {
 import ConsumerProxy from "./ConsumerProxy";
 import { UserCreatedDTO } from "../dtos/UserCreatedDTO";
 import MailService from "../services/MailService";
+import {OrderDTO} from "../dtos/OrderDTO";
 
 const initConsumers = (kafkaProxy: KafkaProxy, mailService: MailService) => {
   const groupId = "mail-svc-grp";
@@ -42,6 +43,13 @@ const initConsumers = (kafkaProxy: KafkaProxy, mailService: MailService) => {
       successHandler: mailService.sendThresholdMail.bind(mailService),
       failureHandler: () => {},
     }),
+
+    startConsumer<OrderDTO>({
+      topic: "order-status-updated",
+      successHandler: mailService.sendOrderStatusUpdatedMail.bind(mailService),
+      failureHandler:() =>{},
+    })
+
   ];
 
   // TODO

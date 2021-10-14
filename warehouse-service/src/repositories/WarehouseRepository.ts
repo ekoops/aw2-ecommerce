@@ -177,7 +177,7 @@ export default class WarehouseRepository {
                     console.log({a}) 
                 }
             }
-            return productsBelowThreshold;;
+            return productsBelowThreshold;
         } catch (ex) {
             console.log(ex);
             return false;

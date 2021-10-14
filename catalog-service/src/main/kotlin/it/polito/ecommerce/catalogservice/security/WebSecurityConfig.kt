@@ -83,6 +83,7 @@ class WebSecurityConfig(
             .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
             .authorizeExchange()
             .pathMatchers("/auth/**").permitAll()
+            .pathMatchers("/service/**").permitAll()
             .pathMatchers("/users/locking/**").hasAuthority("ADMIN")
             .pathMatchers("/users/enabling/**").hasAuthority("ADMIN")
             .pathMatchers("/users/addRole/**").hasAuthority("ADMIN")

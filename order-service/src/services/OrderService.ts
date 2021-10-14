@@ -159,7 +159,7 @@ export default class OrderService {
       }
     }
     //TODO remove
-    order.warehouseHasApproved = true
+    order.warehouseHasApproved=true
     if (updated) {
       try {
         if (order.walletHasApproved && order.warehouseHasApproved) {
@@ -327,6 +327,11 @@ export default class OrderService {
       order.status = OrderStatusUtility.toOrderStatusName(newStatus);
       const updatedOrder = await this.orderRepository.save(order); // can throw
       const updatedOrderDTO = OrderUtility.toOrderDTO(updatedOrder);
+      console.log("scrivo su kafka")
+      await this.producerProxy.producer.produce({
+        topic: "order-status-updated",
+        messages: [{key: updatedOrder._id!.toString(), value: JSON.stringify(updatedOrderDTO)}],
+      });
       Logger.dev(
         NAMESPACE,
         "modifyOrderStatus(modifyOrderStatusRequestDTO: %v): %v",
