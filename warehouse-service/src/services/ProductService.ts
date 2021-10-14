@@ -52,10 +52,8 @@ export default class ProductService {
           $in: idsList,
         },
       };
-
       return this.findProducts(productsQuery);
     });
-
     const allProducts = await Promise.all(warehousesProductPromises);
     console.log('allProducts is ', allProducts);
     const warehousesWithProducts = warehousesList.map((w, index) => {

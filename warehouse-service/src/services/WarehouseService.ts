@@ -87,41 +87,6 @@ export default class WarehouseService {
     // });
   };
 
-  getPerProductSortedWarehousesAndQuantities = async (
-    productIdsList: string[]
-  ) => {
-    if (productIdsList.length === 0) return {};
-
-    // obtaining an object containing for each key (the product id) a list of couple
-    // (warehouseId, quantity)
-    const perProductWarehousesAndQuantities =
-      await this.warehouseRepository.getPerProductWarehousesAndQuantities(
-        productIdsList
-      );
-
-    console.log({perProductWarehousesAndQuantities});
-
-    // verifying that a list for each product is present in the above object
-    if (
-      Object.keys(perProductWarehousesAndQuantities).length !==
-      productIdsList.length
-    ) {
-      console.log('error because ', Object.keys(perProductWarehousesAndQuantities).length, '!==', productIdsList.length)
-      return {};
-    }
-
-    // sorting in place each (warehouseId, quantity) list by quantity
-    for (const productId of productIdsList) {
-      console.log({productId});
-      // checking for robustness... but it is not strictly necessary
-      if (!(productId in perProductWarehousesAndQuantities)) return {};
-      perProductWarehousesAndQuantities[productId].sort(
-        (e1, e2) => e2.quantity - e1.quantity
-      );
-    }
-    return perProductWarehousesAndQuantities;
-  };
-
   removeWarehousesProducts = (
     perWarehouseProductsQuantities: any,
     session: ClientSession

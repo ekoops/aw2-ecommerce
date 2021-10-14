@@ -10,8 +10,8 @@ services:
     restart: always
     env_file:
       - configs/mail-svc.env.prod
-    ports:
-      - "8083:8083"
+#    ports:
+#      - "8083:8083"
     networks:
       - communication-net
     depends_on:
