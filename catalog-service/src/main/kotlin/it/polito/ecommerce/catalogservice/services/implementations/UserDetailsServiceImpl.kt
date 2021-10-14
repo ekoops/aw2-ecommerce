@@ -233,6 +233,25 @@ suspend fun verifyUser(token: String) {
         } catch (ex: Exception) {
             throw InconsistentUserException("Error in updating user info the user")
         }
+
+    }
+
+    suspend fun retrieveEmailAddress(id: Long): String? {
+        try {
+            val user = coroutineUserRepository.findById(id)
+            return user?.email
+        } catch (ex: Exception) {
+            throw InconsistentUserException("Error retieving user email address")
+        }
+    }
+
+    suspend fun retrieveUserInfo(id: Long): UserDTO? {
+        try {
+            val user = coroutineUserRepository.findById(id)
+            return user?.toUserDTO()
+        } catch (ex: Exception) {
+            throw InconsistentUserException("Error retieving user info")
+        }
     }
 }
 

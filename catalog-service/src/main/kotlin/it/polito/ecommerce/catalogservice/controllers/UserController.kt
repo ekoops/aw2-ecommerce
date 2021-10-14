@@ -73,7 +73,7 @@ class UserController(
 */
     //TODO: the user has to be able to modify only his info
 
-    @PreAuthorize("#userId == java.security.Principal.id")
+    @PreAuthorize("#userId == authentication.principal.id")
     @PatchMapping("/updateUserInfo/{userId}")
     suspend fun patchUserInformation(
         @Valid @RequestBody patchUserPropertiesDTO: PatchUserPropertiesRequestDTO,
@@ -87,6 +87,21 @@ class UserController(
         }
     }
 
+    @PreAuthorize("#userId == authentication.principal.id || hasAuthority('ADMIN')")
+    @GetMapping("/{userId}")
+    suspend fun retrieveUserInfo(
+        @PathVariable("userId") userId: Long
+    ) {
+        userDetailsService.retrieveUserInfo(userId)
+    }
+
+
+    @GetMapping("/email/{userId}")
+    suspend fun retrieveEmailAddress(
+        @PathVariable("userId") userId: Long
+    ) {
+        userDetailsService.retrieveEmailAddress(userId)
+    }
 
 
 }
