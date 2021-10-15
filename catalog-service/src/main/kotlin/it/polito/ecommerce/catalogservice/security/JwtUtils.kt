@@ -9,7 +9,6 @@ import it.polito.ecommerce.catalogservice.domain.Rolename
 import it.polito.ecommerce.catalogservice.dto.UserDetailsDTO
 import it.polito.ecommerce.catalogservice.exceptions.security.BadAuthenticationException
 import it.polito.ecommerce.catalogservice.exceptions.security.InvalidTokenExcepion
-import it.polito.ecommerce.catalogservice.exceptions.user.emailverificationtoken.EmailVerificationTokenExpiredException
 import org.springframework.security.core.Authentication
 import java.time.Instant
 
