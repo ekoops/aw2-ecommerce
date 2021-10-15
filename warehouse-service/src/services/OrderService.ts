@@ -229,18 +229,24 @@ export default class OrderService {
 
         const perWarehouseProductsQuantities =
           this.buildPerWarehouseProductsQuantities(products);
-          
+        
+        console.log(233, {perWarehouseProductsQuantities});
+
         const areRemoved = await this.warehouseService.removeWarehousesProducts(
           perWarehouseProductsQuantities,
           session
         );
 
+        console.log(240, {areRemoved})
+
         const response: any = {};
         if (!areRemoved) {
+          console.log('aborting...')
           await session.abortTransaction();
           // nothing to do... the order will be rejected
           response.failure = "removing products from warehouses failed";
         } else {
+          
           const persistedOrderDTO = OrderUtility.toOrderDTO(persistedOrder);
           response.ok = {
             approverName: "WAREHOUSE",
@@ -263,6 +269,7 @@ export default class OrderService {
             await Promise.all(promises);
           }
         }
+        console.log('sending the following response: ', JSON.stringify(response, null, 2))
         await this.producerProxy.producer.produce({
           topic: "order-creation-warehouse-response",
           messages: [
@@ -276,6 +283,7 @@ export default class OrderService {
 
       session.endSession();
     } catch (ex) {
+      console.log('EXCEPTION!!! ', ex)
       // TODO: maybe nothing to do
     }
   };

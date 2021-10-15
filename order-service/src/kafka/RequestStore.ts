@@ -33,11 +33,11 @@ export default class RequestStore {
     this.requests[key] = [resolve, reject, timerId];
   };
 
-  get = (key: string): [SuccessHandler, FailureHandler] | undefined => {
+  get = (key: string): [SuccessHandler, FailureHandler] | [null, null] => {
     console.log('Received response with key', key);
     const handlers = this.requests[key];
     console.log('handlers is ', handlers);
-    if (handlers === undefined) return;
+    if (!handlers) return [null, null];
     const [resolve, reject, timerId] = handlers;
     clearTimeout(timerId);
     delete this.requests[key];

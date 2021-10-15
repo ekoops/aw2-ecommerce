@@ -15,6 +15,7 @@ export default class ConsumerProxy {
       // if filterFn pass, then requestStore contains resolve and reject function,
       // so it is safe to extract them
       const [resolve, reject] = requestStore.get(key)!;
+      if (!resolve || !reject) return;
       console.log('got resolve and reject: ', typeof resolve)
       if (value === undefined || value === "")
         return reject(new NoValueException(key));
