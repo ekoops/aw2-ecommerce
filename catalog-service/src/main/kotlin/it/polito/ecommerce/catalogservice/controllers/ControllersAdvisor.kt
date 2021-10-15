@@ -47,7 +47,6 @@ class ControllersAdvisor {
         detail = "The provided request body should follows the right DTO specification"
     )
 
-    //TODO: vedere se questa gestione delle eccezioni per la validazione dei campi dei DTO va bene ed in caso non vada bene provare a integrarla con quella di sotto
     @ExceptionHandler(WebExchangeBindException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun constraintViolationExceptionHandler2(ex: WebExchangeBindException): ResponseEntity<List<String?>> {
@@ -96,7 +95,9 @@ class ControllersAdvisor {
         )
     }
 
-    @ExceptionHandler(BadCredentialsException::class)
+    @ExceptionHandler(BadCredentialsException::class,
+        EmailVerificationTokenExpiredException::class,
+        InvalidTokenExcepion::class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     fun badCredentialsExceptionHandler(ex: BadCredentialsException) = ErrorDetails(
         type = ErrorType.BAD_CREDENTIALS,
@@ -130,9 +131,7 @@ class ControllersAdvisor {
 
     @ExceptionHandler(
         CreateUserInternalException::class,
-        VerifyUserInternalException::class,
-        EmailVerificationTokenExpiredException::class,
-        InvalidTokenExcepion::class
+        VerifyUserInternalException::class
     )
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     fun internalExceptionHandler(ex: BasicApplicationException): ErrorDetails = ErrorDetails(ex)

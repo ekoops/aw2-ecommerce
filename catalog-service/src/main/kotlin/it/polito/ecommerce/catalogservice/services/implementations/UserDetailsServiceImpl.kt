@@ -55,7 +55,9 @@ class UserDetailsServiceImpl(
     }
 
     suspend fun createUser(userDTO: CreateUserRequestDTO): UserDTO {
-        val (email, username) = userDTO
+        val email = userDTO.email
+        val username = userDTO.username
+
         val isUserAlreadyPresent = coroutineUserRepository.existsByUsernameOrEmail(
             username = username,
             email = email
@@ -65,7 +67,10 @@ class UserDetailsServiceImpl(
             email = email
         )
         // If user is not present, I create it
-        val (name, surname, deliveryAddress) = userDTO
+        val name = userDTO.name
+        val surname = userDTO.surname
+        val deliveryAddress = userDTO.deliveryAddress
+
         val createdUser: User
         try {
             val user = User(
@@ -157,10 +162,10 @@ suspend fun verifyUser(token: String) {
     }
 
 
-    suspend fun addUserRole(username: String, role: String): Boolean {
+    suspend fun addUserRole(id: Long, role: String): Boolean {
         try {
             val rolename = Rolename.valueOf(role)
-            val newUser = this.getUserByUsername(username).addRolename(rolename) ?: return false
+            val newUser = this.getUserById(id).addRolename(rolename) ?: return false
             try {
                 coroutineUserRepository.save(newUser)
                 return true

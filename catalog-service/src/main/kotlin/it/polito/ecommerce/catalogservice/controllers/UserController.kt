@@ -58,9 +58,9 @@ class UserController(
     @PatchMapping("/addRole/{userId}")
     suspend fun addRole(
         @RequestParam("role", required = true) role: String,
-        @PathVariable("userId") username: String
+        @PathVariable("userId") id: Long
     ) : Boolean =
-        userDetailsService.addUserRole(username,role)
+        userDetailsService.addUserRole(id,role)
 
     @PatchMapping("/removeRole/{userId}")
     suspend fun removeRole(
