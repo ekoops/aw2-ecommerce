@@ -1,5 +1,6 @@
 package it.polito.ecommerce.catalogservice.controllers
 
+import it.polito.ecommerce.catalogservice.dto.UserDTO
 import it.polito.ecommerce.catalogservice.dto.incoming.PatchUserPropertiesRequestDTO
 import it.polito.ecommerce.catalogservice.services.implementations.UserDetailsServiceImpl
 import org.springframework.security.access.prepost.PreAuthorize
@@ -69,7 +70,7 @@ class UserController(
         userDetailsService.removeUserRole(username,role)
 
 
-    @PreAuthorize("#userId == authentication.principal.id")
+    //@PreAuthorize("#userId == authentication.principal.id")
     @PatchMapping("/updateUserInfo/{userId}")
     suspend fun patchUserInformation(
         @Valid @RequestBody patchUserPropertiesDTO: PatchUserPropertiesRequestDTO,
@@ -83,21 +84,15 @@ class UserController(
         }
     }
 
-    @PreAuthorize("#userId == authentication.principal.id || hasAuthority('ADMIN')")
+//    @PreAuthorize("#userId == authentication.principal.id || hasAuthority('ADMIN')")
     @GetMapping("/{userId}")
     suspend fun retrieveUserInfo(
         @PathVariable("userId") userId: Long
-    ) {
-        userDetailsService.retrieveUserInfo(userId)
+    ): UserDTO? {
+        println(userId)
+        return userDetailsService.retrieveUserInfo(userId)
     }
 
-
-    @GetMapping("/email/{userId}")
-    suspend fun retrieveEmailAddress(
-        @PathVariable("userId") userId: Long
-    ) {
-        userDetailsService.retrieveEmailAddress(userId)
-    }
 
 
 }

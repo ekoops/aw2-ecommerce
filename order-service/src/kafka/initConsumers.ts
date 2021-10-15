@@ -4,6 +4,7 @@ import { ApprovationDTO } from "../dtos/ApprovationDTO";
 import config from "../config/config";
 import {OrderDTO} from "../domain/Order";
 import {
+  ApplicationException,
   ItemsNotAvailableException,
   NotEnoughBudgetException, WalletOrderCreationFailedException,
   WarehouseOrderCreationFailedException
@@ -23,6 +24,8 @@ const initConsumers = async (kafkaProxy: KafkaProxy) => {
     await consumer.consume(async (key: string, value: string|undefined) => {
       console.log('@#@#@#@#@#@@#@@@ Received: ', key, value);
       const [resolve, reject] = requestStore.get(key)!;
+      if (!resolve || !reject) return;
+
       console.log('Found resolver: ', !!resolve);
       let obj;
       try {
@@ -31,7 +34,11 @@ const initConsumers = async (kafkaProxy: KafkaProxy) => {
         return reject(new ValueParsingFailedException(key));
       }
       console.log('Resolvign with ', obj.ok);
-      return resolve({ key, value: obj.ok as OrderDTO });
+      if (obj.ok) {
+        return resolve({ key, value: obj.ok as OrderDTO });
+      } else if (obj.failure) {
+        return reject(new ApplicationException(key, "Not enough items"));
+      }
     });
   })();
 
@@ -43,6 +50,7 @@ const initConsumers = async (kafkaProxy: KafkaProxy) => {
     await consumer.consume(async (key: string, value: string|undefined) => {
       console.log('@#@#@#@#@#@@#@@@ Received: ', key, value);
       const [resolve, reject] = requestStore.get(key)!;
+      if (!resolve || !reject) return;
       console.log('Found resolver: ', !!resolve);
       let obj;
       try {
@@ -51,7 +59,11 @@ const initConsumers = async (kafkaProxy: KafkaProxy) => {
         return reject(new ValueParsingFailedException(key));
       }
       console.log('Resolvign with ', obj.ok);
-      return resolve({ key, value: obj.ok as OrderDTO });
+      if (obj.ok) {
+        return resolve({ key, value: obj.ok as OrderDTO });
+      } else if (obj.failure) {
+        return reject(new ApplicationException(key, "Not enough money"));
+      }
     });
   })();
 
@@ -62,6 +74,7 @@ const initConsumers = async (kafkaProxy: KafkaProxy) => {
     await consumer.consume(async (key: string, value: string|undefined) => {
       console.log('@#@#@#@#@#@@#@@@ Received: order-creation-wallet-response ', key, value);
       const [resolve, reject] = requestStore.get(key)!;
+      if (!resolve || !reject) return;
       console.log('Found resolver: order-creation-wallet-response ', !!resolve);
       let obj;
       try {
@@ -70,7 +83,35 @@ const initConsumers = async (kafkaProxy: KafkaProxy) => {
         return reject(new ValueParsingFailedException(key));
       }
       console.log('Resolvign with ', obj.ok);
-      return resolve({ key, value: obj.ok as OrderDTO });
+      if (obj.ok) {
+        return resolve({ key, value: obj.ok as OrderDTO });
+      } else if (obj.failure) {
+        return reject(new ApplicationException(key, "Wallet cannot remove money"));
+      }
+    });
+  })();
+
+  await (async () => {
+    const topic = "order-creation-warehouse-response";
+    const topics = [{ topic: topic }]
+    const consumer = await kafkaProxy.createConsumer(groupId+"_4", topics);
+    await consumer.consume(async (key: string, value: string|undefined) => {
+      console.log('@#@#@#@#@#@@#@@@ Received: order-creation-wallet-response ', key, value);
+      const [resolve, reject] = requestStore.get(key)!;
+      if (!resolve || !reject) return;
+      console.log('Found resolver: order-creation-warehouse-response ', !!resolve);
+      let obj;
+      try {
+        obj = JSON.parse(value as string);
+      } catch (ex) {
+        return reject(new ValueParsingFailedException(key));
+      }
+      console.log('Resolvign with ', obj.ok);
+      if (obj.ok) {
+        return resolve({ key, value: obj.ok as OrderDTO });
+      } else if (obj.failure) {
+        return reject(new ApplicationException(key, "Warehouse cannot remove items"));
+      }
     });
   })();
 

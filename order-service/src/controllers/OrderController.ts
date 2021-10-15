@@ -20,6 +20,7 @@ import OrderStatusChangeNotAllowedResponse from "../responses/OrderStatusChangeN
 import OrderCreationNotAllowedResponse from "../responses/OrderCreationNotAllowedResponse";
 import OrderCreationFailed from "../domain/OrderCreationFailed";
 import InternalServerErrorResponse from "../responses/InternalServerErrorResponse";
+import { ApplicationException } from "../exceptions/kafka/communication/application/ApplicationException";
 
 const NAMESPACE = "ORDER_CONTROLLER";
 
@@ -88,6 +89,10 @@ export default class OrderController {
       const result = await this.orderService.createOrder(
         orderDTO as CreateOrderRequestDTO
       );
+      if (result instanceof ApplicationException) {
+        res.status(406).json(result).end();
+        return;
+      }
       console.log("@0@0@0 received response and sending to client: ", orderDTO)
       if (result instanceof OrderCreationFailed) {
         res.status(500).json(new InternalServerErrorResponse()).end();

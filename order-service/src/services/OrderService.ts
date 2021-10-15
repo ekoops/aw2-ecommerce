@@ -28,6 +28,7 @@ import CancelOrderRequestDTO from "../dtos/CancelOrderRequestDTO";
 import OrderStatusUtility from "../utils/OrderStatusUtility";
 import ApproverUtility from "../utils/ApproverUtility";
 import Approver from "../domain/Approver";
+import { ApplicationException } from "../exceptions/kafka/communication/application/ApplicationException";
 
 const NAMESPACE = "ORDER_SERVICE";
 
@@ -115,13 +116,14 @@ export default class OrderService {
       key: transactionId,
       value: { approverName, orderDTO },
     } = message;
+    console.log({message})
     const FAILURE_OBJ = new OrderCreationFailed();
 
     // the orderDTO's id must be present and it has to be equal to
     // the transactionId. In case of mismatch, it is not safe to trying to
     // delete an order with id === transactionId or id === orderDTO.id, so
     // I simply return FAILURE_OBJ
-    console.log(transactionId)
+    console.log({transactionId})
     orderDTO.id = transactionId
     if (orderDTO.id === undefined || orderDTO.id !== transactionId)
       return FAILURE_OBJ;
@@ -144,6 +146,8 @@ export default class OrderService {
       return failureHandler();
     }
 
+    console.log({approver})
+
     let updated = false;
     if (approver === Approver.WALLET) {
       if (!order.walletHasApproved) {
@@ -159,7 +163,8 @@ export default class OrderService {
       }
     }
     //TODO remove
-    order.warehouseHasApproved = true
+    // order.warehouseHasApproved=true
+    console.log({updated, order})
     if (updated) {
       try {
         if (order.walletHasApproved && order.warehouseHasApproved) {
@@ -203,8 +208,11 @@ export default class OrderService {
   ): Promise<OrderDTO | OrderCreationFailed> => {
     const { value: orderDTO } = message;
 
+    console.log({message});
+
     // preparing order object
     const transientOrder: Order | null = OrderUtility.buildOrder(orderDTO);
+    console.log({transientOrder});
     if (!transientOrder) return new OrderCreationFailed();
 
     try {
@@ -218,9 +226,12 @@ export default class OrderService {
         transientOrder
       );
 
+      console.log({persistedOrder})
+
       // Waiting for warehouse service and wallet service approvations.
       return new Promise<{ key: string; value: ApprovationDTO }>(
         (resolve, reject) => {
+          console.log('setting request store')
           const orderId = persistedOrder._id!; // the order id must be present after the create operation
           requestStore.set(orderId, resolve, reject);
         }
@@ -266,7 +277,7 @@ export default class OrderService {
           transactionId,
           orderDTO
         );
-      console.log('!!!!! wallet service responded: ', budgetAvailabilityResponse);
+      console.log('!!!!! wallet service responded: ', JSON.stringify(budgetAvailabilityResponse, null, 2));
       // return orderDTO;
       return this.approveOrder(budgetAvailabilityResponse);
     } catch (ex) {
@@ -276,6 +287,9 @@ export default class OrderService {
           (ex as FailurePayload).constructor.name
         })`
       );
+      if (ex instanceof ApplicationException) {
+        throw ex;
+      }
       return new OrderCreationFailed();
     }
   };
@@ -327,6 +341,11 @@ export default class OrderService {
       order.status = OrderStatusUtility.toOrderStatusName(newStatus);
       const updatedOrder = await this.orderRepository.save(order); // can throw
       const updatedOrderDTO = OrderUtility.toOrderDTO(updatedOrder);
+      console.log("scrivo su kafka")
+      await this.producerProxy.producer.produce({
+        topic: "order-status-updated",
+        messages: [{key: updatedOrder._id!.toString(), value: JSON.stringify(updatedOrderDTO)}],
+      });
       Logger.dev(
         NAMESPACE,
         "modifyOrderStatus(modifyOrderStatusRequestDTO: %v): %v",
