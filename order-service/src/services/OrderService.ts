@@ -28,6 +28,7 @@ import CancelOrderRequestDTO from "../dtos/CancelOrderRequestDTO";
 import OrderStatusUtility from "../utils/OrderStatusUtility";
 import ApproverUtility from "../utils/ApproverUtility";
 import Approver from "../domain/Approver";
+import { ApplicationException } from "../exceptions/kafka/communication/application/ApplicationException";
 
 const NAMESPACE = "ORDER_SERVICE";
 
@@ -286,6 +287,9 @@ export default class OrderService {
           (ex as FailurePayload).constructor.name
         })`
       );
+      if (ex instanceof ApplicationException) {
+        throw ex;
+      }
       return new OrderCreationFailed();
     }
   };
