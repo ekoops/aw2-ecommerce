@@ -5,6 +5,7 @@ import OrderController from "./controllers/OrderController";
 import ProducerProxy from "./kafka/ProducerProxy";
 import InternalServerErrorResponse from "./responses/InternalServerErrorResponse";
 import RouteNotFoundResponse from "./responses/RouteNotFoundResponse";
+import { ApplicationException } from "./exceptions/kafka/communication/application/ApplicationException";
 
 const getApp = async (
   rootPath: string,
@@ -46,7 +47,10 @@ const getApp = async (
 
   const internalServerErrorResponse = new InternalServerErrorResponse();
   const exceptionHandler: ErrorRequestHandler = (err, req, res, next) => {
-    res.status(500).json(internalServerErrorResponse);
+    if (err instanceof ApplicationException) {
+      res.status(406).json(err).end();
+    }
+    res.status(500).json(internalServerErrorResponse).end();
   };
 
   app.use(notFoundHandler, exceptionHandler);
