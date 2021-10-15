@@ -22,7 +22,7 @@ export default class MailService {
         const {key, value: userCreatedDTO} = message;
         const to = userCreatedDTO.email;
         const subject = "[AW2 Ecommerce] Please confirm your email address";
-        const text = `Hi ${userCreatedDTO.customerInfo.name},
+        const text = `Hi ${userCreatedDTO.name},
 please verify your email address by using the following link:
 http://localhost:8080/api/v1/auth/confirmRegistration?token=${userCreatedDTO.emailVerificationTokenInfo.token}
 `;
