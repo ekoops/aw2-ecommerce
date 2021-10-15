@@ -65,9 +65,9 @@ class UserController(
     @PatchMapping("/removeRole/{userId}")
     suspend fun removeRole(
         @RequestParam("role", required = true) role: String,
-        @PathVariable("userId") username: String
+        @PathVariable("userId") id: Long
     ) : Boolean =
-        userDetailsService.removeUserRole(username,role)
+        userDetailsService.removeUserRole(id,role)
 
 
     //@PreAuthorize("#userId == authentication.principal.id")

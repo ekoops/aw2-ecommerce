@@ -149,10 +149,10 @@ class ControllersAdvisor {
     )
 
     @ExceptionHandler(ResponseStatusException::class)
-    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun serviceUnavailableExceptionHandler(ex: ResponseStatusException): ErrorDetails = ErrorDetails(
-        type = ErrorType.SERVICE_UNAVAILABLE,
-        title = "Service temporary unavailable",
+        type = ErrorType.INVALID_FIELDS,
+        title = "Invalid fields",
         detail = ex.message
     )
 

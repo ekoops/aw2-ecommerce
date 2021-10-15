@@ -178,10 +178,10 @@ suspend fun verifyUser(token: String) {
         }
     }
 
-    suspend fun removeUserRole(username: String, role: String): Boolean {
+    suspend fun removeUserRole(id: Long, role: String): Boolean {
         try {
             val rolename = Rolename.valueOf(role)
-            val newUser = this.getUserByUsername(username).removeRolename(rolename) ?: return false
+            val newUser = this.getUserById(id).removeRolename(rolename) ?: return false
             try {
                 coroutineUserRepository.save(newUser)
                 return true
