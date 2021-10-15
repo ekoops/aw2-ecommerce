@@ -1,9 +1,3 @@
-export interface UserCreatedCustomerInfoDTO {
-  name: string;
-  surname: string;
-  deliveryAddress: string;
-}
-
 export interface UserCreatedEmailVerificationTokenInfoDTO {
   expirationDate: Date;
   token: string;
@@ -14,6 +8,9 @@ export interface UserCreatedDTO {
   username: string;
   email: string;
   roles: string[];
-  customerInfo: UserCreatedCustomerInfoDTO;
   emailVerificationTokenInfo: UserCreatedEmailVerificationTokenInfoDTO;
+  name: string;
+  surname: string;
+  deliveryAddress: string;
 }
+
