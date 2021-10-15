@@ -8,6 +8,8 @@ import io.jsonwebtoken.security.Keys
 import it.polito.ecommerce.catalogservice.domain.Rolename
 import it.polito.ecommerce.catalogservice.dto.UserDetailsDTO
 import it.polito.ecommerce.catalogservice.exceptions.security.BadAuthenticationException
+import it.polito.ecommerce.catalogservice.exceptions.security.InvalidTokenExcepion
+import it.polito.ecommerce.catalogservice.exceptions.user.emailverificationtoken.EmailVerificationTokenExpiredException
 import org.springframework.security.core.Authentication
 import java.time.Instant
 
@@ -48,9 +50,7 @@ class JwtUtils constructor(
 
         true
     } catch (e: Exception) {
-        //TODO : gestire meglio questa eccezione
-        e.printStackTrace()
-        false
+        throw InvalidTokenExcepion(authToken)
     }
 
     fun getDetailsFromJwtToken(authToken: String): UserDetailsDTO {
