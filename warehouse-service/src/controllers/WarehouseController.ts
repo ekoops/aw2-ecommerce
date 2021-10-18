@@ -201,8 +201,9 @@ export default class WarehouseController {
       });
       return;
     }
-    const warehouseWithProduct = (await this.productService.fillWarehouseProducts([warehouse]))[0];
-    res.json(warehouseWithProduct);
+    //@ts-ignore
+    warehouse.id = undefined;
+    res.json(warehouse);
   };
 
   deleteWarehouse = async (
