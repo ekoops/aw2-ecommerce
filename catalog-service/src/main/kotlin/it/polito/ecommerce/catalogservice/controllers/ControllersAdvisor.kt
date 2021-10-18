@@ -4,9 +4,7 @@ import it.polito.ecommerce.catalogservice.exceptions.*
 import it.polito.ecommerce.catalogservice.exceptions.internal.CreateUserInternalException
 import it.polito.ecommerce.catalogservice.exceptions.internal.VerifyUserInternalException
 import it.polito.ecommerce.catalogservice.exceptions.security.BadAuthenticationException
-import it.polito.ecommerce.catalogservice.exceptions.security.InvalidTokenExcepion
 import it.polito.ecommerce.catalogservice.exceptions.user.ActionNotPermittedException
-import it.polito.ecommerce.catalogservice.exceptions.user.emailverificationtoken.EmailVerificationTokenExpiredException
 import org.springframework.context.support.DefaultMessageSourceResolvable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -47,6 +45,7 @@ class ControllersAdvisor {
         detail = "The provided request body should follows the right DTO specification"
     )
 
+    //TODO: vedere se questa gestione delle eccezioni per la validazione dei campio dei DTO va bene e d in caso non vada bene provare a integrarla con quella di sotto
     @ExceptionHandler(WebExchangeBindException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun constraintViolationExceptionHandler2(ex: WebExchangeBindException): ResponseEntity<List<String?>> {
@@ -95,9 +94,7 @@ class ControllersAdvisor {
         )
     }
 
-    @ExceptionHandler(BadCredentialsException::class,
-        EmailVerificationTokenExpiredException::class,
-        InvalidTokenExcepion::class)
+    @ExceptionHandler(BadCredentialsException::class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     fun badCredentialsExceptionHandler(ex: BadCredentialsException) = ErrorDetails(
         type = ErrorType.BAD_CREDENTIALS,
@@ -129,10 +126,7 @@ class ControllersAdvisor {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     fun entityNotFoundExceptionHandler(ex: EntityNotFoundException): ErrorDetails = ErrorDetails(ex)
 
-    @ExceptionHandler(
-        CreateUserInternalException::class,
-        VerifyUserInternalException::class
-    )
+    @ExceptionHandler(CreateUserInternalException::class, VerifyUserInternalException::class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     fun internalExceptionHandler(ex: BasicApplicationException): ErrorDetails = ErrorDetails(ex)
 
@@ -149,10 +143,10 @@ class ControllersAdvisor {
     )
 
     @ExceptionHandler(ResponseStatusException::class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     fun serviceUnavailableExceptionHandler(ex: ResponseStatusException): ErrorDetails = ErrorDetails(
-        type = ErrorType.INVALID_FIELDS,
-        title = "Invalid fields",
+        type = ErrorType.SERVICE_UNAVAILABLE,
+        title = "Service temporary unavailable",
         detail = ex.message
     )
 

@@ -69,6 +69,10 @@ class UserController(
     ) : Boolean =
         userDetailsService.removeUserRole(id,role)
 
+/*
+    TODO: add method for handling name, surname, deliveryAddress updating. they should be accessible also from normal customer
+*/
+    //TODO: the user has to be able to modify only his info
 
     //@PreAuthorize("#userId == authentication.principal.id")
     @PatchMapping("/updateUserInfo/{userId}")
