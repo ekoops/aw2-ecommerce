@@ -2,7 +2,6 @@ import express from "express";
 import mongoose from "mongoose";
 import { PLACEHOLDER_IMG } from "../db/imgs";
 import { ProductDto } from "../domain/Product";
-import RouteNotFoundResponse from "../responses/RouteNotFoundResponse";
 import ProductService from "../services/ProductService";
 import WarehouseService from "../services/WarehouseService";
 
@@ -50,7 +49,10 @@ export default class ProductController {
   ) => {
     const productId = req.params["id"];
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      next(new RouteNotFoundResponse());
+      next({
+        code: 27,
+        error: 'The following id is not a valid id ' + productId
+      });
       return;
     }
 
@@ -58,7 +60,10 @@ export default class ProductController {
       _id: productId,
     });
     if (products.length === 0) {
-      next(new RouteNotFoundResponse());
+      next({
+        code: 24,
+        error: 'Cannot find the product with id ' + productId
+      });
       return;
     }
 
@@ -113,18 +118,31 @@ export default class ProductController {
     next: express.NextFunction
   ) => {
     const productId = req.params["id"];
-    const result = (
-      await this.productService.getPicture({ _id: productId })
-    )[0];
-
-    if (!result) {
-      next(new RouteNotFoundResponse());
+    try {
+      const result = (
+        await this.productService.getPicture({ _id: productId })
+      )[0];
+  
+      if (!result) {
+        next({
+          code: 21,
+          error: 'Cannot find the product with id ' + productId
+        });
+        return;
+      }
+  
+      console.log(result);
+      res.write(result.url);
+      res.end();
+    } catch (ex) {
+      console.log(ex);
+      next({
+        code: 30,
+        error: 'Cannot find the product with id ' + productId
+      });
       return;
     }
 
-    console.log(result);
-    res.write(result.url);
-    res.end();
   };
 
   getWarehousesByProductId = async (
@@ -149,7 +167,10 @@ export default class ProductController {
   ) => {
     const productId = req.params["id"];
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      next(new RouteNotFoundResponse());
+      next({
+        code: 23,
+        error: 'Cannot find the product with id ', productId
+      });
       return;
     }
 
@@ -169,7 +190,10 @@ export default class ProductController {
     const product: ProductDto = req.body;
     let result;
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      next(new RouteNotFoundResponse());
+      next({
+        code: 24,
+        error: 'The following id is not a valid id ' + productId
+      });
       return;
     }
 
@@ -197,7 +221,10 @@ export default class ProductController {
     let product: ProductDto = req.body;
     let result;
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      next(new RouteNotFoundResponse());
+      next({
+        code: 25,
+        error: 'The following id is not a valid id: ' + productId
+      });
       return;
     }
 
@@ -205,7 +232,10 @@ export default class ProductController {
       await this.productService.findProducts({ _id: productId })
     )[0];
     if (!oldProduct) {
-      next(new RouteNotFoundResponse());
+      next({
+        code: 24,
+        error: 'Cannot find the product with id ' + productId
+      });
       return;
     }
     result = await this.productService.deleteProduct({ _id: productId });
