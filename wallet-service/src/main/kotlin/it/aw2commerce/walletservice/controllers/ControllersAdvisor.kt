@@ -85,6 +85,7 @@ class ControllersAdvisor {
         )
     }
 
+
 //    @ExceptionHandler(DisabledException::class, LockedException::class, ActionNotPermittedException::class)
 //    @ResponseStatus(HttpStatus.FORBIDDEN)
 //    fun forbiddenExceptionHandler(ex: Exception): ErrorDetails = when (ex) {

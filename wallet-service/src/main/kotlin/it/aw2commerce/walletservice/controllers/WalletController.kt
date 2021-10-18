@@ -53,7 +53,7 @@ class WalletController(
 
 
 
-    @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
+    @PreAuthorize("hasAuthority('ADMIN') or @walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
     @GetMapping("/{walletId}/transactions")
     @ResponseStatus(HttpStatus.OK)
     fun getTransactionsInDateRange(
@@ -100,7 +100,7 @@ class WalletController(
     }
 
 
-    @PreAuthorize("@walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
+    @PreAuthorize("hasAuthority('ADMIN') or @walletController.walletService.getCustomerIdFromWalletId(#walletId) == authentication.principal.id")
     @GetMapping("/{walletId}/transactions/{transactionId}")
     @ResponseStatus(HttpStatus.OK)
     fun getTransaction(

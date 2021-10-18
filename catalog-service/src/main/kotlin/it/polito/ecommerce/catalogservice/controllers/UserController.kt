@@ -58,16 +58,16 @@ class UserController(
     @PatchMapping("/addRole/{userId}")
     suspend fun addRole(
         @RequestParam("role", required = true) role: String,
-        @PathVariable("userId") username: String
+        @PathVariable("userId") id: Long
     ) : Boolean =
-        userDetailsService.addUserRole(username,role)
+        userDetailsService.addUserRole(id,role)
 
     @PatchMapping("/removeRole/{userId}")
     suspend fun removeRole(
         @RequestParam("role", required = true) role: String,
-        @PathVariable("userId") username: String
+        @PathVariable("userId") id: Long
     ) : Boolean =
-        userDetailsService.removeUserRole(username,role)
+        userDetailsService.removeUserRole(id,role)
 
 /*
     TODO: add method for handling name, surname, deliveryAddress updating. they should be accessible also from normal customer
