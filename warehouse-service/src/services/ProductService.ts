@@ -89,9 +89,9 @@ export default class ProductService {
         console.log(typeof p._id);
         console.log(typeof product.productId);
         //@ts-ignore
-        console.log('returning ', p._id === product.productId);
+        console.log('returning ', p._id.toString() === product.productId.toString());
         //@ts-ignore
-        return p._id === product.productId
+        return p._id.toString() === product.productId.toString();
       });
       console.log('got ', p);
       if (p === undefined) {
