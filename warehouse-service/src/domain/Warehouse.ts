@@ -37,6 +37,8 @@ export class WarehouseRequestDto {
 const schemaOptions = {
   toJSON: { virtuals: true },
   toObject: { virtuals: true },
+  versionKey: false,
+  id: false
 };
 
 const warehouseSchemaObj = {

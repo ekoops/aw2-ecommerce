@@ -67,7 +67,7 @@ const orderSchema = new mongoose.Schema<Order>(
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true, versionKey: false, id: false }
 );
 
 export const OrderModel = mongoose.model<Order>("Order", orderSchema, "orders");

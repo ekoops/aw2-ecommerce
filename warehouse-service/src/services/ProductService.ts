@@ -84,14 +84,14 @@ export default class ProductService {
 
       const p: Product | undefined = result.find(p => {
         //@ts-ignore
-        console.log("comparing ", p.id, " and ", product.productId);
+        console.log("comparing ", p._id, " and ", product.productId);
         //@ts-ignore
-        console.log(typeof p.id);
+        console.log(typeof p._id);
         console.log(typeof product.productId);
         //@ts-ignore
-        console.log('returning ', p.id === product.productId);
+        console.log('returning ', p._id === product.productId);
         //@ts-ignore
-        return p.id === product.productId
+        return p._id === product.productId
       });
       console.log('got ', p);
       if (p === undefined) {

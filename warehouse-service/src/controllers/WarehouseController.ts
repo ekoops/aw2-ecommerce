@@ -1,7 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
 import { WarehouseRequestDto } from "../domain/Warehouse";
-import RouteNotFoundResponse from "../responses/RouteNotFoundResponse";
 import ProductService from "../services/ProductService";
 import WarehouseService from "../services/WarehouseService";
 
@@ -71,8 +70,7 @@ export default class WarehouseController {
       warehouseRequest,
     ]);
     console.log("insertWarehouse, ", result);
-    //@ts-ignore
-    delete result.id; 
+    result.forEach(r => r.id = undefined)
     res.json(result);
   };
 
@@ -111,8 +109,7 @@ export default class WarehouseController {
     try {
       await this.warehouseService.deleteWarehouse(warehouseId);
       const result = await this.warehouseService.insertWarehouses([newWarehouse]);
-      //@ts-ignore
-      delete result.id; 
+      result.forEach(r => r.id = undefined)
       res.json(result);  
     } catch (ex) {
       console.log(ex);
@@ -132,8 +129,6 @@ export default class WarehouseController {
     const warehouseId = req.params["warehouseId"];
     const result = await this.warehouseService.deleteWarehouse(warehouseId);
     console.log({deletionResult: result});
-    //@ts-ignore
-    delete result.id; 
     res.status(204).end();
   }
 
@@ -179,7 +174,7 @@ export default class WarehouseController {
       await this.warehouseService.deleteWarehouse(warehouseId);
       const result = await this.warehouseService.insertWarehouses([newWarehouse]);
       //@ts-ignore
-      delete result.id; 
+      result.id = undefined; 
       res.json(result);  
     } catch (ex) {
       console.log(ex);
@@ -200,11 +195,14 @@ export default class WarehouseController {
       await this.warehouseService.findWarehouses({ _id: warehouseId })
     )[0];
     if (!warehouse) {
-      next(new RouteNotFoundResponse());
+      next({
+        error: 'Cannot find the warehouse with id ' + warehouseId,
+        code: 33
+      });
       return;
     }
     //@ts-ignore
-    delete warehouse.id;
+    warehouse.id = undefined;
     res.json(warehouse);
   };
 
@@ -213,11 +211,19 @@ export default class WarehouseController {
     res: express.Response,
     next: express.NextFunction
   ) => {
-    const warehouseId = req.params["warehouseId"]; // TODO: check if id exists
-    const result = await this.warehouseService.deleteWarehouse(warehouseId);
-    //@ts-ignore
-    delete result.id;
-    res.json(result);
+    const warehouseId = req.params["warehouseId"];
+    try {
+      const result = await this.warehouseService.deleteWarehouse(warehouseId);
+      res.json(result);
+    } catch (ex) {
+      console.log(ex);
+      res.json({
+        code: 34,
+        error: 'Cannot delete the warehouse with id ' + warehouseId
+      });
+      return;
+    }
+
   };
 
   getWarehouses = async (
@@ -228,9 +234,9 @@ export default class WarehouseController {
     const warehouses = await this.warehouseService.findWarehouses({});
     console.log('warehouses: ', warehouses);
     const warehousesWithProducts = await this.productService.fillWarehouseProducts(warehouses);
-    warehouses.forEach(w => {
+    warehousesWithProducts.forEach(w => {
       //@ts-ignore
-      delete w.id;
+      w.id = undefined;
     });
     res.json(warehousesWithProducts);
   };
