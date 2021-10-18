@@ -35,7 +35,7 @@ export const orderItemSchema = new mongoose.Schema<OrderItem>(
       default: [],
     },
   },
-  { _id: false, versionKey: false }
+  { _id: false, versionKey: false, id: false }
 );
 
 export const OrderItemModel = mongoose.model<OrderItem>("OrderItem", orderItemSchema);
