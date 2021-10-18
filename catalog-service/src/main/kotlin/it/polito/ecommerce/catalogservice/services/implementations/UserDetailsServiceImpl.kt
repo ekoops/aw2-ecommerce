@@ -104,6 +104,7 @@ class UserDetailsServiceImpl(
             when (ex) {
                 is UsernameNotFoundException, is MailException -> throw CreateUserInternalException.from(ex)
                 is KafkaException -> {
+                    // TODO
                     println(ex.message)
                 }
                 else -> throw ex
