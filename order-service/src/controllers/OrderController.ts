@@ -7,7 +7,7 @@ import {OrderItemDTO} from "../domain/OrderItem";
 import {OrderDTO} from "../domain/Order";
 import {OrderAlreadyCancelledException, OrderNotFoundException,} from "../exceptions/services/OrderServiceException";
 import OrderNotFoundResponse from "../responses/OrderNotFoundResponse";
-import OrderCancellationNotAllowedResponse from "../responses/OrderCancellationNotAllowedResponse";
+import OrderDeletionNotAllowedResponse from "../responses/OrderDeletionNotAllowedResponse";
 import User, {UserRole} from "../domain/User";
 import GetOrdersRequestDTO from "../dtos/GetOrdersRequestDTO";
 import GetOrderRequestDTO from "../dtos/GetOrderRequestDTO";
@@ -21,6 +21,8 @@ import OrderCreationNotAllowedResponse from "../responses/OrderCreationNotAllowe
 import OrderCreationFailed from "../domain/OrderCreationFailed";
 import InternalServerErrorResponse from "../responses/InternalServerErrorResponse";
 import { ApplicationException } from "../exceptions/kafka/communication/application/ApplicationException";
+import {CannotProduceException} from "../exceptions/kafka/communication/ProducerException";
+import BadRequestResponse from "../responses/BadRequestResponse";
 
 const NAMESPACE = "ORDER_CONTROLLER";
 
@@ -110,8 +112,9 @@ export default class OrderController {
       req.body.status
     );
     if (newStatus === undefined) {
-      Logger.error(NAMESPACE, "patchOrder(): bad status %v", newStatus);
-      return res.status(400).json({ reason: `bad status ${newStatus}` });
+      Logger.error(NAMESPACE, `patchOrder(): bad new status ${newStatus}`);
+      res.status(400).json(new BadRequestResponse(`bad new status value ${newStatus}`));
+      return;
     }
 
     const modifyOrderStatusRequestDTO: ModifyOrderStatusRequestDTO = {
@@ -130,7 +133,7 @@ export default class OrderController {
       } else if (ex instanceof OrderNotFoundException) {
         res.status(404).json(new OrderNotFoundResponse(orderId));
       } else if (ex instanceof NotAllowedException) {
-        res.status(403).end(new OrderStatusChangeNotAllowedResponse(orderId, newStatus));
+        res.status(403).json(new OrderStatusChangeNotAllowedResponse(orderId, newStatus));
       } else {
         // a different type of exception from the previous ones can be throw only during
         // db communication, so by invoking next(ex), a 500 internal server error is returned
@@ -151,9 +154,10 @@ export default class OrderController {
       res.status(204).end();
     } catch (ex) {
       if (ex instanceof NotAllowedException) {
-        res.status(403).json({
-          error: "Cannot delete this order"
-        }).end();
+        res.status(403).json(new OrderDeletionNotAllowedResponse(orderId))
+        // res.status(403).json({
+        //   error: "Cannot delete this order"
+        // });
       } else {
         // a different type of exception from the previous one can be throw only during
         // db communication, so by invoking next(ex), a 500 internal server error is returned

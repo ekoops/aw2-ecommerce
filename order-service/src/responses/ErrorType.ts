@@ -7,7 +7,7 @@ export enum ErrorType {
     UNAUTHORIZED,
     ORDER_CREATION_FAILED,
     ORDER_STATUS_CHANGE_FAILED,
-    ORDER_CANCELLATION_FAILED
+    ORDER_DELETION_FAILED
 }
 
 export default ErrorType

@@ -24,7 +24,7 @@ import { UserRole } from "../domain/User";
 import GetOrderRequestDTO from "../dtos/GetOrderRequestDTO";
 import CreateOrderRequestDTO from "../dtos/CreateOrderRequestDTO";
 import ModifyOrderStatusRequestDTO from "../dtos/ModifyOrderStatusRequestDTO";
-import CancelOrderRequestDTO from "../dtos/CancelOrderRequestDTO";
+import DeleteOrderRequestDTO from "../dtos/CancelOrderRequestDTO";
 import OrderStatusUtility from "../utils/OrderStatusUtility";
 import ApproverUtility from "../utils/ApproverUtility";
 import Approver from "../domain/Approver";
@@ -313,7 +313,7 @@ export default class OrderService {
   ): Promise<OrderDTO> => {
     Logger.dev(
       NAMESPACE,
-      "request for service: modifyOrderStatus(modifyOrderStatusRequestDTO: %v...",
+      "request for service: modifyOrderStatus(modifyOrderStatusRequestDTO: %v)...",
       modifyOrderStatusRequestDTO
     );
 
@@ -341,11 +341,20 @@ export default class OrderService {
       order.status = OrderStatusUtility.toOrderStatusName(newStatus);
       const updatedOrder = await this.orderRepository.save(order); // can throw
       const updatedOrderDTO = OrderUtility.toOrderDTO(updatedOrder);
-      console.log("scrivo su kafka")
-      await this.producerProxy.producer.produce({
-        topic: "order-status-updated",
-        messages: [{key: updatedOrder._id!.toString(), value: JSON.stringify(updatedOrderDTO)}],
-      });
+      try {
+        await this.producerProxy.producer.produce({
+          topic: "order-status-updated",
+          messages: [{key: updatedOrder._id!.toString(), value: JSON.stringify(updatedOrderDTO)}],
+        });
+      }
+      catch (ex) {
+        Logger.error(
+            NAMESPACE,
+            "modifyOrderStatus(modifyOrderStatusRequestDTO: %v): failed to produce on kafka topic",
+            modifyOrderStatusRequestDTO,
+        );
+        return updatedOrderDTO;
+      }
       Logger.dev(
         NAMESPACE,
         "modifyOrderStatus(modifyOrderStatusRequestDTO: %v): %v",
@@ -356,7 +365,7 @@ export default class OrderService {
     } else {
       Logger.dev(
         NAMESPACE,
-        "modifyOrderStatus(patchOrderRequestDTO: %v): not allowed",
+        "modifyOrderStatus(modifyOrderStatusRequestDTO: %v): not allowed",
         modifyOrderStatusRequestDTO
       );
       throw new NotAllowedException();
@@ -364,11 +373,11 @@ export default class OrderService {
   };
 
   deleteOrder = async (
-    deleteOrderRequestDTO: CancelOrderRequestDTO
+    deleteOrderRequestDTO: DeleteOrderRequestDTO
   ): Promise<void> => {
     Logger.dev(
       NAMESPACE,
-      "request for service: deleteOrder(deleteOrderRequestDTO: %v...",
+      "request for service: deleteOrder(deleteOrderRequestDTO: %v)...",
       deleteOrderRequestDTO
     );
 
@@ -392,8 +401,6 @@ export default class OrderService {
     const orderStatus = OrderStatusUtility.toOrderStatus(order.status)!;
 
     if (orderStatus !== OrderStatus.ISSUED) {
-      console.log("AAAAAAA IF")
-      console.log(orderStatus)
       Logger.dev(
         NAMESPACE,
         "deleteOrder(deleteOrderRequestDTO: %v): not allowed",
@@ -401,7 +408,11 @@ export default class OrderService {
       );
       throw new NotAllowedException();
     }
-    console.log("AAAAAAA CHIAMOOOOOO")
     await this.orderRepository.deleteOrderById(order._id!);
+    Logger.dev(
+        NAMESPACE,
+        "deleteOrder(deleteOrderRequestDTO: %v): deleted",
+        deleteOrderRequestDTO
+    );
   };
 }

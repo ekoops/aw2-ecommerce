@@ -49,9 +49,9 @@ const getApp = async (
     const exceptionHandler: ErrorRequestHandler = (err, req, res, next) => {
         console.log(err)
         if (err instanceof ApplicationException) {
-            res.status(406).json(err).end();
+            res.status(406).json(err);
         }
-        res.status(500).json(internalServerErrorResponse).end();
+        res.status(500).json(internalServerErrorResponse);
     };
 
     app.use(notFoundHandler, exceptionHandler);

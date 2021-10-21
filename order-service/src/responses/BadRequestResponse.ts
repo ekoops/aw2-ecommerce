@@ -7,6 +7,6 @@ export default class BadRequestResponse extends ErrorResponse {
         errorType: ErrorType = ErrorType.INVALID_REQUEST,
         title: string = "the request is invalid",
     ) {
-        super( errorType, title, detail);
+        super(errorType, title, detail);
     }
 }
