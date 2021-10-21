@@ -22,6 +22,7 @@ services:
       - order-db-rs0-1
       - order-db-rs0-2
       - order-db-rs0-3
+      - order-svc-cleaner
       - discovery-svc
 
   order-svc-cleaner:

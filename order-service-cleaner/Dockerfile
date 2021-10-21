@@ -13,5 +13,5 @@ USER app
 
 EXPOSE 3000
 
-ENTRYPOINT [ "node", "server.js" ]
+ENTRYPOINT [ "node", "main.js" ]
 #ENTRYPOINT ["/bin/bash"]

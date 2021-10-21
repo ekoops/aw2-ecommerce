@@ -18,6 +18,7 @@ services:
       - warehouse-db-rs0-1
       - warehouse-db-rs0-2
       - warehouse-db-rs0-3
+      - warehouse-svc-cleaner
       - kafka
 
   warehouse-svc-cleaner:

@@ -17,7 +17,6 @@ const deleteForgottenPendingOrders = async () => {
     catch (ex) {
         // @ts-ignore
         Logger.error(NAMESPACE, `failed to delete pending orders: ${ex.toString()}`);
-        // TODO: probably nothing to do...
     }
 
     const endProcess = Date.now();
