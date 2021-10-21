@@ -12,7 +12,7 @@ const getRouter = (productController: ProductController) => {
     router.use((req, res, next) => {
         const role = res.locals.user.role;
         const isAdmin = role === UserRole.ADMIN;
-        if (!isAdmin && req.method !== 'GET') {
+        if (!isAdmin && req.method !== 'GET' && req.method !== 'PATCH') {
             next({
                 code: 18,
                 message: 'Reserved to admin'
