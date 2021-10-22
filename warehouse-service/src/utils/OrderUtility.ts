@@ -40,6 +40,7 @@ const buildOrder = (orderDTO: OrderDTO): Order | null => {
 // assign sources to order items and return a boolean indicating if they have been assigned correctly
 const assignSources = (order: Order, orderDTO: OrderDTO): boolean => {
   const itemsDTO = orderDTO.items;
+  if (!itemsDTO) return false;
   let isValidAssignment = true;
   order.items.forEach((item) => {
     const itemDTO = itemsDTO.find(

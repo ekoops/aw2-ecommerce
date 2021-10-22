@@ -53,14 +53,14 @@ const run = async () => {
   const { rootPath } = config.server.api;
   const webServerPort = config.server.port;
 
-  const app = await getApp(rootPath, orderController, producerProxy);
+  const app = await getApp(rootPath, orderController);
   app.listen(webServerPort, async () => {
     Logger.log(NAMESPACE, `Server is listening on port ${webServerPort}`);
     EurekaClient.start((err: Error) => {
       if (err) {
         Logger.error(
           NAMESPACE,
-          "cannot establish a connection to the discovery service: _}",
+          "cannot establish a connection to the discovery service: $v",
           err
         );
         process.exit(7);
@@ -106,6 +106,6 @@ run().catch((ex) => {
   }
 
   // TODO complete exception handling
-  Logger.error(NAMESPACE, "generic error: _", ex);
+  Logger.error(NAMESPACE, "generic error: %v", ex);
   process.exit(255);
 });

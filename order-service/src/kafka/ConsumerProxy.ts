@@ -16,9 +16,9 @@ export default class ConsumerProxy {
       // so it is safe to extract them
       const [resolve, reject] = requestStore.get(key)!;
       if (!resolve || !reject) return;
-      console.log('got resolve and reject: ', typeof resolve)
-      if (value === undefined || value === "")
+      if (value === undefined || value === "") {
         return reject(new NoValueException(key));
+      }
 
       let obj;
       try {
@@ -26,24 +26,14 @@ export default class ConsumerProxy {
       } catch (ex) {
         return reject(new ValueParsingFailedException(key));
       }
-      if ("failure" in obj) {
-        return reject(exceptionBuilder(key, obj.failure));
-      } else if ("ok" in obj) {
+      if (obj["failure"]) {
+        return reject(exceptionBuilder(key));
+      } else if (obj["ok"]) {
         return resolve({ key, value: obj.ok as SuccessResponseType });
       }
       return reject(new ValueParsingFailedException(key));
     };
 
-    return this.consumer.consume(async (key: string, value: string|undefined) => {
-      console.log('!!!! received response on topic: ', key);
-      console.log('The value is: ', value);
-      const contains = requestStore.contains(key);
-      console.log('contains is: ', contains);
-      if (!contains) {
-        console.log('Exiting')
-        return;
-      }
-      consumerFn(key, value);
-    }) //, filterFn);
+    return this.consumer.consume(consumerFn, filterFn);
   }
 }

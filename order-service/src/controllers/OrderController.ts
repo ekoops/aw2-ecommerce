@@ -5,7 +5,7 @@ import Logger from "../utils/Logger";
 import {NotAllowedException, UnauthorizedException,} from "../exceptions/AuthException";
 import {OrderItemDTO} from "../domain/OrderItem";
 import {OrderDTO} from "../domain/Order";
-import {OrderAlreadyCancelledException, OrderNotFoundException,} from "../exceptions/services/OrderServiceException";
+import {OrderNotFoundException} from "../exceptions/services/OrderServiceException";
 import OrderNotFoundResponse from "../responses/OrderNotFoundResponse";
 import OrderDeletionNotAllowedResponse from "../responses/OrderDeletionNotAllowedResponse";
 import User, {UserRole} from "../domain/User";
@@ -21,8 +21,8 @@ import OrderCreationNotAllowedResponse from "../responses/OrderCreationNotAllowe
 import OrderCreationFailed from "../domain/OrderCreationFailed";
 import InternalServerErrorResponse from "../responses/InternalServerErrorResponse";
 import { ApplicationException } from "../exceptions/kafka/communication/application/ApplicationException";
-import {CannotProduceException} from "../exceptions/kafka/communication/ProducerException";
 import BadRequestResponse from "../responses/BadRequestResponse";
+import OrderCreationFailedResponse from "../responses/OrderCreationFailedResponse";
 
 const NAMESPACE = "ORDER_CONTROLLER";
 
@@ -70,7 +70,6 @@ export default class OrderController {
 
   postOrder = async (req: Request, res: Response, next: NextFunction) => {
     const user: User = res.locals.user;
-    console.log('Got user: ', user);
 
     if (user.role !== UserRole.CUSTOMER) {
       return res.status(403).json(new OrderCreationNotAllowedResponse());
@@ -91,17 +90,16 @@ export default class OrderController {
       const result = await this.orderService.createOrder(
         orderDTO as CreateOrderRequestDTO
       );
-      if (result instanceof ApplicationException) {
-        res.status(406).json(result).end();
+      if (result instanceof OrderCreationFailed) {
+        res.status(500).json(new InternalServerErrorResponse());
+      }
+      else res.status(201).json(result);
+    } catch (ex) {
+      if (ex instanceof ApplicationException) {
+        res.status(406).json(new OrderCreationFailedResponse(ex.message));
         return;
       }
-      console.log("@0@0@0 received response and sending to client: ", orderDTO)
-      if (result instanceof OrderCreationFailed) {
-        res.status(500).json(new InternalServerErrorResponse()).end();
-      }
-      else res.status(201).json(result).end();
-    } catch (ex) {
-      next(ex);
+      else next(ex);
     }
   };
 

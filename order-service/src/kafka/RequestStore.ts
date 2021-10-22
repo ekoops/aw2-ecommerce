@@ -34,9 +34,7 @@ export default class RequestStore {
   };
 
   get = (key: string): [SuccessHandler, FailureHandler] | [null, null] => {
-    console.log('Received response with key', key);
     const handlers = this.requests[key];
-    console.log('handlers is ', handlers);
     if (!handlers) return [null, null];
     const [resolve, reject, timerId] = handlers;
     clearTimeout(timerId);

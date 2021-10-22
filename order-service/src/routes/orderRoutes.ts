@@ -19,24 +19,16 @@ const getRouter = (orderController: OrderController) => {
 
   router.post(
     "/",
-    (req, res, next) => {
-      // res.json({
-      //   "hello": "world"
-      // });
-      console.log('User is: ', res.locals?.user);
-      // res.end();
-      next()
-    },
-    // validators.postOrder, // TODO: perché da 500 al posto del messaggio errore?
-    // checkErrors,
+    validators.postOrder,
+    checkErrors,
     orderController.postOrder
   );
 
   //todo fix validator
   router.patch(
     "/:id",
-    // validators.patchOrder,
-    // checkErrors,
+    validators.patchOrder,
+    checkErrors,
     orderController.patchOrder
   );
 

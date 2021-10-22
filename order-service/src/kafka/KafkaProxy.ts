@@ -146,7 +146,7 @@ export default class KafkaProxy {
     try {
       Logger.dev(
         NAMESPACE,
-        "creating consumer... trying to subscript to the topics %v",
+        "creating consumer... trying to subscript to topics %v",
         topics
       );
       await Promise.all(subscriptionsPromises);
@@ -170,10 +170,11 @@ export default class KafkaProxy {
         ) => {
           return consumer.run({
             eachMessage: async (payload) => {
+              const topic = payload.topic;
               const key = payload.message.key.toString();
               if (filter !== undefined && !filter(key)) return;
               const value = payload.message.value?.toString();
-              Logger.dev(NAMESPACE, "consumed: {key: %v, value: %v", key, value);
+              Logger.dev(NAMESPACE, `consumed: {topic: ${topic}, key: %v, value: %v}`, key, value);
               await callback(key, value);
             },
           });

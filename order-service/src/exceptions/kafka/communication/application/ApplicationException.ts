@@ -7,22 +7,22 @@ export class ApplicationException extends CommunicationException {
 }
 
 export class ItemsNotAvailableException extends ApplicationException {
-  static fromJson(transactionId: string, message: string) {
-    return new ItemsNotAvailableException(transactionId, message);
+  static fromJson(transactionId: string) {
+    return new ItemsNotAvailableException(transactionId, "the items quantity requested is not available");
   }
 }
 export class NotEnoughBudgetException extends ApplicationException {
-  static fromJson(transactionId: string, message: string) {
-    return new NotEnoughBudgetException(transactionId, message);
+  static fromJson(transactionId: string) {
+    return new NotEnoughBudgetException(transactionId, "you don't have enough money");
   }
 }
 export class WalletOrderCreationFailedException extends ApplicationException {
-  static fromJson(transactionId: string, message: string) {
-    return new WalletOrderCreationFailedException(transactionId, message);
+  static fromJson(transactionId: string) {
+    return new WalletOrderCreationFailedException(transactionId, "wallet cannot remove money");
   }
 }
 export class WarehouseOrderCreationFailedException extends ApplicationException {
-  static fromJson(transactionId: string, message: string) {
-    return new WarehouseOrderCreationFailedException(transactionId, message);
+  static fromJson(transactionId: string) {
+    return new WarehouseOrderCreationFailedException(transactionId, "warehouse cannot remove items");
   }
 }

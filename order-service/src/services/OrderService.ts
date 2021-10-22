@@ -14,9 +14,7 @@ import {
   NotAllowedException,
   UnauthorizedException,
 } from "../exceptions/AuthException";
-import {
-  OrderNotFoundException,
-} from "../exceptions/services/OrderServiceException";
+import { OrderNotFoundException } from "../exceptions/services/OrderServiceException";
 import OrderUtility from "../utils/OrderUtility";
 import { CommunicationException } from "../exceptions/kafka/communication/CommunicationException";
 import GetOrdersRequestDTO from "../dtos/GetOrdersRequestDTO";
@@ -28,7 +26,6 @@ import DeleteOrderRequestDTO from "../dtos/CancelOrderRequestDTO";
 import OrderStatusUtility from "../utils/OrderStatusUtility";
 import ApproverUtility from "../utils/ApproverUtility";
 import Approver from "../domain/Approver";
-import { ApplicationException } from "../exceptions/kafka/communication/application/ApplicationException";
 
 const NAMESPACE = "ORDER_SERVICE";
 
@@ -113,21 +110,11 @@ export default class OrderService {
     value: ApprovationDTO;
   }): Promise<OrderDTO | OrderCreationFailed> => {
     const {
-      key: transactionId,
+      key: orderId,
       value: { approverName, orderDTO },
     } = message;
-    console.log({message})
     const FAILURE_OBJ = new OrderCreationFailed();
 
-    // the orderDTO's id must be present and it has to be equal to
-    // the transactionId. In case of mismatch, it is not safe to trying to
-    // delete an order with id === transactionId or id === orderDTO.id, so
-    // I simply return FAILURE_OBJ
-    console.log({transactionId})
-    orderDTO.id = transactionId
-    if (orderDTO.id === undefined || orderDTO.id !== transactionId)
-      return FAILURE_OBJ;
-    const orderId = orderDTO.id;
     // preparing a failureHandler that can be used in case of error
     const failureHandler = this.handleApproveOrderFailure.bind(
       this,
@@ -136,17 +123,35 @@ export default class OrderService {
 
     // obtaining approver info
     const approver = ApproverUtility.toApprover(approverName);
-    if (approver === undefined) return failureHandler();
+    if (approver === undefined) {
+      Logger.error(
+        NAMESPACE,
+        "handleApprovation(message: %v): the approverName is not valid",
+        message
+      );
+      return failureHandler();
+    }
+
     // getting order
     let order: Order | null = null;
     try {
       order = await this.orderRepository.findOrderById(orderId);
-      if (order === null) return FAILURE_OBJ;
+      if (order === null) {
+        Logger.dev(
+          NAMESPACE,
+          "handleApprovation(message: %v): the key (transaction id) does not correspond to an existent order id",
+          message
+        );
+        return FAILURE_OBJ;
+      }
     } catch (ex) {
+      Logger.dev(
+        NAMESPACE,
+        "handleApprovation(message: %v): failed to retrieve the order",
+        message
+      );
       return failureHandler();
     }
-
-    console.log({approver})
 
     let updated = false;
     if (approver === Approver.WALLET) {
@@ -162,9 +167,7 @@ export default class OrderService {
         if (!areAssigned) return failureHandler();
       }
     }
-    //TODO remove
-    // order.warehouseHasApproved=true
-    console.log({updated, order})
+
     if (updated) {
       try {
         if (order.walletHasApproved && order.warehouseHasApproved) {
@@ -173,10 +176,24 @@ export default class OrderService {
           );
           const issuedOrder = await this.orderRepository.save(order);
           // ORDER CREATED SUCCESSFULLY
+          Logger.dev(
+            NAMESPACE,
+            `order(${orderId}) issued successfully: %v`,
+            issuedOrder
+          );
           return OrderUtility.toOrderDTO(issuedOrder);
         }
         await this.orderRepository.save(order);
+        Logger.dev(
+          NAMESPACE,
+          `order(${orderId}) approved successfully by ${approverName}. Waiting for next approvation...`
+        );
       } catch (ex) {
+        Logger.error(
+          NAMESPACE,
+          "handleApprovation(message: %v): failed to persist approvation",
+          message
+        );
         return failureHandler();
       }
     }
@@ -198,7 +215,9 @@ export default class OrderService {
     );
     // trying to delete order. It doesn't matter if it is not possible
     // to delete the order since the job will be done by the cleaner
-    this.orderRepository.deleteOrderById(err.transactionId).catch((() => {/* doing nothing... */}));
+    this.orderRepository.deleteOrderById(err.transactionId).catch(() => {
+      /* doing nothing... */
+    });
 
     return new OrderCreationFailed();
   };
@@ -208,12 +227,16 @@ export default class OrderService {
   ): Promise<OrderDTO | OrderCreationFailed> => {
     const { value: orderDTO } = message;
 
-    console.log({message});
-
     // preparing order object
     const transientOrder: Order | null = OrderUtility.buildOrder(orderDTO);
-    console.log({transientOrder});
-    if (!transientOrder) return new OrderCreationFailed();
+    if (!transientOrder) {
+      Logger.error(
+        NAMESPACE,
+        "approveOrder(message: %v): orderDTO not well formatted... aborting.",
+        message
+      );
+      return new OrderCreationFailed();
+    }
 
     try {
       // persisting order object
@@ -226,12 +249,11 @@ export default class OrderService {
         transientOrder
       );
 
-      console.log({persistedOrder})
+      Logger.log(NAMESPACE, "pending order created: %v", persistedOrder);
 
       // Waiting for warehouse service and wallet service approvations.
       return new Promise<{ key: string; value: ApprovationDTO }>(
         (resolve, reject) => {
-          console.log('setting request store')
           const orderId = persistedOrder._id!; // the order id must be present after the create operation
           requestStore.set(orderId, resolve, reject);
         }
@@ -251,47 +273,57 @@ export default class OrderService {
   createOrder = async (
     createOrderRequestDTO: CreateOrderRequestDTO
   ): Promise<OrderDTO | OrderCreationFailed> => {
-    const transactionId: string = generateUUID();
-    try {
-      // checking items availability. The response is an orderDTO
-      // containing price for each product in the order.
-      const itemsAvailabilityResponse =
-        await this.producerProxy.produceAndWaitResponse<OrderDTO>(
-          "order-items-availability-requested",
-          transactionId,
-          createOrderRequestDTO
-        );
-      console.log("@!!!@@@@", itemsAvailabilityResponse)
-      const orderDTO = itemsAvailabilityResponse.value;
-      // checking if there is some item without an associated price
-      const arePricesMissing = orderDTO.items.some(
-        (item) => item.perItemPrice === undefined
-      );
-      if (arePricesMissing) return new OrderCreationFailed();
+    Logger.dev(
+      NAMESPACE,
+      "request for service: createOrder(createOrderRequestDTO: %v)...",
+      createOrderRequestDTO
+    );
 
-      // // checking buyer budget availability. The response must have
-      // // key = transactionId and value = orderDTO without any modification.
-      const budgetAvailabilityResponse =
-        await this.producerProxy.produceAndWaitResponse<OrderDTO>(
-          "budget-availability-requested",
-          transactionId,
-          orderDTO
-        );
-      console.log('!!!!! wallet service responded: ', JSON.stringify(budgetAvailabilityResponse, null, 2));
-      // return orderDTO;
-      return this.approveOrder(budgetAvailabilityResponse);
-    } catch (ex) {
-      Logger.dev(
-        NAMESPACE,
-        `createOrder(response error: ${
-          (ex as FailurePayload).constructor.name
-        })`
+    const transactionId: string = generateUUID();
+
+    // checking items availability. The response is an orderDTO
+    // containing price for each product in the order.
+    const itemsAvailabilityResponse =
+      await this.producerProxy.produceAndWaitResponse<OrderDTO>(
+        "order-items-availability-requested",
+        transactionId,
+        createOrderRequestDTO
       );
-      if (ex instanceof ApplicationException) {
-        throw ex;
-      }
+
+    const orderDTO = itemsAvailabilityResponse.value;
+    // checking if there is some item without an associated price
+    const arePricesMissing = orderDTO.items.some(
+      (item) => item.perItemPrice === undefined
+    );
+    if (arePricesMissing) {
+      Logger.error(
+        NAMESPACE,
+        "createOrder(createOrderRequestDTO: %v): warehouse service's response not well formatted... aborting.",
+        createOrderRequestDTO
+      );
       return new OrderCreationFailed();
     }
+
+    Logger.dev(
+      NAMESPACE,
+      "createOrder(createOrderRequestDTO: %v): items are available... going on.",
+      createOrderRequestDTO
+    );
+
+    // // checking buyer budget availability. The response must have
+    // // key = transactionId and value = orderDTO without any modification.
+    const budgetAvailabilityResponse =
+      await this.producerProxy.produceAndWaitResponse<OrderDTO>(
+        "budget-availability-requested",
+        transactionId,
+        orderDTO
+      );
+    Logger.dev(
+      NAMESPACE,
+      "createOrder(createOrderRequestDTO: %v): money are available... going on.",
+      createOrderRequestDTO
+    );
+    return this.approveOrder(budgetAvailabilityResponse);
   };
 
   private isStatusChangeAllowed = (
@@ -344,14 +376,18 @@ export default class OrderService {
       try {
         await this.producerProxy.producer.produce({
           topic: "order-status-updated",
-          messages: [{key: updatedOrder._id!.toString(), value: JSON.stringify(updatedOrderDTO)}],
+          messages: [
+            {
+              key: updatedOrder._id!.toString(),
+              value: JSON.stringify(updatedOrderDTO),
+            },
+          ],
         });
-      }
-      catch (ex) {
+      } catch (ex) {
         Logger.error(
-            NAMESPACE,
-            "modifyOrderStatus(modifyOrderStatusRequestDTO: %v): failed to produce on kafka topic",
-            modifyOrderStatusRequestDTO,
+          NAMESPACE,
+          "modifyOrderStatus(modifyOrderStatusRequestDTO: %v): failed to produce on kafka topic",
+          modifyOrderStatusRequestDTO
         );
         return updatedOrderDTO;
       }
@@ -410,9 +446,9 @@ export default class OrderService {
     }
     await this.orderRepository.deleteOrderById(order._id!);
     Logger.dev(
-        NAMESPACE,
-        "deleteOrder(deleteOrderRequestDTO: %v): deleted",
-        deleteOrderRequestDTO
+      NAMESPACE,
+      "deleteOrder(deleteOrderRequestDTO: %v): deleted",
+      deleteOrderRequestDTO
     );
   };
 }

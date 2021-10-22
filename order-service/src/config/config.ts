@@ -1,4 +1,5 @@
 import {generateUUID} from "../utils/utils";
+import Logger from "../utils/Logger";
 
 const environment = process.env.NODE_ENV || "development";
 const server_instance_id = process.env.SERVER_INSTANCE_ID || `ORDER-SVC-${generateUUID(false)}`;
@@ -84,6 +85,6 @@ const config = {
   },
 };
 
-console.log(JSON.stringify(config, null, " "));
+Logger.dev("CONFIG", JSON.stringify(config, null, " "));
 
 export default config;
