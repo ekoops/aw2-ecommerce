@@ -22,46 +22,50 @@ export class Warehouse {
         this.products = products;
     }
 }
-export class WarehouseRequestDto {
-    public name: string | null;
-    public products: WarehouseProductDto | null;
-
-    constructor(name: string, products: WarehouseProductDto) {
-        this.name = name;
-        this.products = products;
-    }
-}
 
 const schemaOptions = {
   toJSON: { virtuals: true },
   toObject: { virtuals: true },
+  versionKey: false,
+  id: false,
 };
 
-const warehouseSchemaObj = {
-  name: {
-    type: mongoose.Schema.Types.String,
-    required: [true, "the warehouse name is required"],
+interface WarehouseProductSpec {
+  _id?: string;
+}
+
+const warehouseProductSpecSchema = new mongoose.Schema<WarehouseProductSpec>({
+  _id: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: [true, "the product id is required"],
   },
-  products: [
-    {
-      quantity: {
-        type: mongoose.Schema.Types.Number,
-        required: [true, "the product quantity is required"],
-      },
-      product: {
-        _id: {
-          type: mongoose.Schema.Types.ObjectId,
-          required: [true, "the product quantity is required"],
-        },
-        required: [true, "the product is required"],
-      },
-    },
-  ],
-};
+});
 
+const warehouseProductSchema = new mongoose.Schema<WarehouseProduct>(
+  {
+    quantity: {
+      type: mongoose.Schema.Types.Number,
+      required: [true, "the product quantity is required"],
+    },
+    product: {
+      type: warehouseProductSpecSchema,
+      required: [true, "the product is required"],
+    },
+  },
+  { _id: false }
+);
 
 const warehouseSchema = new mongoose.Schema<Warehouse>(
-  warehouseSchemaObj,
+  {
+    name: {
+      type: mongoose.Schema.Types.String,
+      required: [true, "the warehouse name is required"],
+    },
+    products: {
+      type: [warehouseProductSchema],
+      default: [],
+    },
+  },
   schemaOptions
 );
 export const WarehouseModel = mongoose.model<Warehouse>(

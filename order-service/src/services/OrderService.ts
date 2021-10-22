@@ -67,7 +67,12 @@ export default class OrderService {
     const orders = await (userRole === UserRole.CUSTOMER
       ? this.orderRepository.findUserOrders(userId)
       : this.orderRepository.findOrders());
-    const ordersDTO = orders.map(OrderUtility.toOrderDTO);
+    const ordersDTO = orders
+      .filter(
+        (order) =>
+          OrderStatusUtility.toOrderStatus(order.status) !== OrderStatus.PENDING
+      )
+      .map(OrderUtility.toOrderDTO);
     Logger.dev(NAMESPACE, "getOrders(): %v", ordersDTO);
 
     return ordersDTO;
@@ -95,7 +100,13 @@ export default class OrderService {
     const order = await (userRole === UserRole.CUSTOMER
       ? this.orderRepository.findUserOrderById(userId, orderId)
       : this.orderRepository.findOrderById(orderId));
-    const orderDTO = order !== null ? OrderUtility.toOrderDTO(order) : null;
+    let orderDTO = null;
+    if (
+      order !== null &&
+      OrderStatusUtility.toOrderStatus(order.status) !== OrderStatus.PENDING
+    ) {
+      orderDTO = OrderUtility.toOrderDTO(order);
+    }
     Logger.dev(
       NAMESPACE,
       "getOrder(getOrderRequestDTO: %v): %v",
@@ -126,7 +137,7 @@ export default class OrderService {
     if (approver === undefined) {
       Logger.error(
         NAMESPACE,
-        "handleApprovation(message: %v): the approverName is not valid",
+        "handleApprovation(message: %v): the approver name is not valid",
         message
       );
       return failureHandler();

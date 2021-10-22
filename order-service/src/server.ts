@@ -55,7 +55,7 @@ const run = async () => {
 
   const app = await getApp(rootPath, orderController);
   app.listen(webServerPort, async () => {
-    Logger.log(NAMESPACE, `Server is listening on port ${webServerPort}`);
+    Logger.log(NAMESPACE, `server is listening on port ${webServerPort}`);
     EurekaClient.start((err: Error) => {
       if (err) {
         Logger.error(

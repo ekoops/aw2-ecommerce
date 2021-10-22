@@ -8,7 +8,7 @@ export class ApplicationException extends CommunicationException {
 
 export class ItemsNotAvailableException extends ApplicationException {
   static fromJson(transactionId: string) {
-    return new ItemsNotAvailableException(transactionId, "the items quantity requested is not available");
+    return new ItemsNotAvailableException(transactionId, "the requested items quantity is not available");
   }
 }
 export class NotEnoughBudgetException extends ApplicationException {

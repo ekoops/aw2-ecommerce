@@ -10,8 +10,8 @@ services:
     #    restart: always
     env_file:
       - configs/order-svc.env.prod
-    ports:
-      - "3000:3000"
+#    ports:
+#      - "3000:3000"
     networks:
       - order-net
       - communication-net
@@ -52,7 +52,6 @@ services:
     image: aw2-ecommerce/order-db-initer
     container_name: order-db-initer
     build:
-#      dockerfile: ../Dockerfile # relative to the build context
       context: ../order-db-initer
     #    restart: always
     env_file:

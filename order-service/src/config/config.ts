@@ -1,5 +1,4 @@
 import {generateUUID} from "../utils/utils";
-import Logger from "../utils/Logger";
 
 const environment = process.env.NODE_ENV || "development";
 const server_instance_id = process.env.SERVER_INSTANCE_ID || `ORDER-SVC-${generateUUID(false)}`;
@@ -26,11 +25,8 @@ const kafka_initial_retry_time = process.env.KAFKA_INITIAL_RETRY_TIME || 5000;
 
 const eureka_instance_app = process.env.EUREKA_INSTANCE_APP || "order-svc";
 const eureka_instance_id = process.env.EUREKA_INSTANCE_ID || server_instance_id;
-const eureka_instance_hostName = process.env.EUREKA_INSTANCE_HOST_NAME || "localhost";
 const eureka_instance_ipAddr = process.env.EUREKA_INSTANCE_IP_ADDR || "127.0.0.1";
-const eureka_instance_statusPageUrl = process.env.EUREKA_INSTANCE_STATUS_PAGE_URL || "http://localhost:3000/status";
 const eureka_instance_port = process.env.EUREKA_INSTANCE_PORT || 3000;
-const eureka_instance_vipAddress = process.env.EUREKA_INSTANCE_VIP_ADDRESS || "order-svc";
 
 const eureka_server_host = process.env.EUREKA_SERVER_HOST || "localhost";
 const eureka_server_port = process.env.EUREKA_SERVER_PORT || 8761;
@@ -69,11 +65,8 @@ const config = {
     instance: {
       app: eureka_instance_app,
       instanceId: eureka_instance_id,
-      hostName: eureka_instance_hostName,
       ipAddr: eureka_instance_ipAddr,
-      statusPageUrl: eureka_instance_statusPageUrl,
       port: +eureka_instance_port,
-      vipAddress: eureka_instance_vipAddress,
     },
     server: {
       host: eureka_server_host,
@@ -85,6 +78,10 @@ const config = {
   },
 };
 
-Logger.dev("CONFIG", JSON.stringify(config, null, " "));
+if (environment === "development") {
+  const config_str = JSON.stringify(config, null, " ");
+  const logline = `[${new Date().toISOString()}] [${server_instance_id}] [CONFIG] [DEV] --- ${config_str} ---`
+  console.log(logline);
+}
 
 export default config;
