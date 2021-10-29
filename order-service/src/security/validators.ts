@@ -63,7 +63,7 @@ const validators: Validators = {
       .bail()
       .custom((status) => {
         // try to see if the string status contains a number...
-        if (!isNaN(status) || OrderStatusUtility.toOrderStatus(status)) {
+        if (!isNaN(status) || OrderStatusUtility.toOrderStatus(status) === undefined) {
           throw new Error("The new status must be a valid one");
         }
       }),

@@ -33,7 +33,7 @@ const getApp = async (
     };
 
     const internalServerErrorResponse = new InternalServerErrorResponse();
-    const exceptionHandler: ErrorRequestHandler = (err, req, res) => {
+    const exceptionHandler: ErrorRequestHandler = (err, req, res, next) => {
         if (err instanceof FieldsValidationErrorResponse) {
             res.status(400).json(err);
             return;
