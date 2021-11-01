@@ -3,6 +3,7 @@ package it.polito.ecommerce.catalogservice.security
 import it.polito.ecommerce.catalogservice.services.implementations.UserDetailsServiceImpl
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.authentication.ReactiveAuthenticationManager
@@ -84,6 +85,7 @@ class WebSecurityConfig(
             .authorizeExchange()
             .pathMatchers("/auth/**").permitAll()
             .pathMatchers("/service/**").permitAll()
+            .pathMatchers(HttpMethod.GET, "/products/**").permitAll()
             .pathMatchers("/users/locking/**").hasAuthority("ADMIN")
             .pathMatchers("/users/enabling/**").hasAuthority("ADMIN")
             .pathMatchers("/users/addRole/**").hasAuthority("ADMIN")
