@@ -85,7 +85,7 @@ data class User(
                 email = email,
                 isEnabled = isEnabled,
                 isLocked = isLocked,
-                rolesList = rolesList,
+                rolesList = roleList.map{Rolename.valueOf(it)},
                 name = name,
                 surname = surname,
                 deliveryAddress = deliveryAddress
