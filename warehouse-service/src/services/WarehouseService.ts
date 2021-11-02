@@ -68,7 +68,7 @@ export default class WarehouseService {
       const availableQuantity = perProductQuantities[product.productId];
       const requiredQuantity = product.amount;
       console.log('available quantity is ', availableQuantity, ' while required quantity is ', requiredQuantity);
-      if (availableQuantity < requiredQuantity) {
+      if (availableQuantity === undefined || availableQuantity < requiredQuantity) {
         console.log('returning false');
         return false;
       }

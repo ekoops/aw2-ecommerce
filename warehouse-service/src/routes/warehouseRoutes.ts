@@ -1,61 +1,69 @@
 import express from "express";
 import WarehouseController from "../controllers/WarehouseController";
-import {handleJwt} from "../security/jwt";
-import {UserRole} from "../domain/User";
+import { handleJwt } from "../security/jwt";
+import { UserRole } from "../domain/User";
+import { checkErrors, validators } from "../security/validators";
 
 const router = express.Router();
 
 const getRouter = (warehouseController: WarehouseController) => {
-    const router = express.Router();
+  const router = express.Router();
 
-    router.use(handleJwt);
+  router.use(handleJwt);
 
-    router.use((req, res, next) => {
-        const role = res.locals.user.role;
-        const isAdmin = role === UserRole.ADMIN;
-        if (!isAdmin && req.method !== 'GET') {
-            next({
-                code: 18,
-                message: 'Reserved to admin'
-            });
-            return;
-        }
-        next();
-    });
-    
-    router.post( 
-        '/',
-        // validators.postWarehouse,
-        // checkErrors,
-        warehouseController.insertWarehouse
-    );
+  router.use((req, res, next) => {
+    const role = res.locals.user.role;
+    const isAdmin = role === UserRole.ADMIN;
+    if (!isAdmin) {
+      next({
+        code: 18,
+        message: "Reserved to admin",
+      });
+      return;
+    }
+    next();
+  });
 
-    router.get( // TODO: quando non ci sono warehouse non ritorna errore
-        '/',
-        warehouseController.getWarehouses
-    );
+  router.post(
+    "/",
+    warehouseController.insertWarehouse
+  );
 
-    router.get(
-        '/:warehouseId',
-        warehouseController.getWarehouseById
-    );
+  router.get(
+    // TODO: quando non ci sono warehouse non ritorna errore
+    "/",
+    warehouseController.getWarehouses
+  );
 
-    router.put(
-        '/:warehouseId',
-        warehouseController.putWarehouseById
-    );
+  router.get(
+    "/:warehouseId",
+    validators.validateWarehouseId,
+    checkErrors,
+    warehouseController.getWarehouseById
+  );
 
-    router.patch(
-        '/:warehouseId',
-        warehouseController.patchWarehouseById
-    );
+  router.put(
+    "/:warehouseId",
+    validators.validateWarehouseId,
+    checkErrors,
+    warehouseController.putWarehouseById
+  );
 
-    router.delete(
-        '/:warehouseId',
-        warehouseController.deleteWarehouseById
-    );
+  router.patch(
+    "/:warehouseId",
+    validators.validateWarehouseId,
+    checkErrors,
+    warehouseController.patchWarehouseById
+  );
 
-    return router;
+  router.delete(
+    "/:warehouseId",
+    validators.validateWarehouseId,
+    checkErrors,
+    warehouseController.deleteWarehouseById
+  );
+
+  return router;
 };
 
 export default getRouter;

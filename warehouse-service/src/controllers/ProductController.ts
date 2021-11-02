@@ -4,6 +4,7 @@ import { PLACEHOLDER_IMG } from "../db/imgs";
 import { ProductDto } from "../domain/Product";
 import ProductService from "../services/ProductService";
 import WarehouseService from "../services/WarehouseService";
+import { UserRole } from "../domain/User";
 
 export default class ProductController {
   private static _instance: ProductController;
@@ -51,7 +52,7 @@ export default class ProductController {
     if (!mongoose.Types.ObjectId.isValid(productId)) {
       next({
         code: 27,
-        error: 'The following id is not a valid id ' + productId
+        error: "The following id is not a valid id " + productId,
       });
       return;
     }
@@ -62,7 +63,7 @@ export default class ProductController {
     if (products.length === 0) {
       next({
         code: 24,
-        error: 'Cannot find the product with id ' + productId
+        error: "Cannot find the product with id " + productId,
       });
       return;
     }
@@ -90,7 +91,7 @@ export default class ProductController {
     const result = await this.productService.insertProducts([product]);
     await this.productService.postPicture({
       _id: result[0]._id,
-      url: PLACEHOLDER_IMG
+      url: PLACEHOLDER_IMG,
     });
     res.json(result);
   };
@@ -122,15 +123,15 @@ export default class ProductController {
       const result = (
         await this.productService.getPicture({ _id: productId })
       )[0];
-  
+
       if (!result) {
         next({
           code: 21,
-          error: 'Cannot find the product with id ' + productId
+          error: "Cannot find the product with id " + productId,
         });
         return;
       }
-  
+
       console.log(result);
       res.write(result.url);
       res.end();
@@ -138,11 +139,10 @@ export default class ProductController {
       console.log(ex);
       next({
         code: 30,
-        error: 'Cannot find the product with id ' + productId
+        error: "Cannot find the product with id " + productId,
       });
       return;
     }
-
   };
 
   getWarehousesByProductId = async (
@@ -150,7 +150,7 @@ export default class ProductController {
     res: express.Response,
     next: express.NextFunction
   ) => {
-    const productId = req.params["productId"];
+    const productId = req.params["id"];
     const result = await this.warehouseService.findWarehouses({
       "products.product._id": mongoose.Types.ObjectId(productId),
     });
@@ -169,16 +169,15 @@ export default class ProductController {
     if (!mongoose.Types.ObjectId.isValid(productId)) {
       next({
         code: 23,
-        error: 'Cannot find the product with id ', productId
+        error: "Cannot find the product with id ",
+        productId,
       });
       return;
     }
 
-    const result = await this.productService.deleteProduct({ _id: productId });
+    await this.productService.deleteProduct({ _id: productId });
 
-    res.json({
-      deleted: result,
-    });
+    res.status(204).end();
   };
 
   putProduct = async (
@@ -188,17 +187,17 @@ export default class ProductController {
   ) => {
     const productId = req.params["id"];
     const product: ProductDto = req.body;
-    let result;
+
     if (!mongoose.Types.ObjectId.isValid(productId)) {
       next({
         code: 24,
-        error: 'The following id is not a valid id ' + productId
+        error: "The following id is not a valid id " + productId,
       });
       return;
     }
 
-    result = await this.productService.deleteProduct({ _id: productId });
-    if (result.deletedCount === 1) {
+    try {
+      await this.productService.deleteProduct({ _id: productId });
       if (!product.comments) product.comments = [];
       product.comments.forEach((c) => {
         if (!c.createdAt) c.createdAt = new Date();
@@ -207,9 +206,13 @@ export default class ProductController {
       product.createdAt = new Date();
       product._id = productId;
       delete product.averageRating;
-      result = (await this.productService.insertProducts([product]))[0];
+      await this.productService.insertProducts([product]);
+
+      res.status(204).end();
     }
-    res.json(result);
+    catch(ex) {
+      next(ex);
+    }
   };
 
   patchProduct = async (
@@ -220,10 +223,21 @@ export default class ProductController {
     const productId = req.params["id"];
     let product: ProductDto = req.body;
     let result;
+    if (
+      Object.keys(product).some((k) => k != "comments") &&
+      res.locals.user.role !== UserRole.ADMIN
+    ) {
+      next({
+        code: 23,
+        error: "unauthorized",
+      });
+      return;
+    }
+
     if (!mongoose.Types.ObjectId.isValid(productId)) {
       next({
         code: 25,
-        error: 'The following id is not a valid id: ' + productId
+        error: "The following id is not a valid id: " + productId,
       });
       return;
     }
@@ -234,7 +248,7 @@ export default class ProductController {
     if (!oldProduct) {
       next({
         code: 24,
-        error: 'Cannot find the product with id ' + productId
+        error: "Cannot find the product with id " + productId,
       });
       return;
     }
@@ -244,12 +258,14 @@ export default class ProductController {
       product.comments.forEach((c) => {
         if (!c.createdAt) c.createdAt = new Date();
       });
+
       //@ts-ignore
       product.createdAt = new Date();
       product._id = productId;
       product = {
         ...oldProduct,
         ...product,
+        comments: oldProduct.comments.concat(product.comments),
       } as ProductDto;
       delete product.averageRating;
       result = (await this.productService.insertProducts([product]))[0];

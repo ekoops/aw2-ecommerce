@@ -183,6 +183,21 @@ export default class OrderService {
     const perProductSortedWarehousesAndQuantities = productsLocations;
     console.log({perProductSortedWarehousesAndQuantities: JSON.stringify(perProductSortedWarehousesAndQuantities, null, '  ')})
 
+    if (products.some(p => !perProductSortedWarehousesAndQuantities[p.productId])) {
+      await this.producerProxy.producer.produce({
+        topic: "order-creation-warehouse-response",
+        messages: [
+          {
+            key: order._id,
+            value: JSON.stringify({
+              failure: "no such products"
+            }),
+          },
+        ],
+      });
+      return;
+    }
+
     // checking if the operation failed
     if (Object.keys(perProductSortedWarehousesAndQuantities).length === 0) {
       // TODO: sending failure response to the order-service via kafka

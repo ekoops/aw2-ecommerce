@@ -1,83 +1,92 @@
 import express from "express";
 import ProductController from "../controllers/ProductController";
 import { validators, checkErrors } from "../security/validators";
-import {handleJwt} from "../security/jwt";
-import {UserRole} from "../domain/User";
+import { handleJwt } from "../security/jwt";
+import { UserRole } from "../domain/User";
 
 const getRouter = (productController: ProductController) => {
-    const router = express.Router();
+  const router = express.Router();
 
-    router.use(handleJwt);
+  router.get(
+    "/",
+    validators.getProductByCategory,
+    checkErrors,
+    productController.getProducts
+  );
 
-    router.use((req, res, next) => {
-        const role = res.locals.user.role;
-        const isAdmin = role === UserRole.ADMIN;
-        if (!isAdmin && req.method !== 'GET' && req.method !== 'PATCH') {
-            next({
-                code: 18,
-                message: 'Reserved to admin'
-            });
-            return;
-        }
-        next();
-    });
+  router.get(
+    "/:id",
+    validators.validateProductId,
+    checkErrors,
+    productController.getProductById
+  );
 
-    router.get(
-        '/',
-        validators.getProductByCategory,
-        checkErrors,
-        productController.getProducts
-    );
+  router.get(
+    "/:id/picture",
+    validators.validateProductId,
+    checkErrors,
+    productController.getPicture
+  );
 
-    router.get(
-        '/:id',
-        // validators.getProductById, che validazione usare?
-        checkErrors,
-        productController.getProductById
-    );
+  router.use(handleJwt);
 
-    router.delete(
-        '/:id',
-        checkErrors,
-        productController.deleteProductById
-    );
+  router.use((req, res, next) => {
+    const role = res.locals.user.role;
+    const isAdmin = role === UserRole.ADMIN;
+    if (!isAdmin && req.method !== "PATCH") {
+      next({
+        code: 18,
+        message: "Reserved to admin",
+      });
+      return;
+    }
+    next();
+  });
 
-    router.put(
-        '/:id',
-        validators.postProduct,
-        checkErrors,
-        productController.putProduct
-    );
+  router.delete(
+    "/:id",
+    validators.validateProductId,
+    checkErrors,
+    productController.deleteProductById
+  );
 
-    router.patch(
-        '/:id',
-        checkErrors,
-        productController.patchProduct
-    );
+  router.put(
+    "/:id",
+    validators.validateProductId,
+    validators.postProduct,
+    checkErrors,
+    productController.putProduct
+  );
 
-    router.post(
-        '/',
-        validators.postProduct,
-        checkErrors,
-        productController.insertProduct
-    );
+  router.patch(
+    "/:id",
+    validators.validateProductId,
+    checkErrors,
+    productController.patchProduct
+  );
 
-    router.post(
-        '/:id/picture',
-        express.text({type: '*/*'}),
-        productController.postPicture
-    );
+  router.post(
+    "/",
+    validators.postProduct,
+    checkErrors,
+    productController.insertProduct
+  );
 
-    router.get(
-        '/:id/picture',
-        productController.getPicture
-    );
+  router.post(
+    "/:id/picture",
+    validators.validateProductId,
+    checkErrors,
+    express.text({ type: "*/*" }),
+    productController.postPicture
+  );
 
-    router.get(
-        '/:productId/warehouses',
-        productController.getWarehousesByProductId
-    );
+  router.get(
+    "/:id/warehouses",
+    validators.validateProductId,
+    checkErrors,
+    productController.getWarehousesByProductId
+  );
 
-    return router;
-}
+  return router;
+};
 export default getRouter;

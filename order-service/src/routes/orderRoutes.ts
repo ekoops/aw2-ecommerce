@@ -24,7 +24,6 @@ const getRouter = (orderController: OrderController) => {
     orderController.postOrder
   );
 
-  //todo fix validator
   router.patch(
     "/:id",
     validators.patchOrder,

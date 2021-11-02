@@ -42,7 +42,7 @@ http://localhost:8080/api/v1/auth/confirmRegistration?token=${userCreatedDTO.ema
         const {key, value} = message;
 
         console.log({message})
-        const to = "warehouse_admin@yopmail.com";
+        const to = "aw2admin@yopmail.com";
         const subject = "[AW2 Ecommerce] Warehouse alert! Product is below limit";
         const text = `Warehouse alert! The product ${value.productName} is below the threshold. The current quantity is ${value.limit} in the warehouse located at the following address:
     ${value.warehouseAddress}
@@ -97,12 +97,23 @@ http://localhost:8080/api/v1/auth/confirmRegistration?token=${userCreatedDTO.ema
         const text = `The order with id: ${value.id} is now in status: ${value.status}`;
         const mail = {to, subject, text};
         console.log({mail})
-        return this.mailerProxy.send(mail).catch(err => {
+        this.mailerProxy.send(mail).catch(err => {
             Logger.error(
                 NAMESPACE,
-                `sendThresholdMail(message: ${message}): failed to send email to ${to}: ${
+                `sendOrderStatusUpdatedMail(message: ${message}): failed to send email to ${to}: ${
                     err.message || "-"
                 }`
+            );
+        });
+        const mail2 = {
+            subject, text, to: "aw2admin@yopmail.com"
+        };
+        return this.mailerProxy.send(mail2).catch(err => {
+            Logger.error(
+              NAMESPACE,
+              `sendOrderStatusUpdatedMail(message: ${message}): failed to send email to ${to}: ${
+                err.message || "-"
+              }`
             );
         });
     }

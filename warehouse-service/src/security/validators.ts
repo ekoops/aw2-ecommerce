@@ -33,13 +33,13 @@ const checkErrors = (req: Request, res: Response, next: NextFunction) => {
   } else return next();
 };
 
-// const validateObjectId = (validationChain: ValidationChain): ValidationChain => {
-//   return validationChain.custom((id) => {
-//     if (!mongoose.Types.ObjectId.isValid(id)) {
-//       throw new Error(`The provided id(${id}) is not valid`);
-//     } else return true;
-//   });
-// };
+const validateObjectId = (validationChain: ValidationChain): ValidationChain => {
+  return validationChain.custom((id) => {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new Error(`The provided id(${id}) is not valid`);
+    } else return true;
+  });
+};
 
 const validateCategory = (validationChain: ValidationChain): ValidationChain => {
   return validationChain.custom((category: Category) => {
@@ -58,16 +58,19 @@ const validateStars = (validationChain: ValidationChain): ValidationChain => {
 }
 
 const validators: Validators = {
+  validateProductId: [validateObjectId(param("id"))],
   getProductByCategory: [validateCategory(query("category"))],
   postProduct: [
     body('name').exists().isString(),
+    body('category').exists(),
     validateCategory(body('category')),
     body('price').exists().isNumeric(),
     body('comments.*.title').exists().isString(),
     body('comments.*.body').exists().isString(),
     body('comments.*.stars').exists().isNumeric(),
     validateStars(body('comments.*.stars')).withMessage('Stars must be greater than 0 and less than 5'),
-  ]
+  ],
+  validateWarehouseId: [validateObjectId(param("warehouseId"))]
 };
 
 export { checkErrors, validators };

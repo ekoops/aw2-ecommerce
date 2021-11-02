@@ -10,6 +10,7 @@ import mongoose from "mongoose";
 import { NextFunction, Request, Response } from "express";
 import OrderStatusUtility from "../utils/OrderStatusUtility";
 import FieldsValidationErrorResponse, {FieldErrorReasons} from "../responses/FieldsValidationErrorResponse";
+import Logger from "../utils/Logger";
 
 interface Validators {
   [key: string]: ValidationChain[];
@@ -66,6 +67,7 @@ const validators: Validators = {
         if (!isNaN(status) || OrderStatusUtility.toOrderStatus(status) === undefined) {
           throw new Error("The new status must be a valid one");
         }
+        return true
       }),
   ],
   deleteOrder: [validateObjectId(param("id"))],
