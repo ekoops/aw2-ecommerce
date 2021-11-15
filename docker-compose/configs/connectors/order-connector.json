@@ -1,0 +1,13 @@
+{
+  "name": "order-db-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.mongodb.MongoDbConnector",
+    "mongodb.hosts": "order-db-rs0-1:27017,order-db-rs0-2:27017,order-db-rs0-3:27017",
+    "mongodb.name": "order-db",
+    "mongodb.user": "root",
+    "mongodb.password": "order-db-root-password",
+    "mongodb.authsource": "admin",
+
+    "collection.include.list": "order-db.orders"
+  }
+}
